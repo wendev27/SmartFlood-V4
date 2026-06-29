@@ -65,15 +65,6 @@ The objectives of SmartFlood V4 are:
 
 ---
 
-## 💳 Donation System
-
-- Secure online donations
-- Payment gateway integration
-- Donation audit logs
-- Transparent transaction history
-
----
-
 ## 📱 Mobile Integration
 
 - Resident registration
