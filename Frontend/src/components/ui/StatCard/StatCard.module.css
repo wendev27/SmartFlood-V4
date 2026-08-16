@@ -1,0 +1,91 @@
+.card {
+  background: #ffffff;
+  border-left: 3px solid var(--color-cyan);
+  border-radius: 10px;
+  box-shadow: 0 12px 20px rgba(15, 23, 42, 0.12);
+  min-height: 84px;
+  overflow: hidden;
+  padding: 18px 22px;
+  position: relative;
+}
+
+.card::after {
+  background: #f0f3f6;
+  border-radius: 0 0 0 78px;
+  content: "";
+  height: 62px;
+  position: absolute;
+  right: 0;
+  top: 0;
+  width: 62px;
+}
+
+.interactive {
+  cursor: pointer;
+  transition: box-shadow 160ms ease, transform 160ms ease;
+}
+
+.interactive:hover,
+.interactive:focus-visible {
+  box-shadow: 0 16px 26px rgba(15, 23, 42, 0.18);
+  outline: 2px solid rgba(15, 97, 255, 0.28);
+  outline-offset: 3px;
+  transform: translateY(-2px);
+}
+
+.active {
+  box-shadow: 0 0 0 3px rgba(15, 97, 255, 0.2), 0 16px 26px rgba(15, 23, 42, 0.16);
+}
+
+.card span,
+.card strong,
+.card p {
+  display: block;
+  position: relative;
+  z-index: 1;
+}
+
+.card span {
+  color: #21364c;
+  font-size: 9px;
+  margin-bottom: 9px;
+}
+
+.card strong {
+  color: #0050a2;
+  font-size: 27px;
+  line-height: 1;
+  margin-bottom: 8px;
+}
+
+.card p {
+  color: #00a74f;
+  font-size: 9px;
+  line-height: 1.6;
+  margin: 0;
+}
+
+.blue {
+  border-left-color: var(--color-blue);
+}
+
+.cyan,
+.sky,
+.teal {
+  border-left-color: var(--color-cyan);
+}
+
+.danger {
+  color: #ff2f1f !important;
+}
+
+.info {
+  color: var(--color-blue) !important;
+}
+
+@media (min-width: 900px) {
+  .card {
+    min-height: 96px;
+    padding: 20px 26px;
+  }
+}

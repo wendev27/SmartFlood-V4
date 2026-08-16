@@ -1,0 +1,112 @@
+.emptyState,
+.loadingState,
+.errorState {
+  align-items: center;
+  border-radius: 8px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  min-height: 150px;
+  padding: 22px;
+  text-align: center;
+}
+
+.emptyState {
+  background: #f8fbff;
+  border: 1px dashed #bfd5ff;
+  color: #1e3a8a;
+}
+
+.emptyIcon,
+.errorIcon {
+  align-items: center;
+  border-radius: 999px;
+  display: inline-flex;
+  font-size: 14px;
+  font-weight: 900;
+  height: 34px;
+  justify-content: center;
+  margin-bottom: 10px;
+  width: 34px;
+}
+
+.emptyIcon {
+  background: #e0f2fe;
+  color: var(--color-blue);
+}
+
+.emptyState strong,
+.errorState strong {
+  font-size: 14px;
+  font-weight: 900;
+}
+
+.emptyState p,
+.loadingState p,
+.errorState p {
+  color: #64748b;
+  font-size: 12px;
+  line-height: 1.5;
+  margin: 6px 0 0;
+  max-width: 520px;
+}
+
+.emptyState button {
+  margin-top: 14px;
+}
+
+.loadingState {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  color: #334155;
+  min-height: 120px;
+}
+
+.spinner {
+  animation: spin 0.8s linear infinite;
+  border: 3px solid #dbeafe;
+  border-top-color: var(--color-blue);
+  border-radius: 999px;
+  height: 30px;
+  width: 30px;
+}
+
+.errorState {
+  align-items: flex-start;
+  background: #fff7f7;
+  border: 1px solid #fecaca;
+  color: #b91c1c;
+  flex-direction: row;
+  gap: 12px;
+  min-height: 0;
+  text-align: left;
+}
+
+.errorIcon {
+  background: #fee2e2;
+  color: #dc2626;
+  flex: 0 0 auto;
+  margin-bottom: 0;
+}
+
+.errorState button {
+  flex: 0 0 auto;
+  margin-left: auto;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (max-width: 640px) {
+  .errorState {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .errorState button {
+    margin-left: 0;
+  }
+}

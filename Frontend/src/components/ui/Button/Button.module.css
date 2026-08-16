@@ -1,0 +1,38 @@
+.button {
+  border: 0;
+  border-radius: 9px;
+  color: #ffffff;
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.md {
+  min-height: 42px;
+  padding: 0 20px;
+}
+
+.sm {
+  min-height: 34px;
+  min-width: 76px;
+  padding: 0 14px;
+}
+
+.primary {
+  background: var(--color-blue);
+}
+
+.success {
+  background: #09c657;
+}
+
+.danger {
+  background: var(--color-danger);
+}
+
+.muted {
+  background: #94a3b8;
+}
+
+.purple {
+  background: linear-gradient(90deg, #ad12f6, #a300f3);
+}

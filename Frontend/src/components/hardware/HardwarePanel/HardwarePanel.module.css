@@ -1,0 +1,378 @@
+.landingPanel {
+  min-height: calc(100vh - 220px);
+  padding-top: clamp(26px, 4vh, 58px);
+  width: 100%;
+}
+
+.moduleCards {
+  display: grid;
+  gap: clamp(18px, 1.6vw, 28px);
+  grid-template-columns: 1fr;
+  justify-content: center;
+  margin: 0 auto;
+  max-width: 100%;
+  width: 100%;
+}
+
+.moduleCard {
+  background: #ffffff;
+  border-radius: 9px;
+  box-shadow: 0 13px 21px rgba(15, 23, 42, 0.13);
+  color: #0a3f78;
+  min-height: 208px;
+  padding: 32px 22px 26px;
+}
+
+.moduleIcon {
+  align-items: center;
+  background: #067bea;
+  border-radius: 10px;
+  box-shadow: 0 12px 20px rgba(0, 91, 204, 0.28);
+  color: #ffffff;
+  display: flex;
+  height: 64px;
+  justify-content: center;
+  margin: 0 auto 26px;
+  width: 64px;
+}
+
+.moduleCard strong {
+  color: #004b88;
+  display: block;
+  font-size: 17px;
+  line-height: 1.2;
+  margin: 0 0 14px;
+}
+
+.moduleCard p {
+  color: #4e6077;
+  font-size: 11px;
+  line-height: 1.55;
+  margin: 0 0 8px;
+  max-width: 210px;
+}
+
+.openButton,
+.backButton {
+  align-items: center;
+  background: transparent;
+  border: 0;
+  color: #00a4ff;
+  display: inline-flex;
+  font-size: 11px;
+  font-weight: 800;
+  gap: 4px;
+  line-height: 1;
+  padding: 0;
+}
+
+.openButton:hover,
+.openButton:focus-visible,
+.backButton:hover,
+.backButton:focus-visible {
+  text-decoration: underline;
+}
+
+.backButton {
+  color: #0b67ff;
+  font-size: 12px;
+  gap: 8px;
+  margin: 0 0 24px;
+}
+
+.backButton span {
+  font-size: 16px;
+  line-height: 1;
+}
+
+.subPage {
+  display: grid;
+  gap: 4px;
+}
+
+.panel {
+  background: #f8fafc;
+  display: grid;
+  gap: 20px;
+  padding: 18px;
+}
+
+.errorMessage {
+  background: #fef3f2;
+  border-radius: 8px;
+  color: #b42318;
+  font-size: 12px;
+  font-weight: 700;
+  margin: 0;
+  padding: 10px 12px;
+}
+
+.topRow,
+.monitorRow,
+.commandGrid {
+  display: grid;
+  gap: 18px;
+}
+
+.connectButton,
+.fullButton {
+  width: 100%;
+}
+
+.wifiMark {
+  border: 2px solid #ffffff;
+  border-bottom: 0;
+  border-left-color: transparent;
+  border-right-color: transparent;
+  border-radius: 50%;
+  height: 14px;
+  position: relative;
+  width: 18px;
+}
+
+.wifiMark::after {
+  background: #ffffff;
+  border-radius: 50%;
+  content: "";
+  height: 4px;
+  left: 5px;
+  position: absolute;
+  top: 7px;
+  width: 4px;
+}
+
+.disconnectStatus {
+  align-items: center;
+  background: #fff0f1;
+  border-left: 4px solid #ff3547;
+  border-radius: 8px;
+  color: #e00022;
+  display: flex;
+  justify-content: space-between;
+  min-height: 80px;
+  padding: 18px 20px;
+}
+
+.disconnectStatus strong {
+  display: block;
+  font-size: 16px;
+  margin-bottom: 9px;
+}
+
+.disconnectStatus p,
+.statusBox span,
+.meterHead span,
+.meterScale,
+.logStack span,
+.commandGrid p {
+  color: #64748b;
+  font-size: 10px;
+}
+
+.disconnectStatus p {
+  margin: 0;
+}
+
+.disconnectStatus > span {
+  background: #ff3547;
+  border-radius: 50%;
+  height: 11px;
+  width: 11px;
+}
+
+.statusStack,
+.logStack {
+  display: grid;
+  gap: 10px;
+}
+
+.statusBox {
+  background: #f8fafc;
+  border-radius: 8px;
+  min-height: 54px;
+  padding: 10px 13px;
+  position: relative;
+}
+
+.statusBox b {
+  color: #0f172a;
+  display: block;
+  font-size: 12px;
+  margin-top: 7px;
+}
+
+.statusBox .offline {
+  color: #ff0024;
+}
+
+.statusBox i {
+  border-left: 2px solid #94a3b8;
+  border-right: 2px solid #94a3b8;
+  height: 13px;
+  position: absolute;
+  right: 16px;
+  top: 28px;
+  transform: skewX(-18deg);
+  width: 8px;
+}
+
+.meterBlock + .meterBlock {
+  margin-top: 18px;
+}
+
+.meterHead,
+.meterScale {
+  align-items: center;
+  display: flex;
+  justify-content: space-between;
+}
+
+.meterHead {
+  margin-bottom: 14px;
+}
+
+.meterHead b {
+  color: var(--color-blue);
+  font-size: 10px;
+}
+
+.meterTrack {
+  background: #cfe4ff;
+  border-radius: 99px;
+  height: 8px;
+  overflow: hidden;
+}
+
+.meterTrack span {
+  background: linear-gradient(90deg, #5caeff, #0d6cff);
+  display: block;
+  height: 100%;
+}
+
+.meterScale {
+  margin-top: 9px;
+}
+
+.logStack p {
+  align-items: center;
+  background: #f8fafc;
+  border-radius: 6px;
+  color: #27364a;
+  display: flex;
+  font-size: 11px;
+  gap: 8px;
+  margin: 0;
+  min-height: 40px;
+  padding: 10px 12px;
+}
+
+.blueDot,
+.greenDot {
+  border-radius: 50%;
+  flex: 0 0 7px;
+  height: 7px;
+  width: 7px;
+}
+
+.blueDot {
+  background: #1c74ff;
+}
+
+.greenDot {
+  background: #10c75a;
+}
+
+.logFade {
+  background: #f1f5f9;
+  height: 11px;
+  margin: 10px 14px 0;
+}
+
+.commandGrid h3 {
+  color: #334155;
+  font-size: 13px;
+  margin: 0 0 8px;
+}
+
+.commandGrid p {
+  margin: 0 0 18px;
+}
+
+.commandGrid input {
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  color: #334155;
+  display: block;
+  font-size: 13px;
+  height: 40px;
+  margin-bottom: 12px;
+  padding: 0 16px;
+  width: 100%;
+}
+
+.commandGrid button {
+  margin-bottom: 12px;
+}
+
+@media (min-width: 680px) {
+  .moduleCards {
+    grid-template-columns: repeat(auto-fit, minmax(280px, 360px));
+  }
+
+  .topRow {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .monitorRow {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .commandGrid {
+    grid-template-columns: 1fr 1fr;
+    gap: 80px;
+  }
+}
+
+@media (min-width: 900px) {
+  .subPage {
+    height: calc(100dvh - 190px);
+    overflow-y: auto;
+    padding-right: 6px;
+    scrollbar-color: #9bc9ff transparent;
+    scrollbar-width: thin;
+  }
+
+  .subPage::-webkit-scrollbar {
+    width: 8px;
+  }
+
+  .subPage::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .subPage::-webkit-scrollbar-thumb {
+    background: #9bc9ff;
+    border-radius: 999px;
+  }
+
+  .landingPanel {
+    align-content: start;
+    display: grid;
+    min-height: calc(100vh - 235px);
+    padding-top: clamp(38px, 6vh, 72px);
+  }
+
+  .moduleCards {
+    max-width: min(752px, 100%);
+  }
+
+  .moduleCard {
+    min-height: clamp(218px, 24vh, 250px);
+    padding: clamp(30px, 3vh, 38px) 22px 28px;
+  }
+
+  .panel {
+    gap: clamp(14px, 1.2vw, 18px);
+    padding: clamp(18px, 1.45vw, 26px);
+  }
+}

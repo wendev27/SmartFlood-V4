@@ -1,0 +1,93 @@
+.map {
+  background: #1f1f1f;
+  border-radius: 8px;
+  height: auto;
+  min-height: 250px;
+  overflow: visible;
+  position: relative;
+  width: 100%;
+}
+
+.dashboard {
+  aspect-ratio: 2.25 / 1;
+  min-height: 320px;
+}
+
+.wide {
+  height: clamp(320px, 42vh, 430px);
+  min-height: 320px;
+}
+
+.mapState {
+  align-items: center;
+  background: #f8fafc;
+  display: flex;
+  height: 100%;
+  justify-content: center;
+  min-height: inherit;
+  padding: 18px;
+}
+
+.legend {
+  background: rgba(255, 255, 255, 0.13);
+  border-radius: 10px;
+  bottom: 16px;
+  color: #ffffff;
+  padding: 12px;
+  position: absolute;
+  right: 16px;
+  width: 122px;
+}
+
+.legend h3 {
+  font-size: 9px;
+  margin: 0 0 10px;
+}
+
+.legend p {
+  align-items: center;
+  display: flex;
+  font-size: 8px;
+  gap: 5px;
+  margin: 0 0 7px;
+}
+
+.dot {
+  border-radius: 50%;
+  display: inline-block;
+  height: 8px;
+  width: 8px;
+}
+
+.normal {
+  background: #15cf49;
+}
+
+.warning {
+  background: #ff7417;
+}
+
+.alert {
+  background: #f7bd00;
+}
+
+.critical {
+  background: #ff4343;
+}
+
+.offline {
+  background: #94a3b8;
+}
+
+@media (min-width: 900px) {
+  .dashboard {
+    aspect-ratio: auto;
+    height: clamp(420px, 52vh, 520px);
+    min-height: 420px;
+  }
+
+  .wide {
+    height: clamp(360px, 42vh, 430px);
+    min-height: 360px;
+  }
+}

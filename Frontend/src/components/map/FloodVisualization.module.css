@@ -1,0 +1,132 @@
+.mapShell {
+  height: 100%;
+  position: relative;
+  width: 100%;
+}
+
+.influenceIcon {
+  background: transparent;
+  border: 0;
+  pointer-events: none;
+}
+
+.influence {
+  background:
+    radial-gradient(
+      circle,
+      rgba(var(--core-color), var(--severity-opacity)) 0%,
+      rgba(var(--core-color), calc(var(--severity-opacity) * 0.78)) var(--core-stop),
+      rgba(var(--mid-color), calc(var(--severity-opacity) * 0.48)) var(--mid-stop),
+      rgba(var(--outer-color), calc(var(--severity-opacity) * 0.2)) var(--outer-stop),
+      rgba(var(--outer-color), calc(var(--severity-opacity) * 0.06)) var(--fade-stop),
+      rgba(var(--outer-color), 0) 100%
+    );
+  border-radius: 999px;
+  display: block;
+  filter: blur(var(--influence-blur)) saturate(1.08);
+  height: 100%;
+  mix-blend-mode: multiply;
+  pointer-events: none;
+  width: 100%;
+}
+
+.legend {
+  backdrop-filter: blur(10px);
+  background: rgba(255, 255, 255, 0.9);
+  border: 1px solid rgba(148, 163, 184, 0.3);
+  border-radius: 8px;
+  bottom: 12px;
+  box-shadow: 0 12px 30px rgba(15, 23, 42, 0.16);
+  color: #0f172a;
+  left: 12px;
+  max-width: min(252px, calc(100% - 24px));
+  padding: 12px;
+  position: absolute;
+  z-index: 500;
+}
+
+.legend h4 {
+  color: #0b4f8f;
+  font-size: 10px;
+  font-weight: 900;
+  letter-spacing: 0;
+  line-height: 1.2;
+  margin: 0 0 9px;
+}
+
+.legend div {
+  display: grid;
+  gap: 6px;
+}
+
+.legend span {
+  align-items: center;
+  color: #263445;
+  display: grid;
+  font-size: 11px;
+  font-weight: 700;
+  gap: 7px;
+  grid-template-columns: 10px minmax(88px, 1fr) auto;
+  line-height: 1.2;
+}
+
+.legend i {
+  border: 1px solid rgba(15, 23, 42, 0.12);
+  border-radius: 999px;
+  display: inline-block;
+  height: 10px;
+  width: 10px;
+}
+
+.legend p {
+  color: #64748b;
+  font-size: 10px;
+  line-height: 1.35;
+  margin: 9px 0 0;
+}
+
+.legend em {
+  color: #64748b;
+  font-size: 10px;
+  font-style: normal;
+  font-weight: 800;
+  justify-self: end;
+  white-space: nowrap;
+}
+
+.normalSwatch {
+  background: #17a34a;
+}
+
+.alertSwatch {
+  background: #f7bd00;
+}
+
+.warningSwatch {
+  background: #ff7417;
+}
+
+.severeSwatch {
+  background: #ff3347;
+}
+
+.noReadingSwatch {
+  background: #94a3b8;
+}
+
+@media (max-width: 640px) {
+  .legend {
+    bottom: 10px;
+    left: 10px;
+    max-width: min(232px, calc(100% - 20px));
+    padding: 10px;
+  }
+
+  .legend div {
+    grid-template-columns: 1fr;
+  }
+
+  .legend p {
+    max-width: 205px;
+  }
+}

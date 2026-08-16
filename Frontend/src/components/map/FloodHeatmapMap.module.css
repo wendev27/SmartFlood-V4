@@ -1,0 +1,17 @@
+.mapCanvas {
+  height: 100%;
+  width: 100%;
+}
+
+.popup {
+  color: #1e293b;
+  display: grid;
+  font-size: 12px;
+  gap: 4px;
+  min-width: 180px;
+}
+
+.popup strong {
+  color: #0f172a;
+  font-size: 13px;
+}

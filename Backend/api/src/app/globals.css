@@ -1,0 +1,32 @@
+:root {
+  --color-text: #1e293b;
+  --color-muted: #475569;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  max-width: 100%;
+  min-height: 100%;
+  overflow-x: hidden;
+}
+
+body {
+  background: #ffffff;
+  color: var(--color-text);
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+main {
+  padding: 2rem;
+}
+
+p {
+  color: var(--color-muted);
+}

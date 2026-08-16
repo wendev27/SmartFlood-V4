@@ -1,0 +1,176 @@
+.card {
+  border: 1px solid #e5e7eb;
+  border-radius: 14px;
+  box-shadow: 0 2px 8px rgba(28, 48, 70, 0.035);
+  margin: 0 auto;
+  max-width: 1260px;
+  padding: 18px;
+}
+
+.logList {
+  display: grid;
+  gap: 10px;
+}
+
+.logItem {
+  align-items: flex-start;
+  background: #f8fafc;
+  border-left: 4px solid #64748b;
+  border-radius: 8px;
+  display: grid;
+  gap: 14px;
+  grid-template-columns: 36px 1fr auto;
+  min-height: 86px;
+  padding: 14px 16px;
+}
+
+.blue {
+  background: #eff6ff;
+  border-left-color: #1d7cff;
+}
+
+.green {
+  background: #ecfdf3;
+  border-left-color: #10c86b;
+}
+
+.purple {
+  background: #faf5ff;
+  border-left-color: #a855f7;
+}
+
+.orange {
+  background: #fff7ed;
+  border-left-color: #ff6b00;
+}
+
+.red {
+  background: #fff1f2;
+  border-left-color: #ff2f45;
+}
+
+.gray {
+  background: #f8fafc;
+  border-left-color: #64748b;
+}
+
+.logIcon {
+  align-items: center;
+  background: #64748b;
+  border-radius: 999px;
+  display: inline-flex;
+  height: 34px;
+  justify-content: center;
+  width: 34px;
+}
+
+.blue .logIcon {
+  background: #1d7cff;
+}
+
+.green .logIcon {
+  background: #10c86b;
+}
+
+.purple .logIcon {
+  background: #a855f7;
+}
+
+.orange .logIcon {
+  background: #ff6b00;
+}
+
+.red .logIcon {
+  background: #ff2f45;
+}
+
+.logBody {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+}
+
+.logMeta {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.logMeta strong {
+  color: #0f172a;
+  font-size: 12px;
+  letter-spacing: 0;
+  text-transform: uppercase;
+}
+
+.logMeta span {
+  background: rgba(255, 255, 255, 0.72);
+  border: 1px solid rgba(148, 163, 184, 0.22);
+  border-radius: 999px;
+  color: #475569;
+  font-size: 10px;
+  line-height: 1;
+  padding: 4px 8px;
+}
+
+.logBody p {
+  color: #102033;
+  font-size: 13px;
+  font-weight: 800;
+  margin: 0;
+}
+
+.logBody small {
+  color: #475569;
+  font-size: 11px;
+}
+
+.trace {
+  color: #64748b;
+  display: flex;
+  flex-wrap: wrap;
+  font-size: 10px;
+  gap: 14px;
+  margin-top: 4px;
+}
+
+.status {
+  background: #dcfce7;
+  border-radius: 999px;
+  color: #0c9a4a;
+  font-size: 10px;
+  font-weight: 800;
+  padding: 5px 10px;
+  white-space: nowrap;
+}
+
+.failed {
+  background: #fee2e2;
+  color: #ef233c;
+}
+
+.empty {
+  background: #eef6ff;
+  border-radius: 8px;
+  color: #175cd3;
+  font-size: 12px;
+  font-weight: 700;
+  margin: 0;
+  padding: 10px 12px;
+}
+
+@media (max-width: 720px) {
+  .card {
+    padding: 12px;
+  }
+
+  .logItem {
+    grid-template-columns: 34px 1fr;
+  }
+
+  .status {
+    grid-column: 2;
+    justify-self: start;
+  }
+}

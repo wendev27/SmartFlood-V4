@@ -1,0 +1,122 @@
+.sidebar {
+  display: flex;
+  flex-direction: column;
+  padding: 0;
+}
+
+.navCard {
+  align-self: stretch;
+  background: rgba(255, 255, 255, 0.13);
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  border-radius: 24px;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.16);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin: 0;
+  padding: 18px 14px 14px;
+}
+
+.brand {
+  align-items: center;
+  color: #ffffff;
+  display: flex;
+  gap: 8px;
+  margin: 0 0 16px;
+  padding: 0 8px;
+}
+
+.brandMark {
+  fill: none;
+  stroke: #ffffff;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 4;
+  width: 38px;
+}
+
+.brand p {
+  font-size: 7px;
+  font-weight: 800;
+  line-height: 1;
+  margin: 0 0 -2px;
+  opacity: 0.88;
+}
+
+.brand h1 {
+  font-size: 20px;
+  line-height: 1;
+  margin: 0;
+}
+
+.mobileToggle {
+  align-items: center;
+  background: rgba(255, 255, 255, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.38);
+  border-radius: 12px;
+  color: #ffffff;
+  display: flex;
+  font-size: 13px;
+  font-weight: 800;
+  gap: 10px;
+  height: 42px;
+  justify-content: center;
+  margin-bottom: 12px;
+  width: 100%;
+}
+
+.mobileToggle span,
+.mobileToggle span::before,
+.mobileToggle span::after {
+  background: #ffffff;
+  border-radius: 999px;
+  content: "";
+  display: block;
+  height: 2px;
+  width: 18px;
+}
+
+.mobileToggle span {
+  position: relative;
+}
+
+.mobileToggle span::before,
+.mobileToggle span::after {
+  position: absolute;
+}
+
+.mobileToggle span::before {
+  top: -6px;
+}
+
+.mobileToggle span::after {
+  top: 6px;
+}
+
+.navLinks {
+  display: none;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.open .navLinks {
+  display: flex;
+}
+
+@media (min-width: 900px) {
+  .navCard {
+    border-radius: clamp(24px, 2vw, 32px);
+    gap: clamp(10px, 1.4vh, 16px);
+    margin-right: clamp(10px, 1.1vw, 18px);
+    padding: clamp(20px, 1.5vw, 28px);
+  }
+
+  .mobileToggle {
+    display: none;
+  }
+
+  .navLinks {
+    display: flex;
+    gap: clamp(10px, 1.4vh, 16px);
+  }
+}

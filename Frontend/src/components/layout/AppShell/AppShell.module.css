@@ -1,0 +1,41 @@
+.shell {
+  background:
+    radial-gradient(circle at 17% 11%, rgba(116, 189, 255, 0.32), transparent 25%),
+    linear-gradient(155deg, var(--color-shell-start) 0%, var(--color-shell-mid) 45%, var(--color-shell-end) 100%);
+  border: 5px solid var(--color-shell-border);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-height: 100vh;
+  padding: 10px;
+  width: 100%;
+}
+
+.dashboard {
+  background: var(--color-panel);
+  border-radius: 24px;
+  box-shadow: 0 28px 58px rgba(0, 37, 82, 0.12);
+  min-height: auto;
+  padding: 22px;
+}
+
+@media (min-width: 900px) {
+  .shell {
+    display: grid;
+    gap: 0;
+    grid-template-columns: clamp(250px, 25vw, 330px) minmax(0, 1fr);
+    padding: clamp(10px, 1.2vw, 16px);
+  }
+
+  .dashboard {
+    border-radius: clamp(24px, 2vw, 33px);
+    min-height: calc(100vh - clamp(30px, 3.1vw, 46px));
+    padding: clamp(22px, 2vw, 36px);
+  }
+}
+
+@media (min-width: 1400px) {
+  .shell {
+    grid-template-columns: 360px minmax(0, 1fr);
+  }
+}

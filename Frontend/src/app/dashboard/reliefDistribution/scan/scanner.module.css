@@ -1,0 +1,289 @@
+.page {
+  background: #eef6ff;
+  min-height: 100dvh;
+  padding: clamp(18px, 3vw, 34px);
+}
+
+.shell {
+  display: grid;
+  gap: 18px;
+  margin: 0 auto;
+  max-width: 1180px;
+}
+
+.header,
+.campaignBar,
+.manualCard,
+.resultCard {
+  background: #ffffff;
+  border: 1px solid #dce9f9;
+  border-radius: 8px;
+  box-shadow: 0 10px 26px rgba(15, 23, 42, 0.08);
+}
+
+.header {
+  align-items: center;
+  display: flex;
+  gap: 18px;
+  justify-content: space-between;
+  padding: 22px 24px;
+}
+
+.header span,
+.campaignBar span,
+.manualCard header span,
+.resultCard header span {
+  color: #0f61ff;
+  display: block;
+  font-size: 10px;
+  font-weight: 900;
+  margin-bottom: 7px;
+  text-transform: uppercase;
+}
+
+.header h1,
+.manualCard h2,
+.resultCard h2 {
+  color: #14385f;
+  line-height: 1.2;
+  margin: 0;
+}
+
+.header h1 {
+  font-size: clamp(24px, 3vw, 34px);
+}
+
+.header strong {
+  background: #ecfdf3;
+  border: 1px solid #abefc6;
+  border-radius: 999px;
+  color: #067647;
+  font-size: 12px;
+  font-weight: 900;
+  padding: 9px 13px;
+}
+
+.campaignBar {
+  display: grid;
+  gap: 12px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  padding: 16px 18px;
+}
+
+.campaignBar strong {
+  color: #14385f;
+  display: block;
+  font-size: 13px;
+  line-height: 1.35;
+}
+
+.scannerGrid {
+  display: grid;
+  gap: 18px;
+  grid-template-columns: minmax(320px, 1.15fr) minmax(300px, 0.85fr);
+}
+
+.scannerBox {
+  align-items: center;
+  aspect-ratio: 4 / 3;
+  background:
+    linear-gradient(#f8fbff, #f8fbff) padding-box,
+    repeating-linear-gradient(45deg, #0f61ff 0 12px, #12b76a 12px 24px) border-box;
+  border: 6px solid transparent;
+  border-radius: 8px;
+  box-shadow: inset 0 0 0 1px rgba(15, 97, 255, 0.14), 0 10px 26px rgba(15, 23, 42, 0.08);
+  display: grid;
+  justify-items: center;
+  min-height: 360px;
+  padding: 24px;
+  text-align: center;
+}
+
+.scannerBox div {
+  border: 2px dashed #a9cfff;
+  border-radius: 8px;
+  display: grid;
+  gap: 10px;
+  height: min(72%, 420px);
+  place-content: center;
+  width: min(72%, 520px);
+}
+
+.scannerBox strong,
+.scannerBox span {
+  color: #14385f;
+  display: block;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.scannerBox strong {
+  font-size: clamp(28px, 5vw, 54px);
+  line-height: 1;
+}
+
+.scannerBox span {
+  color: #64748b;
+  font-size: clamp(14px, 2vw, 22px);
+}
+
+.manualCard,
+.resultCard {
+  display: grid;
+  gap: 16px;
+  padding: clamp(18px, 2vw, 24px);
+}
+
+.manualCard p,
+.resultCard p {
+  color: #64748b;
+  font-size: 12px;
+  line-height: 1.5;
+  margin: 8px 0 0;
+}
+
+.form {
+  display: grid;
+  gap: 12px;
+}
+
+.form label {
+  color: #475569;
+  display: grid;
+  font-size: 11px;
+  font-weight: 900;
+  gap: 8px;
+  text-transform: uppercase;
+}
+
+.form input {
+  border: 1px solid #d8e7fb;
+  border-radius: 8px;
+  color: #14385f;
+  font-size: 14px;
+  min-height: 48px;
+  padding: 0 12px;
+}
+
+.form input:focus {
+  outline: 2px solid rgba(15, 97, 255, 0.18);
+  outline-offset: 2px;
+}
+
+.form button,
+.confirmButton {
+  background: #0966ff;
+  border: 0;
+  border-radius: 8px;
+  color: #ffffff;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 900;
+  min-height: 48px;
+  padding: 0 16px;
+}
+
+.secondaryButton {
+  background: #ffffff;
+  border: 1px solid #b9d6ff;
+  border-radius: 8px;
+  color: #0966ff;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 900;
+  min-height: 48px;
+  padding: 0 16px;
+}
+
+.form button:disabled,
+.confirmButton:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+.stateMessage,
+.errorMessage,
+.emptyState {
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 800;
+  padding: 12px 14px;
+}
+
+.stateMessage {
+  background: #ecfdf3;
+  color: #067647;
+}
+
+.errorMessage {
+  background: #fef3f2;
+  color: #b42318;
+}
+
+.emptyState {
+  background: #f8fbff;
+  border: 1px dashed #cfe2ff;
+  color: #64748b;
+}
+
+.details {
+  display: grid;
+  gap: 10px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  margin: 0;
+}
+
+.details div,
+.receivedBox {
+  background: #f8fbff;
+  border: 1px solid #dce9f9;
+  border-radius: 8px;
+  padding: 12px;
+}
+
+.details dt {
+  color: #64748b;
+  font-size: 10px;
+  font-weight: 900;
+  margin-bottom: 5px;
+  text-transform: uppercase;
+}
+
+.details dd {
+  color: #14385f;
+  font-size: 12px;
+  font-weight: 900;
+  margin: 0;
+}
+
+.receivedBox {
+  background: #fff7ed;
+  border-color: #fed7aa;
+  display: grid;
+  gap: 5px;
+}
+
+.receivedBox strong,
+.receivedBox span {
+  color: #9a3412;
+  display: block;
+  font-size: 12px;
+  font-weight: 900;
+}
+
+@media (max-width: 860px) {
+  .header {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .campaignBar,
+  .scannerGrid,
+  .details {
+    grid-template-columns: 1fr;
+  }
+
+  .scannerBox {
+    min-height: 300px;
+  }
+}

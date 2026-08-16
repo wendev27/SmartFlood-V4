@@ -1,0 +1,53 @@
+.card {
+  background: #ffffff;
+  border-left: 4px solid var(--color-cyan);
+  border-radius: 12px;
+  box-shadow: var(--shadow-soft);
+  min-height: 112px;
+  overflow: hidden;
+  padding: 22px;
+  position: relative;
+}
+
+.card::after {
+  background: #eff4f8;
+  border-radius: 0 0 0 78px;
+  content: "";
+  height: 76px;
+  position: absolute;
+  right: 0;
+  top: 0;
+  width: 76px;
+}
+
+.card span,
+.card strong,
+.card p {
+  display: block;
+  position: relative;
+  z-index: 1;
+}
+
+.card span {
+  color: #21364c;
+  font-size: 10px;
+  margin-bottom: 14px;
+}
+
+.card strong {
+  color: #0050a2;
+  font-size: 30px;
+  line-height: 1;
+  margin-bottom: 12px;
+}
+
+.card p {
+  color: #4f78a0;
+  font-size: 10px;
+  line-height: 1.6;
+  margin: 0;
+}
+
+.emphasis {
+  border-left-color: var(--color-blue);
+}

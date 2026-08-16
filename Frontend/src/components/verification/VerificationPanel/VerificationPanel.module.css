@@ -1,0 +1,62 @@
+.panel {
+  background: #f8fafc;
+  margin: 0 -22px -22px;
+  min-height: 0;
+  padding: 18px 22px 24px;
+  position: relative;
+}
+
+.headerActions {
+  display: flex;
+  justify-content: stretch;
+  margin-bottom: 14px;
+}
+
+.headerActions button {
+  width: 100%;
+}
+
+.list {
+  display: grid;
+  gap: 20px;
+  margin-top: 32px;
+}
+
+.stateMessage,
+.errorMessage {
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 700;
+  margin: 18px 0 0;
+  padding: 10px 12px;
+}
+
+.stateMessage {
+  background: #eef6ff;
+  color: #175cd3;
+}
+
+.errorMessage {
+  background: #fef3f2;
+  color: #b42318;
+}
+
+@media (min-width: 900px) {
+  .panel {
+    margin: 0 calc(clamp(22px, 2vw, 36px) * -1) calc(clamp(22px, 2vw, 36px) * -1);
+    min-height: 720px;
+    padding: 52px clamp(22px, 2vw, 36px) 36px;
+  }
+
+  .headerActions {
+    justify-content: flex-end;
+    margin-bottom: 0;
+    position: absolute;
+    right: clamp(22px, 2vw, 36px);
+    top: -22px;
+  }
+
+  .headerActions button {
+    width: auto;
+  }
+}

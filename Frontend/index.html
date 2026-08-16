@@ -1,0 +1,799 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>SmartFlood Dashboard</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <main class="app-shell">
+      <aside class="sidebar" aria-label="Main navigation">
+        <nav class="nav-card">
+          <button class="mobile-nav-toggle" type="button" aria-expanded="false" aria-controls="nav-links">
+            <span></span>
+            Menu
+          </button>
+          <div class="brand">
+            <svg class="brand-mark" viewBox="0 0 92 52" aria-hidden="true">
+              <path d="M13 34h46c8 0 14-6 14-14S67 6 59 6c-5 0-9 2-12 6-3-6-8-9-15-9C21 3 12 12 12 23c0 4 1 8 4 11h-3z" />
+              <circle cx="27" cy="24" r="5" />
+              <circle cx="47" cy="24" r="5" />
+              <path d="M20 41c8 5 16 5 24 0 8-5 16-5 24 0" />
+            </svg>
+            <div>
+              <p>smartflood</p>
+              <h1>SmartFlood</h1>
+            </div>
+          </div>
+
+          <div class="nav-links" id="nav-links">
+            <a class="nav-link active" href="#dashboard" data-page="dashboard">
+              <span class="nav-icon home"></span>
+              Dashboard
+            </a>
+            <a class="nav-link" href="#sensors" data-page="sensors">
+              <span class="nav-icon signal"></span>
+              Sensor History
+            </a>
+            <a class="nav-link" href="#logs" data-page="logs">
+              <span class="nav-icon folder"></span>
+              Audit &amp; Security Logs
+            </a>
+            <a class="nav-link" href="#monitoring" data-page="monitoring">
+              <span class="nav-icon droplet"></span>
+              Flood Monitoring Module
+            </a>
+            <a class="nav-link" href="#relief" data-page="relief">
+              <span class="nav-icon cube"></span>
+              AI-Optimized Relief Allocation
+            </a>
+            <a class="nav-link" href="#residents" data-page="residents">
+              <span class="nav-icon users"></span>
+              Resident Information
+            </a>
+            <a class="nav-link" href="#accounts" data-page="accounts">
+              <span class="nav-icon check"></span>
+              Resident Account Management
+            </a>
+          </div>
+        </nav>
+      </aside>
+
+      <section class="dashboard">
+        <header class="topbar">
+          <div>
+            <h2 id="page-title">Welcome back!</h2>
+            <p id="page-subtitle">Manage your barangay operations efficiently and effectively</p>
+          </div>
+          <div class="top-actions">
+            <button class="alert-button" aria-label="Notifications">
+              <span class="bell"></span>
+              <strong>3</strong>
+            </button>
+            <div class="profile-chip">
+              <div>
+                <b>NDRRMO Official</b>
+                <span>Disaster Response</span>
+              </div>
+              <span class="avatar">NO</span>
+            </div>
+          </div>
+        </header>
+
+        <div class="page-panel active" data-panel="dashboard">
+          <section class="stats-grid" aria-label="Dashboard statistics">
+            <article class="stat-card teal">
+              <span>Network Nodes</span>
+              <strong>5</strong>
+              <p>Total active telemetry points</p>
+            </article>
+            <article class="stat-card blue">
+              <span>Health Status</span>
+              <strong>0/5</strong>
+              <p class="danger">1 nodes requiring checkup</p>
+            </article>
+            <article class="stat-card cyan">
+              <span>Pending Relief</span>
+              <strong>4</strong>
+              <p class="info">Request awaiting city approval</p>
+            </article>
+            <article class="stat-card sky">
+              <span>Critical Alerts</span>
+              <strong>2</strong>
+              <p>Immediate response recommended</p>
+            </article>
+          </section>
+
+          <section class="content-grid">
+            <article class="map-panel" aria-label="Flood monitoring map">
+              <span class="map-label caloocan">CALOOCAN</span>
+              <span class="map-label quezon">QUEZON</span>
+              <div class="map-pin" aria-hidden="true">
+                <span></span>
+              </div>
+              <div class="legend">
+                <h3>ALERT STATUS</h3>
+                <p><span class="dot normal"></span>Normal</p>
+                <p><span class="dot warning"></span>Warning</p>
+                <p><span class="dot critical"></span>Critical</p>
+              </div>
+            </article>
+
+            <aside class="system-panel">
+              <div class="system-heading">
+                <span class="pulse-icon"></span>
+                <div>
+                  <h3>SYSTEM PULSE</h3>
+                  <p>Real-time sensor monitoring</p>
+                </div>
+              </div>
+              <dl class="pulse-list">
+                <div>
+                  <dt>Database Connectivity</dt>
+                  <dd>Stable</dd>
+                </div>
+                <div>
+                  <dt>Sensor Network Mesh</dt>
+                  <dd>Encrypted</dd>
+                </div>
+                <div>
+                  <dt>Relief Logic Engine</dt>
+                  <dd class="ready">READY</dd>
+                </div>
+              </dl>
+              <section class="relief-card">
+                <h3><span class="gear"></span>AI-Optimized Relief Suggestions</h3>
+                <p>
+                  Waiting for real-time sensor updates for generated AI-powered
+                  relief recommendations...
+                </p>
+              </section>
+            </aside>
+          </section>
+        </div>
+
+        <div class="page-panel" data-panel="hardware">
+          <section class="arduino-panel" aria-label="Arduino control panel">
+            <div class="arduino-row top-row">
+              <article class="control-card device-control">
+                <span class="panel-label">DEVICE CONTROL</span>
+                <button class="connect-button" type="button">
+                  <span class="wifi-mark"></span>
+                  Connect via WiFi
+                </button>
+              </article>
+
+              <article class="control-card connection-card">
+                <span class="panel-label">CONNECTION STATUS</span>
+                <div class="disconnect-status">
+                  <div>
+                    <strong>Disconnected</strong>
+                    <p>Connect to start monitoring</p>
+                  </div>
+                  <span class="status-dot"></span>
+                </div>
+              </article>
+            </div>
+
+            <div class="arduino-row monitor-row">
+              <article class="control-card device-status-card">
+                <span class="panel-label">DEVICE STATUS</span>
+                <div class="status-stack">
+                  <div class="status-box">
+                    <span>ESP32 Status</span>
+                    <b class="offline">Disconnected</b>
+                    <i class="sparkline"></i>
+                  </div>
+                  <div class="status-box">
+                    <span>Status</span>
+                    <b>Unknown</b>
+                  </div>
+                  <div class="status-box">
+                    <span>Last Update</span>
+                    <b>Waiting for boot</b>
+                  </div>
+                </div>
+              </article>
+
+              <article class="control-card sensor-monitor-card">
+                <span class="panel-label">SENSOR MONITOR</span>
+                <div class="meter-block">
+                  <div class="meter-head">
+                    <span>Water Level</span>
+                    <b>2.5m</b>
+                  </div>
+                  <div class="meter-track"><span style="width: 25%"></span></div>
+                  <div class="meter-scale"><span>0m</span><span>10m</span></div>
+                </div>
+                <div class="meter-block">
+                  <div class="meter-head">
+                    <span>Update Interval</span>
+                    <b>30s</b>
+                  </div>
+                  <div class="meter-track"><span style="width: 50%"></span></div>
+                  <div class="meter-scale"><span>5s</span><span>60s</span></div>
+                </div>
+              </article>
+
+              <article class="control-card live-logs-card">
+                <span class="panel-label">LIVE LOGS</span>
+                <div class="log-stack">
+                  <p><span>14:30:45</span><i class="blue-dot"></i>Sensor reading: 2.5m</p>
+                  <p><span>14:30:30</span><i class="green-dot"></i>Connection established</p>
+                  <p><span>14:30:15</span><i class="blue-dot"></i>ESP32 initialized</p>
+                </div>
+                <div class="log-fade"></div>
+              </article>
+            </div>
+
+            <article class="control-card command-card">
+              <span class="panel-label">DEVICE COMMANDS</span>
+              <div class="command-grid">
+                <form class="wifi-form">
+                  <h3>WiFi Configuration</h3>
+                  <p>Enter your WiFi SSID and password to connect the ESP32</p>
+                  <input type="text" placeholder="SSID" aria-label="SSID" />
+                  <input type="password" placeholder="Password" aria-label="Password" />
+                  <button class="primary-command" type="button">Update WiFi</button>
+                  <button class="disabled-command" type="button" disabled>
+                    <span class="play-icon"></span>
+                    Start
+                  </button>
+                </form>
+
+                <form class="interval-form">
+                  <h3>Sensor Interval</h3>
+                  <p>Set the interval (in ms) between sensor readings</p>
+                  <input type="number" placeholder="5000" aria-label="Sensor interval" />
+                  <button class="interval-command" type="button">Set Interval</button>
+                  <button class="disabled-command" type="button" disabled>
+                    <span class="stop-icon"></span>
+                    Stop
+                  </button>
+                </form>
+              </div>
+            </article>
+          </section>
+        </div>
+
+        <div class="page-panel" data-panel="logs">
+          <section class="account-panel" aria-label="Account management">
+            <article class="account-table-card account-content active" data-account-panel="users">
+              <div class="account-toolbar">
+                <label class="search-field">
+                  <span></span>
+                  <input type="search" placeholder="Search by name, email, or role..." />
+                </label>
+                <select aria-label="Department">
+                  <option>All Departments</option>
+                  <option>CDRRMO</option>
+                  <option>Barangay</option>
+                  <option>CSWDD</option>
+                </select>
+                <select aria-label="Role">
+                  <option>All Roles</option>
+                  <option>Super Admin</option>
+                  <option>Dept Admin</option>
+                  <option>Dept User</option>
+                </select>
+                <select aria-label="Status">
+                  <option>All Status</option>
+                  <option>Active</option>
+                  <option>Inactive</option>
+                </select>
+                <button class="export-button" type="button">Export</button>
+                <button class="add-button" type="button">+ Add New</button>
+              </div>
+
+              <div class="accounts-table-wrap">
+                <table class="accounts-table">
+                  <thead>
+                    <tr>
+                      <th>Email</th>
+                      <th>Role</th>
+                      <th>Department</th>
+                      <th>Actions</th>
+                      <th>Status</th>
+                      <th>Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>NDRRMO@malabon.gov.ph</td>
+                      <td>Super Admin</td>
+                      <td><span class="dept purple">NDRRMO</span></td>
+                      <td>Added sensor</td>
+                      <td><span class="state active-state">Enabled</span></td>
+                      <td><span class="action view"></span> Preview</td>
+                    </tr>
+                    <tr>
+                      <td>barangaypotrero@malabon.gov.ph</td>
+                      <td>Dept Admin</td>
+                      <td><span class="dept green">Barangay Potrero</span></td>
+                      <td>Changed email</td>
+                      <td><span class="state active-state">Enabled</span></td>
+                      <td><span class="action view"></span> Preview</td>
+                    </tr>
+                    <tr>
+                      <td>CSWDD@malabon.gov.ph</td>
+                      <td>Dept Admin</td>
+                      <td><span class="dept orange">CSWDD</span></td>
+                      <td>Removed Sensor</td>
+                      <td><span class="state active-state">Enabled</span></td>
+                      <td><span class="action view"></span> Preview</td>
+                    </tr>
+                    <tr>
+                      <td>barangaytanong@malabon.gov.ph</td>
+                      <td>Dept User</td>
+                      <td><span class="dept green">Barangay Tañong</span></td>
+                      <td>Changed Password</td>
+                      <td><span class="state inactive-state">Disabled</span></td>
+                      <td><span class="action view"></span> Preview</td>
+                    </tr>
+                    <tr>
+                      <td>barangaycatmon@malabon.gov.ph</td>
+                      <td>Dept User</td>
+                      <td><span class="dept green">Barangay Catmon</span></td>
+                      <td>Changed Password</td>
+                      <td><span class="state inactive-state">Disabled</span></td>
+                      <td><span class="action view"></span> Preview</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </article>
+          </section>
+        </div>
+
+        <div class="page-panel" data-panel="monitoring">
+          <section class="content-grid single-focus">
+            <article class="map-panel" aria-label="Flood monitoring map">
+              <span class="map-label caloocan">CALOOCAN</span>
+              <span class="map-label quezon">QUEZON</span>
+              <div class="map-pin" aria-hidden="true"><span></span></div>
+              <div class="legend">
+                <h3>ALERT STATUS</h3>
+                <p><span class="dot normal"></span>Normal</p>
+                <p><span class="dot warning"></span>Warning</p>
+                <p><span class="dot critical"></span>Critical</p>
+              </div>
+            </article>
+            <aside class="system-panel">
+              <div class="system-heading">
+                <span class="pulse-icon"></span>
+                <div>
+                  <h3>FLOOD WATCH</h3>
+                  <p>Live alert zones and sensor readings</p>
+                </div>
+              </div>
+              <dl class="pulse-list">
+                <div><dt>North Creek</dt><dd>Normal</dd></div>
+                <div><dt>Lowland Road</dt><dd class="ready">Warning</dd></div>
+                <div><dt>Riverbank Zone</dt><dd>Stable</dd></div>
+              </dl>
+            </aside>
+          </section>
+        </div>
+
+        <div class="page-panel" data-panel="relief">
+          <section class="module-grid">
+            <article class="module-card emphasis">
+              <span>Priority Families</span>
+              <strong>48</strong>
+              <p>Households flagged for first-wave relief distribution.</p>
+            </article>
+            <article class="module-card">
+              <span>Relief Packs</span>
+              <strong>126</strong>
+              <p>Available packs ready for release after city approval.</p>
+            </article>
+            <article class="module-card">
+              <span>AI Confidence</span>
+              <strong>87%</strong>
+              <p>Recommendations are based on current flood telemetry.</p>
+            </article>
+          </section>
+        </div>
+
+        <div class="page-panel" data-panel="sensors">
+          <section class="sensor-history-panel" aria-label="Sensor history">
+            <article class="map-panel sensor-map" aria-label="Sensor map">
+              <span class="map-label caloocan">CALOOCAN</span>
+              <span class="map-label quezon">QUEZON</span>
+              <div class="map-pin" aria-hidden="true">
+                <span></span>
+              </div>
+              <div class="legend">
+                <h3>ALERT STATUS</h3>
+                <p><span class="dot normal"></span>Normal</p>
+                <p><span class="dot warning"></span>Warning</p>
+                <p><span class="dot critical"></span>Critical</p>
+              </div>
+            </article>
+
+            <article class="sensor-table-card">
+              <h3>View Tabulated Sensor History</h3>
+              <div class="sensor-toolbar">
+                <input type="search" placeholder="Search Sensor ID" aria-label="Search Sensor ID" />
+                <select aria-label="Barangay">
+                  <option>All Barangays</option>
+                  <option>Barangay Tanyong</option>
+                  <option>Barangay Potrero</option>
+                </select>
+                <select aria-label="Sensor status">
+                  <option>Any Status</option>
+                  <option>Active</option>
+                  <option>Degraded</option>
+                  <option>Offline</option>
+                </select>
+                <select aria-label="Alert level">
+                  <option>Any Level</option>
+                  <option>Normal</option>
+                  <option>Warning</option>
+                  <option>Critical</option>
+                </select>
+                <button type="button">X</button>
+              </div>
+
+              <div class="sensor-table-wrap">
+                <table class="sensor-table">
+                  <thead>
+                    <tr>
+                      <th>Sensor ID</th>
+                      <th>Barangay</th>
+                      <th>Coordinates</th>
+                      <th>Status</th>
+                      <th>Latest Reading</th>
+                      <th>Level</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>SNS-001</td>
+                      <td>Barangay Tanyong</td>
+                      <td>00.0000,000.0000</td>
+                      <td><span class="sensor-badge active-sensor">Active</span></td>
+                      <td>3.8m</td>
+                      <td><span class="sensor-badge normal-level">Normal</span></td>
+                    </tr>
+                    <tr>
+                      <td>SNS-002</td>
+                      <td>Barangay Tanyong</td>
+                      <td>3.8m</td>
+                      <td><span class="sensor-badge degraded-sensor">Degraded</span></td>
+                      <td>1.2m</td>
+                      <td><span class="sensor-badge warning-level">Warning</span></td>
+                    </tr>
+                    <tr>
+                      <td>SNS-003</td>
+                      <td>Barangay Tanyong</td>
+                      <td>1.2m</td>
+                      <td><span class="sensor-badge active-sensor">Active</span></td>
+                      <td>4.5m</td>
+                      <td><span class="sensor-badge normal-level">Normal</span></td>
+                    </tr>
+                    <tr>
+                      <td>SNS-004</td>
+                      <td>Barangay Tanyong</td>
+                      <td>4.5m</td>
+                      <td><span class="sensor-badge offline-sensor">Offline</span></td>
+                      <td>2.1m</td>
+                      <td><span class="sensor-badge critical-level">Critical</span></td>
+                    </tr>
+                    <tr>
+                      <td>SNS-005</td>
+                      <td>Barangay Tanyong</td>
+                      <td>2.1m</td>
+                      <td><span class="sensor-badge active-sensor">Active</span></td>
+                      <td>1.1m</td>
+                      <td><span class="sensor-badge normal-level">Normal</span></td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </article>
+          </section>
+        </div>
+
+        <div class="page-panel" data-panel="residents">
+          <section class="resident-info-panel" aria-label="Resident information">
+            <article class="resident-table-card">
+              <h3>All Residents</h3>
+              <div class="resident-table-wrap">
+                <table class="resident-table">
+                  <thead>
+                    <tr>
+                      <th>ID</th>
+                      <th>Name</th>
+                      <th>Age</th>
+                      <th>Sex</th>
+                      <th>Address</th>
+                      <th>Barangay</th>
+                      <th>Contact</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>RES-1</td>
+                      <td><a href="#">Maria Santos</a></td>
+                      <td>52</td>
+                      <td>Female</td>
+                      <td>Blk 9000</td>
+                      <td>Tanyong</td>
+                      <td>0912-345-6789</td>
+                    </tr>
+                    <tr>
+                      <td>RES-2</td>
+                      <td><a href="#">Juan Dela Cruz</a></td>
+                      <td>30</td>
+                      <td>Male</td>
+                      <td>Sa tulay</td>
+                      <td>Catmon</td>
+                      <td>0923-456-7890</td>
+                    </tr>
+                    <tr class="selected-row">
+                      <td>RES-3</td>
+                      <td><a href="#">Rosa Reyes</a></td>
+                      <td>36</td>
+                      <td>Prefer not to say</td>
+                      <td>Sa palenke</td>
+                      <td>Potrero</td>
+                      <td>0934-567-8901</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </article>
+          </section>
+        </div>
+
+        <div class="page-panel" data-panel="accounts">
+          <section class="verification-panel" aria-label="Resident account verification">
+            <div class="verification-tabs" role="tablist" aria-label="Verification status">
+              <button class="verification-tab active" type="button" data-verification-tab="pending">
+                <span class="pending-icon"></span>
+                Pending Review
+                <b>3</b>
+              </button>
+              <button class="verification-tab" type="button" data-verification-tab="approved">
+                <span class="approved-icon"></span>
+                Approved
+                <b class="green-count">1</b>
+              </button>
+              <button class="verification-tab" type="button" data-verification-tab="rejected">
+                <span class="rejected-icon"></span>
+                Rejected
+                <b class="red-count">1</b>
+              </button>
+            </div>
+
+            <div class="application-list active" data-verification-panel="pending">
+              <article class="application-card">
+                <div class="applicant-avatar">MC</div>
+                <div class="application-main">
+                  <div class="application-name-row">
+                    <h3>Maria Clara Santos</h3>
+                    <span>Pending</span>
+                  </div>
+                  <div class="application-details-grid">
+                    <p><small>Type</small>Resident<br />Registration</p>
+                    <p><small>Barangay</small>Barangay Tañong</p>
+                    <p><small>Family Members</small>4 members</p>
+                    <p><small>Submitted</small>2026-05-10 14:30</p>
+                  </div>
+                  <p class="application-meta phone-line">+63-912-345-6789</p>
+                  <p class="application-meta location-line">123 Rizal Street, Barangay Tañong, Labusan</p>
+                </div>
+                <button class="review-button" type="button" data-review-open>Review</button>
+              </article>
+
+              <article class="application-card">
+                <div class="applicant-avatar">JD</div>
+                <div class="application-main">
+                  <div class="application-name-row">
+                    <h3>Juan Dela Cruz</h3>
+                    <span>Pending</span>
+                  </div>
+                  <div class="application-details-grid">
+                    <p><small>Type</small>Resident<br />Registration</p>
+                    <p><small>Barangay</small>Potrero</p>
+                    <p><small>Family Members</small>5 members</p>
+                    <p><small>Submitted</small>2026-05-10 12:15</p>
+                  </div>
+                  <p class="application-meta phone-line">+63-923-456-7890</p>
+                  <p class="application-meta location-line">456 Bonifacio Avenue, Barangay Potrero, Labusan</p>
+                </div>
+                <button class="review-button" type="button" data-review-open>Review</button>
+              </article>
+
+              <article class="application-card">
+                <div class="applicant-avatar">CM</div>
+                <div class="application-main">
+                  <div class="application-name-row">
+                    <h3>Carlos Mendoza</h3>
+                    <span>Pending</span>
+                  </div>
+                  <div class="application-details-grid">
+                    <p><small>Type</small>Resident<br />Registration</p>
+                    <p><small>Barangay</small>Potrero</p>
+                    <p><small>Family Members</small>6 members</p>
+                    <p><small>Submitted</small>2026-05-10 08:30</p>
+                  </div>
+                  <p class="application-meta phone-line">+63-956-789-0123</p>
+                  <p class="application-meta location-line">654 Del Pilar Street, Barangay Potrero, Labusan</p>
+                </div>
+                <button class="review-button" type="button" data-review-open>Review</button>
+              </article>
+            </div>
+
+            <div class="application-list" data-verification-panel="approved">
+              <article class="application-card approved-card">
+                <div class="applicant-avatar">PG</div>
+                <div class="application-main">
+                  <div class="application-name-row">
+                    <h3>Pedro Garcia</h3>
+                    <span class="approved-pill">Approved</span>
+                  </div>
+                  <div class="application-details-grid">
+                    <p><small>Type</small>Resident<br />Registration</p>
+                    <p><small>Barangay</small>Potrero</p>
+                    <p><small>Family Members</small>3 members</p>
+                    <p><small>Submitted</small>2026-05-09 16:45</p>
+                  </div>
+                  <p class="application-meta phone-line">+63-934-567-8901</p>
+                  <p class="application-meta location-line">789 Luna Street, Barangay Potrero, Labusan</p>
+                  <div class="approval-note">
+                    <p>Approved by Barangay Potrero on 2026-05-09 17:00</p>
+                    <p>All documents verified.</p>
+                  </div>
+                </div>
+                <div class="approved-actions">
+                  <button class="review-button" type="button" data-review-open>Review</button>
+                  <button class="edit-application-button" type="button" data-application-open="edit">Edit</button>
+                </div>
+              </article>
+            </div>
+
+            <div class="application-list" data-verification-panel="rejected">
+              <article class="application-card">
+                <div class="applicant-avatar">AR</div>
+                <div class="application-main">
+                  <div class="application-name-row">
+                    <h3>Angela Rivera</h3>
+                    <span class="rejected-pill">Rejected</span>
+                  </div>
+                  <div class="application-details-grid">
+                    <p><small>Type</small>Resident<br />Registration</p>
+                    <p><small>Barangay</small>Catmon</p>
+                    <p><small>Family Members</small>2 members</p>
+                    <p><small>Submitted</small>2026-05-08 11:05</p>
+                  </div>
+                  <p class="application-meta phone-line">+63-945-222-1190</p>
+                  <p class="application-meta location-line">12 Mabini Street, Barangay Catmon, Labusan</p>
+                </div>
+                <button class="review-button" type="button" data-review-open>Review</button>
+              </article>
+            </div>
+          </section>
+        </div>
+      </section>
+    </main>
+
+    <div class="review-modal" id="review-modal" aria-hidden="true">
+      <div class="review-dialog" role="dialog" aria-modal="true" aria-labelledby="review-title">
+        <header class="review-modal-header">
+          <div class="applicant-avatar modal-avatar">MC</div>
+          <div>
+            <h2 id="review-title">Maria Clara Santos</h2>
+            <p>Resident Registration</p>
+          </div>
+          <button class="modal-close" type="button" aria-label="Close review" data-review-close></button>
+        </header>
+
+        <div class="review-modal-body">
+          <section class="review-section">
+            <h3><span class="section-person-icon"></span>Personal Information</h3>
+            <div class="review-field-grid three-cols">
+              <div><span>Surname</span><b>Santos</b></div>
+              <div><span>First Name</span><b>Maria Clara</b></div>
+              <div><span>Middle Name</span><b>N/A</b></div>
+              <div><span>Contact Number</span><b>+63-912-345-6789</b></div>
+              <div><span>Age &amp; Sex</span><b>28 years, Female</b></div>
+              <div><span>Occupation</span><b>Self-employed</b></div>
+            </div>
+          </section>
+
+          <section class="review-section">
+            <h3><span class="section-pin-icon"></span>Location Information</h3>
+            <div class="review-field-grid">
+              <div><span>Complete Address</span><b>123 Rizal Street, Barangay Tañong, Labusan</b></div>
+              <div><span>Barangay</span><b>Tañong</b></div>
+            </div>
+          </section>
+
+          <section class="review-section">
+            <h3><span class="section-family-icon"></span>Family &amp; Household Information</h3>
+            <div class="review-field-grid three-cols">
+              <div><span>Total Family Members</span><b>4 members</b></div>
+              <div><span>Household Head</span><b>Maria Clara Santos</b></div>
+              <div><span>Special Needs</span><b>3 children (ages 3, 5, 7)</b></div>
+              <div class="wide-field"><span>Medical Conditions</span><b>None</b></div>
+            </div>
+          </section>
+
+          <section class="review-section">
+            <h3><span class="section-calendar-icon"></span>Submission Details</h3>
+            <div class="review-field-grid two-cols">
+              <div><span>Date Submitted</span><b>2026-05-10 14:30</b></div>
+              <div><span>Submitted By</span><b>Self-registered</b></div>
+            </div>
+          </section>
+
+          <footer class="review-actions">
+            <button class="reject-application" type="button">Reject Application</button>
+            <button class="approve-application" type="button">Approve Application</button>
+          </footer>
+        </div>
+      </div>
+    </div>
+
+    <div class="application-modal" id="application-modal" aria-hidden="true">
+      <div class="application-dialog" role="dialog" aria-modal="true" aria-labelledby="application-title">
+        <header class="review-modal-header">
+          <div class="applicant-avatar modal-avatar" id="application-avatar">PG</div>
+          <div>
+            <h2 id="application-title">Edit Application</h2>
+            <p>Resident Registration</p>
+          </div>
+          <button class="modal-close" type="button" aria-label="Close application form" data-application-close></button>
+        </header>
+
+        <form class="application-form">
+          <section class="review-section">
+            <h3><span class="section-person-icon"></span>Personal Information</h3>
+            <div class="form-grid three-cols">
+              <label>Surname<input type="text" value="Garcia" /></label>
+              <label>First Name<input type="text" value="Pedro" /></label>
+              <label>Middle Name<input type="text" value="N/A" /></label>
+              <label>Contact Number<input type="tel" value="+63-934-567-8901" /></label>
+              <label>Age &amp; Sex<input type="text" value="41 years, Male" /></label>
+              <label>Occupation<input type="text" value="Fisherman" /></label>
+            </div>
+          </section>
+
+          <section class="review-section">
+            <h3><span class="section-pin-icon"></span>Location Information</h3>
+            <div class="form-grid">
+              <label>Complete Address<input type="text" value="789 Luna Street, Barangay Potrero, Labusan" /></label>
+              <label>Barangay<input type="text" value="Potrero" /></label>
+            </div>
+          </section>
+
+          <section class="review-section">
+            <h3><span class="section-family-icon"></span>Family &amp; Household Information</h3>
+            <div class="form-grid three-cols">
+              <label>Total Family Members<input type="text" value="3 members" /></label>
+              <label>Household Head<input type="text" value="Pedro Garcia" /></label>
+              <label>Special Needs<input type="text" value="None" /></label>
+              <label class="wide-field">Medical Conditions<input type="text" value="None" /></label>
+            </div>
+          </section>
+
+          <footer class="form-actions compact-actions">
+            <button class="small-save" type="button">Save</button>
+            <button class="small-cancel" type="button" data-application-close>Cancel</button>
+            <button class="small-delete" type="button">Delete</button>
+          </footer>
+        </form>
+      </div>
+    </div>
+    <script src="script.js"></script>
+  </body>
+</html>

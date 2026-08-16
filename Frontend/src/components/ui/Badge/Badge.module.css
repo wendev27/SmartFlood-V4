@@ -1,0 +1,44 @@
+.badge {
+  border-radius: 999px;
+  display: inline-flex;
+  font-size: 12px;
+  font-weight: 800;
+  justify-content: center;
+  min-width: 62px;
+  padding: 6px 10px;
+}
+
+.blue {
+  background: var(--color-blue);
+  color: #ffffff;
+}
+
+.green {
+  background: #cff8dd;
+  color: var(--color-success);
+}
+
+.red {
+  background: #ffd9dd;
+  color: #e51b2e;
+}
+
+.yellow {
+  background: #fff4bd;
+  color: var(--color-warning);
+}
+
+.purple {
+  background: #f0d8ff;
+  color: #9b3bea;
+}
+
+.orange {
+  background: #ffe8c7;
+  color: #f07121;
+}
+
+.gray {
+  background: #f1f3f5;
+  color: var(--color-muted);
+}

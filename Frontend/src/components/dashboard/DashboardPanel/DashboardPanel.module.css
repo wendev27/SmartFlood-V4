@@ -1,0 +1,205 @@
+.dashboard {
+  width: 100%;
+}
+
+.statsGrid {
+  display: grid;
+  gap: 20px;
+  grid-template-columns: 1fr;
+  margin-bottom: 22px;
+}
+
+.errorMessage {
+  background: #fef3f2;
+  border-radius: 8px;
+  color: #b42318;
+  font-size: 12px;
+  font-weight: 700;
+  margin: 0 0 16px;
+  padding: 10px 12px;
+}
+
+.mapSection {
+  width: 100%;
+}
+
+.sensorSection {
+  margin-top: 22px;
+  min-width: 0;
+}
+
+.sensorHeader {
+  align-items: flex-end;
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.sensorHeader h3 {
+  color: #243245;
+  font-size: 17px;
+  margin: 0 0 4px;
+}
+
+.sensorHeader p {
+  color: #64748b;
+  font-size: 12px;
+  margin: 0;
+}
+
+.sensorScroller {
+  display: flex;
+  gap: 14px;
+  max-width: 100%;
+  min-width: 0;
+  overflow-x: auto;
+  padding: 2px 2px 12px;
+  scrollbar-color: #9bc9ff transparent;
+  scrollbar-width: thin;
+}
+
+.sensorScroller::-webkit-scrollbar {
+  height: 8px;
+}
+
+.sensorScroller::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.sensorScroller::-webkit-scrollbar-thumb {
+  background: #9bc9ff;
+  border-radius: 999px;
+}
+
+.sensorCard {
+  background: #ffffff;
+  border: 1px solid #dbeafe;
+  border-radius: 10px;
+  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.06);
+  color: #1e293b;
+  cursor: pointer;
+  display: grid;
+  flex: 0 0 clamp(220px, 24vw, 280px);
+  gap: 10px;
+  min-width: 0;
+  padding: 14px;
+  text-align: left;
+  transition:
+    border-color 160ms ease,
+    box-shadow 160ms ease,
+    transform 160ms ease;
+}
+
+.sensorCard:hover,
+.sensorCard:focus-visible {
+  border-color: var(--color-blue);
+  box-shadow: 0 10px 20px rgba(15, 97, 255, 0.14);
+  outline: 0;
+  transform: translateY(-1px);
+}
+
+.selectedSensor {
+  background: #f0f7ff;
+  border-color: #1a8cff;
+  box-shadow: inset 4px 0 0 #1a8cff, 0 12px 24px rgba(15, 97, 255, 0.14);
+}
+
+.normalSensor {
+  border-color: #bbf7d0;
+  box-shadow: inset 4px 0 0 #17a34a, 0 4px 12px rgba(15, 23, 42, 0.06);
+}
+
+.flood_alertSensor {
+  border-color: #fef08a;
+  box-shadow: inset 4px 0 0 #f7bd00, 0 4px 12px rgba(15, 23, 42, 0.06);
+}
+
+.flood_warningSensor {
+  border-color: #fed7aa;
+  box-shadow: inset 4px 0 0 #ff7417, 0 4px 12px rgba(15, 23, 42, 0.06);
+}
+
+.severitySensor {
+  border-color: #fecaca;
+  box-shadow: inset 4px 0 0 var(--color-danger), 0 4px 12px rgba(15, 23, 42, 0.06);
+}
+
+.no_readingSensor {
+  border-color: #e5e7eb;
+  box-shadow: inset 4px 0 0 #94a3b8, 0 4px 12px rgba(15, 23, 42, 0.06);
+}
+
+.severitySensor.selectedSensor {
+  background: #fff7f7;
+  border-color: #1a8cff;
+  box-shadow: inset 4px 0 0 var(--color-danger), 0 0 0 2px rgba(26, 140, 255, 0.22), 0 12px 24px rgba(15, 97, 255, 0.14);
+}
+
+.sensorCardTop {
+  align-items: flex-start;
+  display: flex;
+  gap: 10px;
+  justify-content: space-between;
+}
+
+.sensorCard strong {
+  color: #0f172a;
+  font-size: 13px;
+  line-height: 1.25;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.sensorCard > span,
+.sensorCard small,
+.sensorMeta span {
+  color: #64748b;
+  font-size: 11px;
+  line-height: 1.35;
+}
+
+.sensorMeta {
+  align-items: center;
+  display: flex;
+  gap: 10px;
+  justify-content: space-between;
+}
+
+.sensorMeta b {
+  color: #1e293b;
+  font-size: 12px;
+}
+
+.sensorMeta .flood_alertReading {
+  color: #ca8a04;
+}
+
+.sensorMeta .flood_warningReading {
+  color: #ea580c;
+}
+
+.sensorMeta .severityReading {
+  color: #dc2626;
+}
+
+.sensorMeta .no_readingReading {
+  color: #64748b;
+}
+
+@media (min-width: 680px) {
+  .statsGrid {
+    grid-template-columns: repeat(2, minmax(210px, 300px));
+  }
+}
+
+@media (min-width: 900px) {
+  .dashboard {
+    padding-top: 10px;
+  }
+
+  .statsGrid {
+    gap: clamp(24px, 2.2vw, 34px);
+    margin-bottom: 22px;
+  }
+
+}
