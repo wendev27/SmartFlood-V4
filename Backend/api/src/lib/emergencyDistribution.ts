@@ -167,42 +167,59 @@ export async function getDistributionHistoryForViewerByBatchPaginated(viewer: Da
     return { status: "UNAUTHORIZED" as const, reason: "You do not have access to relief distribution history." };
   }
 
-  let query = supabaseServer
-    .from("relief_distributions")
-    .select(distributionSelect, pagination ? { count: "exact" } : undefined)
-    .order("verified_at", { ascending: false });
-
-  if (batchId) query = query.eq("batch_id", batchId);
-
+  let barangayId: number | null = null;
   if (role === "barangay") {
     const barangay = assignedBarangayForUser(viewer);
     if (!barangay) return { status: "UNAUTHORIZED" as const, reason: "Your account is not assigned to a barangay." };
-    query = query.eq("barangay_id", barangay.barangay_id);
+    barangayId = barangay.barangay_id;
   }
 
   if (pagination) {
     const from = (pagination.page - 1) * pagination.limit;
-    query = query.range(from, from + pagination.limit - 1);
-  } else {
-    query = query.limit(100);
+    const { error: countError, count } = await distributionHistoryQuery(batchId, barangayId, true);
+    if (countError) throw new Error(countError.message);
+
+    const total = count ?? 0;
+    const baseResponse = {
+      status: "OK" as const,
+      pagination: {
+        page: pagination.page,
+        limit: pagination.limit,
+        total,
+        totalPages: Math.max(1, Math.ceil(total / pagination.limit)),
+      },
+    };
+    if (from >= total) {
+      return { ...baseResponse, distributions: [] };
+    }
+
+    const { data, error } = await distributionHistoryQuery(batchId, barangayId).range(from, from + pagination.limit - 1);
+    if (error) throw new Error(error.message);
+    return {
+      ...baseResponse,
+      distributions: await attachDistributionNames((data ?? []) as Record<string, unknown>[]),
+    };
   }
 
-  const { data, error, count } = await query;
+  const query = distributionHistoryQuery(batchId, barangayId).limit(100);
+  const { data, error } = await query;
   if (error) throw new Error(error.message);
   const response: { status: "OK"; distributions: DistributionSummary[]; pagination?: Pagination } = {
     status: "OK",
     distributions: await attachDistributionNames((data ?? []) as Record<string, unknown>[]),
   };
-  if (pagination) {
-    const total = count ?? 0;
-    response.pagination = {
-      page: pagination.page,
-      limit: pagination.limit,
-      total,
-      totalPages: Math.max(1, Math.ceil(total / pagination.limit)),
-    };
-  }
   return response;
+}
+
+function distributionHistoryQuery(batchId: string | null, barangayId: number | null, countOnly = false) {
+  let query = supabaseServer
+    .from("relief_distributions")
+    .select(distributionSelect, countOnly ? { count: "exact", head: true } : undefined)
+    .order("verified_at", { ascending: false });
+
+  if (batchId) query = query.eq("batch_id", batchId);
+  if (barangayId) query = query.eq("barangay_id", barangayId);
+  return query;
 }
 
 export function duplicateDistributionError(error: unknown) {
