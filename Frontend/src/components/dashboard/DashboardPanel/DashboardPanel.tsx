@@ -1,6 +1,7 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { useEffect, useMemo, useState } from "react";
 import { MapPanel } from "@/components/dashboard/MapPanel/MapPanel";
 import { Badge } from "@/components/ui/Badge/Badge";
 import { EmptyState } from "@/components/ui/EmptyState";
@@ -9,6 +10,7 @@ import { LoadingState } from "@/components/ui/LoadingState";
 import { Pagination as SharedPagination, type PaginationState } from "@/components/ui/Pagination/Pagination";
 import { getFloodBadgeTone, getFloodStatusClass, getFloodStatusLabel, type FloodLevel } from "@/lib/statusStyles";
 import { formatBarangayName, formatSensorUpdatedTime } from "@/lib/formatters";
+import { queryKeys, queryStaleTime } from "@/lib/queryKeys";
 import { StatCard } from "@/components/ui/StatCard/StatCard";
 import { getSensors } from "@/services/sensorsService";
 import type { DashboardStat } from "@/types/dashboard";
@@ -16,50 +18,19 @@ import styles from "./DashboardPanel.module.css";
 
 export function DashboardPanel() {
   const pageSize = 5;
-  const [sensorRows, setSensorRows] = useState<Record<string, unknown>[]>([]);
   const [showSevereOnly, setShowSevereOnly] = useState(false);
   const [selectedSensorId, setSelectedSensorId] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState("");
   const [sensorPage, setSensorPage] = useState(1);
-
-  const loadDashboard = useCallback(async (showLoading = true) => {
-    if (showLoading) setIsLoading(true);
-    try {
-      const rows = await getSensors();
-      setSensorRows(rows);
-      setError("");
-    } catch (loadError) {
-      setError(loadError instanceof Error ? loadError.message : "Unable to load dashboard data.");
-    } finally {
-      setIsLoading(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    let cancelled = false;
-
-    async function load() {
-      try {
-        const rows = await getSensors();
-        if (!cancelled) {
-          setSensorRows(rows);
-          setError("");
-        }
-      } catch (loadError) {
-        if (!cancelled) setError(loadError instanceof Error ? loadError.message : "Unable to load dashboard data.");
-      } finally {
-        if (!cancelled) setIsLoading(false);
-      }
-    }
-
-    load();
-    const interval = window.setInterval(load, 5000);
-    return () => {
-      cancelled = true;
-      window.clearInterval(interval);
-    };
-  }, []);
+  const sensorsQuery = useQuery({
+    queryKey: queryKeys.sensors.latest,
+    queryFn: getSensors,
+    staleTime: queryStaleTime.realTime,
+    refetchInterval: 5_000,
+    refetchIntervalInBackground: false,
+  });
+  const sensorRows = sensorsQuery.data ?? [];
+  const isLoading = sensorsQuery.isPending;
+  const error = sensorsQuery.error instanceof Error ? sensorsQuery.error.message : sensorsQuery.error ? "Unable to load dashboard data." : "";
 
   const severeSensors = useMemo(() => sensorRows.filter((row) => sensorFloodLevel(row) === "severity"), [sensorRows]);
   const visibleSensorRows = showSevereOnly ? severeSensors : sensorRows;
@@ -132,7 +103,7 @@ export function DashboardPanel() {
           sensors={showSevereOnly ? severeSensors : sensorRows}
           isLoading={isLoading}
           error={error}
-          onRetry={() => loadDashboard()}
+          onRetry={() => sensorsQuery.refetch()}
           selectedSensorId={selectedSensorId}
           onSensorSelect={setSelectedSensorId}
           focusZoom={18}
@@ -145,8 +116,9 @@ export function DashboardPanel() {
             <p>Live sensor nodes from the monitoring network</p>
           </div>
         </div>
-        {error ? <ErrorState title="Unable to Load Sensor Nodes" message={error} retryLabel="Retry" onRetry={() => loadDashboard()} /> : null}
+        {error ? <ErrorState title="Unable to Load Sensor Nodes" message={error} retryLabel="Retry" onRetry={() => sensorsQuery.refetch()} /> : null}
         {isLoading ? <LoadingState message="Loading sensor nodes..." /> : null}
+        {sensorsQuery.isFetching && !sensorsQuery.isPending ? <p className={styles.errorMessage} role="status">Refreshing sensor nodes...</p> : null}
         {!isLoading && !error && sensorRows.length === 0 ? (
           <EmptyState title="No sensor nodes available." description="Sensor cards will appear when live sensor data is available." />
         ) : null}

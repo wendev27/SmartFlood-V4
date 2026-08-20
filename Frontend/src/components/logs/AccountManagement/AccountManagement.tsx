@@ -1,6 +1,7 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState, type FormEvent } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useEffect, useMemo, useState, type FormEvent } from "react";
 import { ActionResultModal, type ActionResultType } from "@/components/ui/ActionResultModal";
 import { Badge } from "@/components/ui/Badge/Badge";
 import { Button } from "@/components/ui/Button/Button";
@@ -12,6 +13,7 @@ import { Modal } from "@/components/ui/Modal/Modal";
 import { Pagination as SharedPagination, type PaginationState } from "@/components/ui/Pagination/Pagination";
 import { withAuditActor } from "@/lib/auditClient";
 import { formatBarangayName, normalizeBarangayForCompare } from "@/lib/formatters";
+import { queryKeys, queryStaleTime } from "@/lib/queryKeys";
 import { fetchJson } from "@/services/apiClient";
 import { getAccountUsers } from "@/services/logsService";
 import styles from "./AccountManagement.module.css";
@@ -85,10 +87,8 @@ const barangayOptions = [
 
 export function AccountManagement() {
   const pageSize = 5;
-  const [users, setUsers] = useState<AccountUserRow[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const queryClient = useQueryClient();
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [error, setError] = useState("");
   const [search, setSearch] = useState("");
   const [departmentFilter, setDepartmentFilter] = useState("");
   const [roleFilter, setRoleFilter] = useState("");
@@ -109,23 +109,19 @@ export function AccountManagement() {
     description: "",
     details: "",
   });
-
-  const refreshUsers = useCallback(async () => {
-    setIsLoading(true);
-    setError("");
-    try {
-      const data = await getAccountUsers();
-      setUsers(data.map(mapAccountUser));
-    } catch (loadError) {
-      setError(loadError instanceof Error ? loadError.message : "Unable to load account users.");
-    } finally {
-      setIsLoading(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    refreshUsers();
-  }, [refreshUsers]);
+  const usersQuery = useQuery({
+    queryKey: queryKeys.accounts.users,
+    queryFn: getAccountUsers,
+    staleTime: queryStaleTime.admin,
+  });
+  const users = useMemo(() => (usersQuery.data ?? []).map(mapAccountUser), [usersQuery.data]);
+  const isLoading = usersQuery.isPending;
+  const error = usersQuery.error instanceof Error ? usersQuery.error.message : usersQuery.error ? "Unable to load account users." : "";
+  const refreshUsers = () => usersQuery.refetch();
+  const invalidateUsers = () => Promise.all([
+    queryClient.invalidateQueries({ queryKey: queryKeys.accounts.users }),
+    queryClient.invalidateQueries({ queryKey: queryKeys.logs.audit }),
+  ]);
 
   const departmentOptions = useMemo(() => uniqueSorted(users.map((user) => user.department)), [users]);
   const roleFilterOptions = useMemo(() => {
@@ -245,7 +241,7 @@ export function AccountManagement() {
       }
 
       setIsFormOpen(false);
-      await refreshUsers();
+      await invalidateUsers();
       setResultModal({
         open: true,
         type: "success",
@@ -279,7 +275,7 @@ export function AccountManagement() {
       });
       setPasswordUser(null);
       setNewPassword("");
-      await refreshUsers();
+      await invalidateUsers();
       setResultModal({
         open: true,
         type: "success",
@@ -308,7 +304,7 @@ export function AccountManagement() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(withAuditActor({ status })),
       });
-      await refreshUsers();
+      await invalidateUsers();
       setPreviewUser((current) => current?.id === user.id ? { ...current, status } : current);
       setResultModal({
         open: true,

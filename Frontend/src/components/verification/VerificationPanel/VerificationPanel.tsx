@@ -1,9 +1,12 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useEffect, useMemo, useState } from "react";
 import type { ApplicationFormValues, ModalMode, VerificationApplication, VerificationStatus } from "@/types/verification";
 import { withAuditActor } from "@/lib/auditClient";
+import { queryKeys, queryStaleTime } from "@/lib/queryKeys";
 import { fetchJson } from "@/services/apiClient";
+import { getVerificationApplications } from "@/services/verificationService";
 import { ActionResultModal, type ActionResultType } from "@/components/ui/ActionResultModal";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { ErrorState } from "@/components/ui/ErrorState";
@@ -18,14 +21,12 @@ import styles from "./VerificationPanel.module.css";
 
 export function VerificationPanel() {
   const pageSize = 5;
+  const queryClient = useQueryClient();
   const [activeTab, setActiveTab] = useState<VerificationStatus>("pending");
   const [isReviewOpen, setIsReviewOpen] = useState(false);
   const [isApplicationOpen, setIsApplicationOpen] = useState(false);
   const [applicationMode, setApplicationMode] = useState<ModalMode>("add");
-  const [applications, setApplications] = useState<VerificationApplication[]>([]);
   const [selectedApplication, setSelectedApplication] = useState<VerificationApplication | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState("");
   const [page, setPage] = useState(1);
   const [resultModal, setResultModal] = useState({
     open: false,
@@ -34,41 +35,16 @@ export function VerificationPanel() {
     description: "",
     details: "",
   });
-
-  const fetchApplications = useCallback(async () => {
-    setIsLoading(true);
-    setError("");
-    try {
-      const data = await fetchJson<Record<string, unknown>[]>("/api/resident-applications");
-      setApplications(data.map(mapApplication));
-    } catch (loadError) {
-      setError(loadError instanceof Error ? loadError.message : "Unable to load applications.");
-    } finally {
-      setIsLoading(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    let cancelled = false;
-
-    async function load() {
-      setIsLoading(true);
-      setError("");
-      try {
-        const data = await fetchJson<Record<string, unknown>[]>("/api/resident-applications");
-        if (!cancelled) setApplications(data.map(mapApplication));
-      } catch (loadError) {
-        if (!cancelled) setError(loadError instanceof Error ? loadError.message : "Unable to load applications.");
-      } finally {
-        if (!cancelled) setIsLoading(false);
-      }
-    }
-
-    load();
-    return () => {
-      cancelled = true;
-    };
-  }, []);
+  const applicationsQuery = useQuery({
+    queryKey: queryKeys.verification.applications,
+    queryFn: getVerificationApplications,
+    staleTime: queryStaleTime.admin,
+  });
+  const applications = useMemo(() => (applicationsQuery.data ?? []).map(mapApplication), [applicationsQuery.data]);
+  const isLoading = applicationsQuery.isPending;
+  const isBackgroundRefreshing = applicationsQuery.isFetching && !applicationsQuery.isPending;
+  const error = applicationsQuery.error instanceof Error ? applicationsQuery.error.message : applicationsQuery.error ? "Unable to load applications." : "";
+  const fetchApplications = () => applicationsQuery.refetch();
 
   const visibleApplications = useMemo(
     () => applications.filter((application) => application.status === activeTab),
@@ -139,7 +115,11 @@ export function VerificationPanel() {
 
     setIsReviewOpen(false);
     setSelectedApplication(null);
-    await fetchApplications();
+    await Promise.all([
+      queryClient.invalidateQueries({ queryKey: queryKeys.verification.applications }),
+      queryClient.invalidateQueries({ queryKey: queryKeys.residents.list }),
+      queryClient.invalidateQueries({ queryKey: ["families"] }),
+    ]);
     setResultModal({
       open: true,
       type: action === "approved" ? "success" : "warning",
@@ -182,6 +162,7 @@ export function VerificationPanel() {
       />
       {error ? <ErrorState title="Unable to Load Applications" message={error} retryLabel="Retry" onRetry={fetchApplications} /> : null}
       {isLoading ? <LoadingState message="Loading applications..." /> : null}
+      {isBackgroundRefreshing ? <p className={styles.errorMessage} role="status">Refreshing applications...</p> : null}
       <div className={styles.list}>
         {paginatedApplications.rows.map((application, index) => (
           <ApplicationCard

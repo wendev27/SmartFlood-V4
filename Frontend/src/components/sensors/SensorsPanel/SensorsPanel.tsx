@@ -1,6 +1,7 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { MapPanel } from "@/components/dashboard/MapPanel/MapPanel";
 import { Badge } from "@/components/ui/Badge/Badge";
 import { DataTable } from "@/components/ui/DataTable/DataTable";
@@ -9,6 +10,7 @@ import { ErrorState } from "@/components/ui/ErrorState";
 import { LoadingState } from "@/components/ui/LoadingState";
 import { Pagination as SharedPagination, type PaginationState } from "@/components/ui/Pagination/Pagination";
 import { formatBarangayName, normalizeBarangayForCompare } from "@/lib/formatters";
+import { queryKeys, queryStaleTime } from "@/lib/queryKeys";
 import { resolveSensorCoordinates } from "@/lib/sensorMapping";
 import { getFloodBadgeTone, getFloodStatusClass, getFloodStatusLabel, type FloodLevel } from "@/lib/statusStyles";
 import { getSensors } from "@/services/sensorsService";
@@ -29,10 +31,6 @@ type SensorRow = {
 export function SensorsPanel() {
   const pageSize = 5;
   const mapRegionRef = useRef<HTMLDivElement | null>(null);
-  const [sensorRows, setSensorRows] = useState<Record<string, unknown>[]>([]);
-  const [sensors, setSensors] = useState<SensorRow[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState("");
   const [selectionMessage, setSelectionMessage] = useState("");
   const [selectedSensorId, setSelectedSensorId] = useState<string | null>(null);
   const [search, setSearch] = useState("");
@@ -40,46 +38,17 @@ export function SensorsPanel() {
   const [statusFilter, setStatusFilter] = useState("");
   const [levelFilter, setLevelFilter] = useState("");
   const [page, setPage] = useState(1);
-
-  const loadSensors = useCallback(async (showLoading = true) => {
-    if (showLoading) setIsLoading(true);
-    try {
-      const data = await getSensors();
-      setSensorRows(data);
-      setSensors(data.map(mapSensor));
-      setError("");
-    } catch (loadError) {
-      setError(loadError instanceof Error ? loadError.message : "Unable to load sensors.");
-    } finally {
-      setIsLoading(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    let cancelled = false;
-
-    async function load() {
-      try {
-        const data = await getSensors();
-        if (!cancelled) {
-          setSensorRows(data);
-          setSensors(data.map(mapSensor));
-          setError("");
-        }
-      } catch (loadError) {
-        if (!cancelled) setError(loadError instanceof Error ? loadError.message : "Unable to load sensors.");
-      } finally {
-        if (!cancelled) setIsLoading(false);
-      }
-    }
-
-    load();
-    const interval = window.setInterval(load, 5000);
-    return () => {
-      cancelled = true;
-      window.clearInterval(interval);
-    };
-  }, []);
+  const sensorsQuery = useQuery({
+    queryKey: queryKeys.sensors.latest,
+    queryFn: getSensors,
+    staleTime: queryStaleTime.realTime,
+    refetchInterval: 5_000,
+    refetchIntervalInBackground: false,
+  });
+  const sensorRows = sensorsQuery.data ?? [];
+  const sensors = useMemo(() => sensorRows.map(mapSensor), [sensorRows]);
+  const isLoading = sensorsQuery.isPending;
+  const error = sensorsQuery.error instanceof Error ? sensorsQuery.error.message : sensorsQuery.error ? "Unable to load sensors." : "";
 
   useEffect(() => {
     const explicitSensorId = readExplicitSensorFocus();
@@ -152,7 +121,7 @@ export function SensorsPanel() {
           sensors={sensorRows}
           isLoading={isLoading}
           error={error}
-          onRetry={() => loadSensors()}
+          onRetry={() => sensorsQuery.refetch()}
           selectedSensorId={selectedSensorId}
           onSensorSelect={setSelectedSensorId}
           focusZoom={18}
@@ -181,7 +150,8 @@ export function SensorsPanel() {
           </select>
           <button type="button" aria-label="Reset sensor filters" onClick={resetFilters}>X</button>
         </div>
-        {error ? <ErrorState title="Unable to Load Sensors" message={error} retryLabel="Retry" onRetry={() => loadSensors()} /> : null}
+        {error ? <ErrorState title="Unable to Load Sensors" message={error} retryLabel="Retry" onRetry={() => sensorsQuery.refetch()} /> : null}
+        {sensorsQuery.isFetching && !sensorsQuery.isPending ? <p className={styles.errorMessage} role="status">Refreshing sensors...</p> : null}
         {selectionMessage ? <p className={styles.selectionMessage}>{selectionMessage}</p> : null}
         <div className={styles.tableScroll}>
           <DataTable headers={["Sensor ID", "Barangay", "Coordinates", "Status", "Latest Reading", "Level"]}>

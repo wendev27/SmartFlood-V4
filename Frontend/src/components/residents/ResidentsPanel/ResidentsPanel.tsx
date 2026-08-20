@@ -1,6 +1,7 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState, type FormEvent } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useEffect, useMemo, useState, type FormEvent } from "react";
 import { withAuditActor } from "@/lib/auditClient";
 import { cn } from "@/lib/cn";
 import { ActionResultModal, type ActionResultType } from "@/components/ui/ActionResultModal";
@@ -12,7 +13,9 @@ import { Modal } from "@/components/ui/Modal/Modal";
 import { Pagination as SharedPagination, type PaginationState } from "@/components/ui/Pagination/Pagination";
 import { getCurrentUser, type StoredSessionUser } from "@/lib/authSession";
 import { assignedBarangayForUser, isSameBarangayForUser } from "@/lib/barangayScope";
+import { queryKeys, queryStaleTime } from "@/lib/queryKeys";
 import { fetchJson } from "@/services/apiClient";
+import { getFamilies, getResidents } from "@/services/residentsService";
 import { formatBarangayName, normalizeBarangayForCompare } from "@/lib/formatters";
 import styles from "./ResidentsPanel.module.css";
 
@@ -117,23 +120,18 @@ const vulnerabilityCountFields = [
 
 export function ResidentsPanel() {
   const pageSize = 5;
+  const queryClient = useQueryClient();
   const [currentUser] = useState(() => getCurrentUser());
   const canViewResidentInfo = canViewResidents(currentUser);
   const canManageResidentRecords = canManageResidents(currentUser);
   const isBarangayOfficial = isBarangayUser(currentUser);
   const assignedBarangay = assignedBarangayForUser(currentUser);
-  const [residents, setResidents] = useState<ResidentRow[]>([]);
-  const [familyClusters, setFamilyClusters] = useState<FamilyRow[]>([]);
   const [residentSearch, setResidentSearch] = useState("");
   const [familySearch, setFamilySearch] = useState("");
   const [residentPage, setResidentPage] = useState(1);
   const [familyPage, setFamilyPage] = useState(1);
   const [connectedResidentPage, setConnectedResidentPage] = useState(1);
   const [selectedFamily, setSelectedFamily] = useState<FamilyRow | null>(null);
-  const [isResidentsLoading, setIsResidentsLoading] = useState(true);
-  const [isFamiliesLoading, setIsFamiliesLoading] = useState(true);
-  const [residentsError, setResidentsError] = useState("");
-  const [familiesError, setFamiliesError] = useState("");
   const [isResidentModalOpen, setIsResidentModalOpen] = useState(false);
   const [residentModalMode, setResidentModalMode] = useState<"add" | "edit">("add");
   const [editingResidentId, setEditingResidentId] = useState<string | null>(null);
@@ -147,6 +145,32 @@ export function ResidentsPanel() {
     description: "",
     details: "",
   });
+  const residentsQuery = useQuery({
+    queryKey: queryKeys.residents.list,
+    queryFn: getResidents,
+    staleTime: queryStaleTime.admin,
+    enabled: canViewResidentInfo,
+  });
+  const familiesQuery = useQuery({
+    queryKey: queryKeys.residents.families(),
+    queryFn: () => getFamilies(),
+    staleTime: queryStaleTime.admin,
+    enabled: canViewResidentInfo,
+  });
+  const residents = useMemo(
+    () => filterRecordsForUser((residentsQuery.data ?? []).map(mapResident), currentUser),
+    [currentUser, residentsQuery.data],
+  );
+  const familyClusters = useMemo(
+    () => filterRecordsForUser((familiesQuery.data ?? []).map(mapFamily), currentUser),
+    [currentUser, familiesQuery.data],
+  );
+  const isResidentsLoading = residentsQuery.isPending && canViewResidentInfo;
+  const isFamiliesLoading = familiesQuery.isPending && canViewResidentInfo;
+  const residentsError = residentsQuery.error instanceof Error ? residentsQuery.error.message : residentsQuery.error ? "Unable to load residents." : "";
+  const familiesError = familiesQuery.error instanceof Error ? familiesQuery.error.message : familiesQuery.error ? "Unable to load family clusters." : "";
+  const refreshResidents = () => residentsQuery.refetch();
+  const refreshFamilies = () => familiesQuery.refetch();
 
   const displayedResidents = useMemo(
     () => residents.filter((resident) => matchesSearch(residentSearch, [
@@ -234,76 +258,6 @@ export function ResidentsPanel() {
   useEffect(() => {
     if (connectedResidentPage !== paginatedConnectedResidents.pagination.page) setConnectedResidentPage(paginatedConnectedResidents.pagination.page);
   }, [connectedResidentPage, paginatedConnectedResidents.pagination.page]);
-
-  const refreshResidents = useCallback(async () => {
-    setIsResidentsLoading(true);
-    setResidentsError("");
-    try {
-      const data = await fetchJson<Record<string, unknown>[]>("/api/residents");
-      setResidents(filterRecordsForUser(data.map(mapResident), currentUser));
-    } catch (error) {
-      setResidentsError(error instanceof Error ? error.message : "Unable to load residents.");
-    } finally {
-      setIsResidentsLoading(false);
-    }
-  }, [currentUser]);
-
-  const refreshFamilies = useCallback(async () => {
-    setIsFamiliesLoading(true);
-    setFamiliesError("");
-    try {
-      const data = await fetchJson<Record<string, unknown>[]>("/api/families");
-      setFamilyClusters(filterRecordsForUser(data.map(mapFamily), currentUser));
-    } catch (error) {
-      setFamiliesError(error instanceof Error ? error.message : "Unable to load family clusters.");
-    } finally {
-      setIsFamiliesLoading(false);
-    }
-  }, [currentUser]);
-
-  useEffect(() => {
-    let cancelled = false;
-
-    async function load() {
-      setIsResidentsLoading(true);
-      setResidentsError("");
-      try {
-        const data = await fetchJson<Record<string, unknown>[]>("/api/residents");
-        if (!cancelled) setResidents(filterRecordsForUser(data.map(mapResident), currentUser));
-      } catch (error) {
-        if (!cancelled) setResidentsError(error instanceof Error ? error.message : "Unable to load residents.");
-      } finally {
-        if (!cancelled) setIsResidentsLoading(false);
-      }
-    }
-
-    load();
-    return () => {
-      cancelled = true;
-    };
-  }, [currentUser]);
-
-  useEffect(() => {
-    let cancelled = false;
-
-    async function load() {
-      setIsFamiliesLoading(true);
-      setFamiliesError("");
-      try {
-        const data = await fetchJson<Record<string, unknown>[]>("/api/families");
-        if (!cancelled) setFamilyClusters(filterRecordsForUser(data.map(mapFamily), currentUser));
-      } catch (error) {
-        if (!cancelled) setFamiliesError(error instanceof Error ? error.message : "Unable to load family clusters.");
-      } finally {
-        if (!cancelled) setIsFamiliesLoading(false);
-      }
-    }
-
-    load();
-    return () => {
-      cancelled = true;
-    };
-  }, [currentUser]);
 
   function openAddResident() {
     if (!canManageResidentRecords) return;
@@ -436,7 +390,11 @@ export function ResidentsPanel() {
           : "The resident record has been saved and linked to the correct family cluster.",
         details: "Resident information is now available in the live residents table.",
       });
-      await Promise.all([refreshResidents(), refreshFamilies()]);
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: queryKeys.residents.list }),
+        queryClient.invalidateQueries({ queryKey: ["families"] }),
+        queryClient.invalidateQueries({ queryKey: queryKeys.verification.applications }),
+      ]);
     } catch (saveError) {
       const message = saveError instanceof Error ? saveError.message : "Unable to save resident. Please try again.";
       setFormError(message);

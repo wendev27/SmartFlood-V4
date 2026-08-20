@@ -1,25 +1,54 @@
 "use client";
 
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { FormEvent, useEffect, useMemo, useState } from "react";
 import { Modal } from "@/components/ui/Modal/Modal";
 import { Pagination as SharedPagination, type PaginationState } from "@/components/ui/Pagination/Pagination";
 import { cn } from "@/lib/cn";
+import { queryKeys, queryStaleTime } from "@/lib/queryKeys";
 import { closeReliefCampaign, getReliefCampaignHistory, startReliefCampaign } from "@/services/emergencyService";
 import type { ReliefCampaign } from "@/types/emergency";
 import styles from "./ReliefManagementPanel.module.css";
 
-type State = "idle" | "loading" | "starting" | "closing";
+type State = "idle" | "starting" | "closing";
 
 export function ReliefManagementPanel() {
   const pageSize = 5;
-  const [campaigns, setCampaigns] = useState<ReliefCampaign[]>([]);
+  const queryClient = useQueryClient();
   const [selectedClose, setSelectedClose] = useState<ReliefCampaign | null>(null);
   const [expiresAt, setExpiresAt] = useState("");
   const [closureReason, setClosureReason] = useState("");
-  const [state, setState] = useState<State>("loading");
+  const [state, setState] = useState<State>("idle");
   const [message, setMessage] = useState("");
-  const [error, setError] = useState("");
+  const [actionError, setActionError] = useState("");
   const [page, setPage] = useState(1);
+  const campaignsQuery = useQuery({
+    queryKey: queryKeys.relief.campaigns,
+    queryFn: getReliefCampaignHistory,
+    staleTime: queryStaleTime.operational,
+  });
+  const campaigns = campaignsQuery.data ?? [];
+  const error = actionError || (campaignsQuery.error instanceof Error ? campaignsQuery.error.message : campaignsQuery.error ? "Unable to load relief campaigns." : "");
+  const isInitialLoading = campaignsQuery.isPending;
+  const isBackgroundRefreshing = campaignsQuery.isFetching && !campaignsQuery.isPending;
+
+  const invalidateCampaigns = async () => {
+    await Promise.all([
+      queryClient.invalidateQueries({ queryKey: queryKeys.relief.campaigns }),
+      queryClient.invalidateQueries({ queryKey: queryKeys.relief.currentAllocation }),
+      queryClient.invalidateQueries({ queryKey: ["relief", "distribution-history"] }),
+      queryClient.invalidateQueries({ queryKey: ["relief", "beneficiary-status"] }),
+    ]);
+  };
+
+  const startCampaignMutation = useMutation({
+    mutationFn: ({ batchId, expiresAtIso }: { batchId: string; expiresAtIso: string }) => startReliefCampaign(batchId, expiresAtIso),
+    onSuccess: invalidateCampaigns,
+  });
+  const closeCampaignMutation = useMutation({
+    mutationFn: ({ batchId, closureReason }: { batchId: string; closureReason: string }) => closeReliefCampaign(batchId, closureReason),
+    onSuccess: invalidateCampaigns,
+  });
 
   const activeCampaign = useMemo(
     () => campaigns.find((campaign) => ["accepted", "barangays_notified", "in_distribution"].includes(campaign.status)) ?? null,
@@ -38,41 +67,23 @@ export function ReliefManagementPanel() {
     if (page !== paginatedCampaigns.pagination.page) setPage(paginatedCampaigns.pagination.page);
   }, [page, paginatedCampaigns.pagination.page]);
 
-  useEffect(() => {
-    loadCampaigns();
-  }, []);
-
-  async function loadCampaigns() {
-    try {
-      setState("loading");
-      const rows = await getReliefCampaignHistory();
-      setCampaigns(rows);
-      setError("");
-    } catch (loadError) {
-      setError(loadError instanceof Error ? loadError.message : "Unable to load relief campaigns.");
-    } finally {
-      setState("idle");
-    }
-  }
-
   async function handleStart(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (!activeCampaign) return;
     if (!expiresAt) {
-      setError("Set an expiration date/time before starting distribution.");
+      setActionError("Set an expiration date/time before starting distribution.");
       return;
     }
 
     try {
       setState("starting");
       setMessage("");
-      setError("");
-      await startReliefCampaign(activeCampaign.batch_id, new Date(expiresAt).toISOString());
+      setActionError("");
+      await startCampaignMutation.mutateAsync({ batchId: activeCampaign.batch_id, expiresAtIso: new Date(expiresAt).toISOString() });
       setMessage("Relief campaign started.");
       setExpiresAt("");
-      await loadCampaigns();
     } catch (startError) {
-      setError(startError instanceof Error ? startError.message : "Unable to start campaign.");
+      setActionError(startError instanceof Error ? startError.message : "Unable to start campaign.");
     } finally {
       setState("idle");
     }
@@ -81,21 +92,20 @@ export function ReliefManagementPanel() {
   async function handleClose() {
     if (!selectedClose) return;
     if (!closureReason.trim()) {
-      setError("Closure reason is required.");
+      setActionError("Closure reason is required.");
       return;
     }
 
     try {
       setState("closing");
       setMessage("");
-      setError("");
-      await closeReliefCampaign(selectedClose.batch_id, closureReason.trim());
+      setActionError("");
+      await closeCampaignMutation.mutateAsync({ batchId: selectedClose.batch_id, closureReason: closureReason.trim() });
       setMessage("Relief campaign closed.");
       setSelectedClose(null);
       setClosureReason("");
-      await loadCampaigns();
     } catch (closeError) {
-      setError(closeError instanceof Error ? closeError.message : "Unable to close campaign.");
+      setActionError(closeError instanceof Error ? closeError.message : "Unable to close campaign.");
     } finally {
       setState("idle");
     }
@@ -105,6 +115,7 @@ export function ReliefManagementPanel() {
     <section className={styles.stack} aria-label="Emergency relief campaign management">
       {message ? <p className={styles.stateMessage}>{message}</p> : null}
       {error ? <p className={styles.errorMessage}>{error}</p> : null}
+      {isBackgroundRefreshing ? <p className={styles.stateMessage}>Refreshing campaign data...</p> : null}
 
       <section className={styles.summary}>
         <div>
@@ -157,7 +168,7 @@ export function ReliefManagementPanel() {
           <h3>Relief Campaigns</h3>
           <p>Historical campaigns stay queryable after closure, completion, or expiration.</p>
         </header>
-        {state === "loading" ? (
+        {isInitialLoading ? (
           <div className={styles.emptyState}>Loading campaigns...</div>
         ) : campaigns.length === 0 ? (
           <div className={styles.emptyState}>No relief campaigns found.</div>
