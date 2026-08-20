@@ -1,5 +1,6 @@
 "use client";
 
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useMemo, useState } from "react";
 import { ActionResultModal, type ActionResultType } from "@/components/ui/ActionResultModal";
 import { Button } from "@/components/ui/Button/Button";
@@ -10,6 +11,7 @@ import { LoadingState } from "@/components/ui/LoadingState";
 import { Modal } from "@/components/ui/Modal/Modal";
 import { Pagination as SharedPagination, type PaginationState } from "@/components/ui/Pagination/Pagination";
 import { formatBarangayName, normalizeBarangayForCompare } from "@/lib/formatters";
+import { queryKeys, queryStaleTime } from "@/lib/queryKeys";
 import { getFloodStatusLabel } from "@/lib/statusStyles";
 import { closeReliefCampaign } from "@/services/emergencyService";
 import {
@@ -69,13 +71,12 @@ const planCopy: Record<ReliefPlanId, { focus: string; description: string; butto
 
 export function ReliefPanel() {
   const pageSize = 5;
+  const queryClient = useQueryClient();
   const [generationInventory, setGenerationInventory] = useState<Record<GenerationInventoryField, string>>(generationInventoryDefaults);
   const [isGenerationOpen, setIsGenerationOpen] = useState(false);
   const [selectedReport, setSelectedReport] = useState<ReliefRecommendation | null>(null);
   const [generatedPlans, setGeneratedPlans] = useState<ReliefAllocationPlan[]>([]);
-  const [currentEmergencyAllocation, setCurrentEmergencyAllocation] = useState<CurrentEmergencyAllocation | null>(null);
   const [selectedPlanId, setSelectedPlanId] = useState<ReliefPlanId | "">("");
-  const [history, setHistory] = useState<HistoryEntry[]>([]);
   const [historyDateFilter, setHistoryDateFilter] = useState<HistoryDateFilter>("");
   const [historyBarangayFilter, setHistoryBarangayFilter] = useState("");
   const [historySort, setHistorySort] = useState<HistorySort>("newest");
@@ -83,8 +84,7 @@ export function ReliefPanel() {
   const [historyPage, setHistoryPage] = useState(1);
   const [currentAllocationPage, setCurrentAllocationPage] = useState(1);
   const [selectedRecommendationPage, setSelectedRecommendationPage] = useState(1);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState("");
+  const [actionError, setActionError] = useState("");
   const [isGenerating, setIsGenerating] = useState(false);
   const [isApproving, setIsApproving] = useState(false);
   const [isNotifyingBarangays, setIsNotifyingBarangays] = useState(false);
@@ -98,35 +98,32 @@ export function ReliefPanel() {
     description: "",
     details: "",
   });
+  const recommendationsQuery = useQuery({
+    queryKey: queryKeys.relief.recommendations,
+    queryFn: getReliefRecommendations,
+    staleTime: queryStaleTime.operational,
+  });
+  const currentAllocationQuery = useQuery({
+    queryKey: queryKeys.relief.currentAllocation,
+    queryFn: getCurrentEmergencyAllocation,
+    staleTime: queryStaleTime.operational,
+  });
+  const recommendationRows = recommendationsQuery.data ?? [];
+  const history = useMemo(() => recommendationRows.map(mapHistory), [recommendationRows]);
+  const currentEmergencyAllocation = currentAllocationQuery.data ?? null;
+  const loadError = recommendationsQuery.error ?? currentAllocationQuery.error;
+  const error = actionError || (loadError instanceof Error ? loadError.message : loadError ? "Unable to load relief data." : "");
+  const isLoading = recommendationsQuery.isPending || currentAllocationQuery.isPending;
+  const isBackgroundRefreshing = !isLoading && (recommendationsQuery.isFetching || currentAllocationQuery.isFetching);
 
-  useEffect(() => {
-    let cancelled = false;
-
-    async function load() {
-      setIsLoading(true);
-      setError("");
-      try {
-        const [recommendationRows, currentAllocation] = await Promise.all([
-          getReliefRecommendations(),
-          getCurrentEmergencyAllocation(),
-        ]);
-
-        if (cancelled) return;
-
-        setHistory(recommendationRows.map(mapHistory));
-        setCurrentEmergencyAllocation(currentAllocation);
-      } catch (loadError) {
-        if (!cancelled) setError(loadError instanceof Error ? loadError.message : "Unable to load relief data.");
-      } finally {
-        if (!cancelled) setIsLoading(false);
-      }
-    }
-
-    load();
-    return () => {
-      cancelled = true;
-    };
-  }, []);
+  const invalidateReliefWorkflow = async () => {
+    await Promise.all([
+      queryClient.invalidateQueries({ queryKey: queryKeys.relief.recommendations }),
+      queryClient.invalidateQueries({ queryKey: queryKeys.relief.currentAllocation }),
+      queryClient.invalidateQueries({ queryKey: queryKeys.relief.campaigns }),
+      queryClient.invalidateQueries({ queryKey: queryKeys.notifications.emergency }),
+    ]);
+  };
 
   const activeHistoryDateFilter = historyDateFilter || defaultHistoryDateFilter(history);
   const selectedPlan = useMemo(
@@ -243,10 +240,14 @@ export function ReliefPanel() {
     }
 
     setIsGenerating(true);
-    setError("");
+    setActionError("");
     try {
-      const latestActiveAllocation = await getCurrentEmergencyAllocation();
-      setCurrentEmergencyAllocation(latestActiveAllocation);
+      const latestActiveAllocation = await queryClient.fetchQuery({
+        queryKey: queryKeys.relief.currentAllocation,
+        queryFn: getCurrentEmergencyAllocation,
+        staleTime: queryStaleTime.operational,
+      });
+      queryClient.setQueryData(queryKeys.relief.currentAllocation, latestActiveAllocation);
 
       if (latestActiveAllocation && isActiveCampaignStatus(latestActiveAllocation.status)) {
         setPendingGenerationPayload(payload);
@@ -275,7 +276,7 @@ export function ReliefPanel() {
   ) {
     const shouldManageLoading = options.manageLoading !== false;
     if (shouldManageLoading) setIsGenerating(true);
-    setError("");
+    setActionError("");
     try {
       const generatedRows = await generateReliefRecommendations(payload);
       const plans = normalizePlans(generatedRows.plans);
@@ -283,7 +284,8 @@ export function ReliefPanel() {
       setGeneratedPlans(plans);
       setSelectedPlanId("");
       setSelectedReport(null);
-      setHistory(latestRows.map(mapHistory));
+      queryClient.setQueryData(queryKeys.relief.recommendations, latestRows);
+      await invalidateReliefWorkflow();
       setIsGenerationOpen(false);
       setResultModal({
         open: true,
@@ -321,17 +323,18 @@ export function ReliefPanel() {
 
     setNewAllocationStep("closing");
     setIsGenerating(true);
-    setError("");
+    setActionError("");
     try {
       await closeReliefCampaign(campaignToClose.batch_id, startNewAllocationClosureReason);
-      setCurrentEmergencyAllocation(null);
+      queryClient.setQueryData(queryKeys.relief.currentAllocation, null);
+      await queryClient.invalidateQueries({ queryKey: queryKeys.relief.campaigns });
       setNewAllocationStep("generating");
       const generated = await runGeneration(payload, { manageLoading: false, closedPreviousCampaign: true });
       setIsNewAllocationConfirmOpen(false);
       setPendingGenerationPayload(null);
       if (!generated) {
         const latestActiveAllocation = await getCurrentEmergencyAllocation();
-        setCurrentEmergencyAllocation(latestActiveAllocation);
+        queryClient.setQueryData(queryKeys.relief.currentAllocation, latestActiveAllocation);
       }
     } catch (closeError) {
       setResultModal({
@@ -357,7 +360,7 @@ export function ReliefPanel() {
     if (!selectedPlan) return;
 
     setIsApproving(true);
-    setError("");
+    setActionError("");
     try {
       const workflow = await approveReliefRecommendationPlan(selectedPlan as unknown as Record<string, unknown>);
       const savedRows = Array.isArray(workflow.data) ? workflow.data : [];
@@ -365,8 +368,9 @@ export function ReliefPanel() {
         savedRows.length > 0 ? Promise.resolve(savedRows) : getReliefRecommendations(),
         getCurrentEmergencyAllocation(),
       ]);
-      setHistory(latestRows.map(mapHistory));
-      setCurrentEmergencyAllocation(currentAllocation);
+      queryClient.setQueryData(queryKeys.relief.recommendations, latestRows);
+      queryClient.setQueryData(queryKeys.relief.currentAllocation, currentAllocation);
+      await invalidateReliefWorkflow();
       setGeneratedPlans([]);
       setSelectedPlanId("");
       setSelectedReport(null);
@@ -405,11 +409,12 @@ export function ReliefPanel() {
     }
 
     setIsApproving(true);
-    setError("");
+    setActionError("");
     try {
       const workflow = await rejectReliefRecommendationPlan(selectedPlan as unknown as Record<string, unknown>);
       const currentAllocation = await getCurrentEmergencyAllocation();
-      setCurrentEmergencyAllocation(currentAllocation);
+      queryClient.setQueryData(queryKeys.relief.currentAllocation, currentAllocation);
+      await invalidateReliefWorkflow();
       setGeneratedPlans([]);
       setSelectedPlanId("");
       setSelectedReport(null);
@@ -439,14 +444,18 @@ export function ReliefPanel() {
     if (!currentEmergencyAllocation || currentEmergencyAllocation.status !== "accepted") return;
 
     setIsNotifyingBarangays(true);
-    setError("");
+    setActionError("");
     try {
       const response = await notifyBarangaysForEmergencyAllocation(currentEmergencyAllocation.batch_id);
       if (response.data) {
-        setCurrentEmergencyAllocation(response.data);
+        queryClient.setQueryData(queryKeys.relief.currentAllocation, response.data);
       } else {
-        setCurrentEmergencyAllocation(await getCurrentEmergencyAllocation());
+        queryClient.setQueryData(queryKeys.relief.currentAllocation, await getCurrentEmergencyAllocation());
       }
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: queryKeys.relief.currentAllocation }),
+        queryClient.invalidateQueries({ queryKey: queryKeys.notifications.emergency }),
+      ]);
       setResultModal({
         open: true,
         type: "success",
@@ -486,6 +495,7 @@ export function ReliefPanel() {
           </div>
           {error ? <ErrorState title="Unable to Load Relief Data" message={error} /> : null}
           {isLoading ? <LoadingState message="Loading relief data..." /> : null}
+          {isBackgroundRefreshing ? <p className={styles.stateMessage}>Refreshing relief data...</p> : null}
 
           {isGenerating ? <p className={styles.stateMessage}>{newAllocationStep === "closing" ? "Ending current allocation..." : "Generating AI allocation plans..."}</p> : null}
 

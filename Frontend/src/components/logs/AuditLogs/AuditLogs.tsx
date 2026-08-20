@@ -1,19 +1,26 @@
 "use client";
 
+import { useQuery } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 import { SmartFloodIcon, type SmartFloodIconName } from "@/components/icons/SmartFloodIcon";
 import { Pagination as SharedPagination, type PaginationState } from "@/components/ui/Pagination/Pagination";
 import { cn } from "@/lib/cn";
 import { formatBarangayName } from "@/lib/formatters";
+import { queryKeys, queryStaleTime } from "@/lib/queryKeys";
 import { getAuditLogs } from "@/services/logsService";
 import type { AuditLog } from "@/types/logs";
 import styles from "./AuditLogs.module.css";
 
 export function AuditLogs() {
   const pageSize = 5;
-  const [logs, setLogs] = useState<AuditLog[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
   const [page, setPage] = useState(1);
+  const logsQuery = useQuery({
+    queryKey: queryKeys.logs.audit,
+    queryFn: getAuditLogs,
+    staleTime: queryStaleTime.logs,
+  });
+  const logs = (logsQuery.data ?? []) as unknown as AuditLog[];
+  const isLoading = logsQuery.isPending;
 
   const paginatedLogs = (() => {
     const totalPages = Math.max(1, Math.ceil(logs.length / pageSize));
@@ -27,24 +34,6 @@ export function AuditLogs() {
   useEffect(() => {
     if (page !== paginatedLogs.pagination.page) setPage(paginatedLogs.pagination.page);
   }, [page, paginatedLogs.pagination.page]);
-
-  useEffect(() => {
-    let cancelled = false;
-
-    async function load() {
-      setIsLoading(true);
-      const data = await getAuditLogs();
-      if (!cancelled) {
-        setLogs(data as unknown as AuditLog[]);
-        setIsLoading(false);
-      }
-    }
-
-    load();
-    return () => {
-      cancelled = true;
-    };
-  }, []);
 
   return (
     <article className={styles.card}>
@@ -71,6 +60,8 @@ export function AuditLogs() {
           </section>
         ))}
         {isLoading ? <p className={styles.empty}>Loading audit logs...</p> : null}
+        {logsQuery.error ? <p className={styles.empty}>{logsQuery.error instanceof Error ? logsQuery.error.message : "Unable to load audit logs."}</p> : null}
+        {logsQuery.isFetching && !logsQuery.isPending ? <p className={styles.empty}>Refreshing audit logs...</p> : null}
         {!isLoading && logs.length === 0 ? <p className={styles.empty}>No audit logs found.</p> : null}
       </div>
       <SharedPagination pagination={paginatedLogs.pagination} onPageChange={setPage} label="Audit log events" />
