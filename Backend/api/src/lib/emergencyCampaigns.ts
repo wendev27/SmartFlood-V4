@@ -117,6 +117,10 @@ export async function listCampaignsForViewer(viewer: DashboardViewer) {
   if (role !== "super" && role !== "cswdd" && role !== "barangay") {
     return { status: "UNAUTHORIZED" as const, reason: "You do not have access to relief campaigns." };
   }
+  const assignedBarangay = role === "barangay" ? assignedBarangayForUser(viewer) : null;
+  if (role === "barangay" && !assignedBarangay) {
+    return { status: "UNAUTHORIZED" as const, reason: "Your account is not assigned to a barangay." };
+  }
 
   const { data, error } = await supabaseServer
     .from("emergency_allocation_batches")
@@ -126,23 +130,75 @@ export async function listCampaignsForViewer(viewer: DashboardViewer) {
 
   if (error) throw new Error(error.message);
 
-  const scopedCampaigns = [];
+  const campaigns = [];
   for (const row of data ?? []) {
     const refreshedCampaign = await refreshCampaignExpiration(row as Record<string, unknown>, viewer);
     const campaign = await reconcileCampaignDistributionReadiness(refreshedCampaign, viewer);
-    if (role === "barangay") {
-      const barangay = assignedBarangayForUser(viewer);
-      if (!barangay) return { status: "UNAUTHORIZED" as const, reason: "Your account is not assigned to a barangay." };
-      const item = await getCampaignBarangayItem(campaign.batch_id, barangay.barangay_id);
-      if (!item) continue;
-    }
-    scopedCampaigns.push({
-      ...campaign,
-      progress: await getCampaignProgress(campaign.batch_id, role === "barangay" ? viewer : null),
-    });
+    campaigns.push(campaign);
   }
 
+  const progressByBatch = await getLightweightCampaignProgress(
+    campaigns.map((campaign) => campaign.batch_id),
+    assignedBarangay?.barangay_id ?? null,
+  );
+  const scopedCampaigns = campaigns
+    .filter((campaign) => role !== "barangay" || (progressByBatch.get(campaign.batch_id)?.total_barangays ?? 0) > 0)
+    .map((campaign) => ({
+      ...campaign,
+      progress: progressByBatch.get(campaign.batch_id) ?? emptyCampaignProgress(),
+    }));
+
   return { status: "OK" as const, campaigns: scopedCampaigns };
+}
+
+async function getLightweightCampaignProgress(batchIds: string[], barangayId: number | null) {
+  const progressByBatch = new Map<string, ReturnType<typeof emptyCampaignProgress>>();
+  const scopedBatchIds = batchIds.filter(Boolean);
+  if (scopedBatchIds.length === 0) return progressByBatch;
+
+  let query = supabaseServer
+    .from("emergency_allocation_items")
+    .select("item_id,batch_id,barangay_id,barangay_name,barangay_status")
+    .in("batch_id", scopedBatchIds);
+  if (barangayId) query = query.eq("barangay_id", barangayId);
+
+  const { data, error } = await query.order("created_at", { ascending: false });
+  if (error) throw new Error(error.message);
+
+  for (const item of data ?? []) {
+    const batchId = String((item as Record<string, unknown>).batch_id ?? "");
+    if (!batchId) continue;
+    const progress = progressByBatch.get(batchId) ?? emptyCampaignProgress();
+    progress.barangays.push({
+      barangay_id: Number((item as Record<string, unknown>).barangay_id),
+      barangay_name: String((item as Record<string, unknown>).barangay_name ?? ""),
+      allocation_item_id: String((item as Record<string, unknown>).item_id ?? ""),
+      barangay_status: String((item as Record<string, unknown>).barangay_status ?? ""),
+      received: 0,
+    });
+    progress.total_barangays = progress.barangays.length;
+    progressByBatch.set(batchId, progress);
+  }
+
+  for (const batchId of scopedBatchIds) {
+    if (!progressByBatch.has(batchId)) progressByBatch.set(batchId, emptyCampaignProgress());
+  }
+
+  return progressByBatch;
+}
+
+function emptyCampaignProgress() {
+  return {
+    total_barangays: 0,
+    total_distributions: 0,
+    barangays: [] as Array<{
+      barangay_id: number;
+      barangay_name: string;
+      allocation_item_id: string;
+      barangay_status: string;
+      received: number;
+    }>,
+  };
 }
 
 export async function getCampaignProgress(batchId: string, viewer?: DashboardViewer | null) {
