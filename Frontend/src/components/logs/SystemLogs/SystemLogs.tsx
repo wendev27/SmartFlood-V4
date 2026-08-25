@@ -22,7 +22,7 @@ export function SystemLogs() {
   const [page, setPage] = useState(1);
   const user = getCurrentUser();
   const role = normalizeUserRole(user) ?? "barangay";
-  const title = logLabelForRole(role);
+  const title = logLabelForRole(role, user);
   const emptyMessage = role === "cswdd" ? "No CSWDD logs found." : "No logs available for your role or assigned barangay.";
   const logsQuery = useQuery({
     queryKey: queryKeys.logs.audit,

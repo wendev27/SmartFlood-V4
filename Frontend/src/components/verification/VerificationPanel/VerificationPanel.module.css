@@ -16,6 +16,60 @@
   width: 100%;
 }
 
+.searchToolbar {
+  margin-top: 18px;
+}
+
+.searchField {
+  align-items: center;
+  background: #ffffff;
+  border: 1px solid #d5dbe7;
+  border-radius: 8px;
+  display: flex;
+  gap: 10px;
+  min-height: 44px;
+  padding: 0 14px;
+  width: 100%;
+}
+
+.searchField:focus-within {
+  border-color: #2563eb;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
+}
+
+.searchIcon {
+  border: 2px solid #64748b;
+  border-radius: 999px;
+  height: 14px;
+  position: relative;
+  width: 14px;
+}
+
+.searchIcon::after {
+  background: #64748b;
+  bottom: -5px;
+  content: "";
+  height: 7px;
+  position: absolute;
+  right: -4px;
+  transform: rotate(45deg);
+  width: 2px;
+}
+
+.searchField input {
+  background: transparent;
+  border: 0;
+  color: #0f172a;
+  flex: 1;
+  font: inherit;
+  min-width: 0;
+  outline: 0;
+}
+
+.searchField input::placeholder {
+  color: #64748b;
+}
+
 .list {
   display: grid;
   gap: 20px;

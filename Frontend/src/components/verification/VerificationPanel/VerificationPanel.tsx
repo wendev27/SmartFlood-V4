@@ -4,6 +4,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useMemo, useState } from "react";
 import type { ApplicationFormValues, ModalMode, VerificationApplication, VerificationStatus } from "@/types/verification";
 import { withAuditActor } from "@/lib/auditClient";
+import { normalizeBarangayForCompare } from "@/lib/formatters";
 import { queryKeys, queryStaleTime } from "@/lib/queryKeys";
 import { fetchJson } from "@/services/apiClient";
 import { getVerificationApplications } from "@/services/verificationService";
@@ -27,6 +28,7 @@ export function VerificationPanel() {
   const [isApplicationOpen, setIsApplicationOpen] = useState(false);
   const [applicationMode, setApplicationMode] = useState<ModalMode>("add");
   const [selectedApplication, setSelectedApplication] = useState<VerificationApplication | null>(null);
+  const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
   const [resultModal, setResultModal] = useState({
     open: false,
@@ -47,8 +49,38 @@ export function VerificationPanel() {
   const fetchApplications = () => applicationsQuery.refetch();
 
   const visibleApplications = useMemo(
-    () => applications.filter((application) => application.status === activeTab),
-    [activeTab, applications],
+    () => {
+      const normalizedSearch = normalizeBarangayForCompare(search);
+      return applications.filter((application) => {
+        if (application.status !== activeTab) return false;
+        if (!normalizedSearch) return true;
+
+        const raw = application.raw ?? {};
+        const searchable = [
+          application.application_id,
+          application.name,
+          application.status,
+          application.type,
+          application.barangay,
+          application.familyMembers,
+          application.submitted,
+          application.phone,
+          application.address,
+          raw.first_name,
+          raw.middle_name,
+          raw.last_name,
+          raw.contact_number,
+          raw.complete_address,
+          raw.barangay_name,
+          raw.status,
+          raw.total_family_members,
+          raw.created_at,
+        ].join(" ");
+
+        return normalizeBarangayForCompare(searchable).includes(normalizedSearch);
+      });
+    },
+    [activeTab, applications, search],
   );
   const paginatedApplications = useMemo(() => {
     const totalPages = Math.max(1, Math.ceil(visibleApplications.length / pageSize));
@@ -61,7 +93,7 @@ export function VerificationPanel() {
 
   useEffect(() => {
     setPage(1);
-  }, [activeTab]);
+  }, [activeTab, search]);
 
   useEffect(() => {
     if (page !== paginatedApplications.pagination.page) setPage(paginatedApplications.pagination.page);
@@ -160,6 +192,18 @@ export function VerificationPanel() {
           { key: "rejected", label: "Rejected", count: counts.rejected, countTone: "red", icon: <SmartFloodIcon name="rejected" size={20} /> },
         ]}
       />
+      <div className={styles.searchToolbar}>
+        <label className={styles.searchField}>
+          <span className="srOnly">Search resident account applications</span>
+          <span className={styles.searchIcon} aria-hidden="true" />
+          <input
+            type="search"
+            placeholder="Search by applicant, barangay, phone, address, or application ID..."
+            value={search}
+            onChange={(event) => setSearch(event.target.value)}
+          />
+        </label>
+      </div>
       {error ? <ErrorState title="Unable to Load Applications" message={error} retryLabel="Retry" onRetry={fetchApplications} /> : null}
       {isLoading ? <LoadingState message="Loading applications..." /> : null}
       {isBackgroundRefreshing ? <p className={styles.errorMessage} role="status">Refreshing applications...</p> : null}
@@ -177,7 +221,7 @@ export function VerificationPanel() {
         {!isLoading && visibleApplications.length === 0 ? (
           <EmptyState
             title={emptyTitleFor(activeTab)}
-            description={emptyDescriptionFor(activeTab)}
+            description={search ? "Try another applicant name, barangay, phone, address, or application ID." : emptyDescriptionFor(activeTab)}
           />
         ) : null}
       </div>
