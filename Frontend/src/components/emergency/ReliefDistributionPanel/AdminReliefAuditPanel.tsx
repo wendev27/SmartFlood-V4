@@ -5,13 +5,14 @@ import { useEffect, useMemo, useState } from "react";
 import { Modal } from "@/components/ui/Modal/Modal";
 import { Pagination as SharedPagination, type PaginationState } from "@/components/ui/Pagination/Pagination";
 import { cn } from "@/lib/cn";
+import { getCurrentUser, userDisplayName } from "@/lib/authSession";
+import { downloadReliefHistoryReport } from "@/lib/reliefHistoryReport";
 import { queryKeys, queryStaleTime } from "@/lib/queryKeys";
 import {
   getReliefCampaignHistory,
   getReliefDistributionHistory,
   getReliefDistributionReport,
   getReliefNotReceived,
-  reliefDistributionExportUrl,
 } from "@/services/emergencyService";
 import type {
   Pagination,
@@ -110,9 +111,17 @@ export function AdminReliefAuditPanel() {
     setIsSwitcherOpen(false);
   }
 
-  function exportCampaignReport() {
+  async function exportCampaignReport() {
     if (!selectedCampaign) return;
-    window.open(reliefDistributionExportUrl(selectedCampaign.batch_id), "_blank", "noopener,noreferrer");
+    const allHistory = await fetchAllDistributionHistory(selectedCampaign.batch_id);
+    downloadReliefHistoryReport({
+      campaign: selectedCampaign,
+      history: allHistory,
+      summary,
+      barangays,
+      scopeLabel: "All Barangays",
+      generatedBy: userDisplayName(getCurrentUser()) || undefined,
+    });
   }
 
   return (
@@ -158,7 +167,7 @@ export function AdminReliefAuditPanel() {
           </dl>
           <div className={styles.actionRow}>
             <button className={styles.secondaryButton} type="button" onClick={exportCampaignReport}>
-              Export Campaign Report
+              Download History Report
             </button>
           </div>
         </section>
@@ -331,6 +340,20 @@ function NotReceivedList({ records }: { records: ReliefNotReceivedBeneficiary[] 
       ))}
     </div>
   );
+}
+
+async function fetchAllDistributionHistory(batchId: string) {
+  const limit = 100;
+  const firstPage = await getReliefDistributionHistory(batchId, 1, limit);
+  const rows = [...firstPage.distributions];
+  const totalPages = firstPage.pagination?.totalPages ?? 1;
+
+  for (let page = 2; page <= totalPages; page += 1) {
+    const nextPage = await getReliefDistributionHistory(batchId, page, limit);
+    rows.push(...nextPage.distributions);
+  }
+
+  return rows;
 }
 
 
