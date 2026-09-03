@@ -34,7 +34,7 @@ export async function fetchEnvelope<T>(url: string, init?: RequestInit, timeoutM
     return payload ?? { success: true, data: null as T };
   } catch (error) {
     if (error instanceof DOMException && error.name === "AbortError") {
-      throw new Error("Request timed out after 10 seconds.");
+      throw new Error(`Request timed out after ${Math.round(timeoutMs / 1000)} seconds.`);
     }
 
     throw error;

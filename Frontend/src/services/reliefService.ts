@@ -2,6 +2,8 @@ import { fetchEnvelope, fetchJson } from "@/services/apiClient";
 import { withAuditActor } from "@/lib/auditClient";
 import type { BarangayNotificationResponse, CurrentEmergencyAllocation, EmergencyWorkflowResponse, ReliefGenerationResponse } from "@/types/relief";
 
+const AI_GENERATION_TIMEOUT_MS = 60000;
+
 export async function getReliefSummary() {
   return Promise.resolve([]);
 }
@@ -27,7 +29,7 @@ export async function generateReliefRecommendations(payload: Record<string, numb
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(withAuditActor(payload)),
-  }) as Promise<ReliefGenerationResponse>;
+  }, AI_GENERATION_TIMEOUT_MS) as Promise<ReliefGenerationResponse>;
 }
 
 export async function approveReliefRecommendationPlan(plan: Record<string, unknown>) {
