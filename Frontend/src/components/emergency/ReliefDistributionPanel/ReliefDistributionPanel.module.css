@@ -497,6 +497,37 @@
   font-weight: 800;
 }
 
+/* Port 5173 barangay relief distribution composition. */
+.stack { gap: 20px; }
+.summary,
+.card { border: 1px solid rgba(255,255,255,.7); border-radius: 16px; box-shadow: 0 6px 18px rgba(37,99,235,.12); padding: 28px 36px; }
+.summary span,
+.cardHeader span { color: #0088ff; font-size: 12px; font-weight: 600; text-transform: none; }
+.summary h3,
+.cardHeader h3 { color: #1e1e1e; font-size: 20px; font-weight: 600; }
+.summary p,
+.cardHeader p { color: rgba(30,30,30,.58); font-size: 12px; }
+.metric { background: rgba(220,235,255,.35); border: 1px solid rgba(255,255,255,.75); border-radius: 12px; box-shadow: 0 4px 12px rgba(37,99,235,.12); }
+.primaryButton { background: #0088ff; border-radius: 12px; font-size: 12px; min-height: 48px; }
+.secondaryButton,
+.switchButton { border-color: #0088ff; border-radius: 12px; color: #0088ff; min-height: 48px; }
+.details { gap: 16px; }
+.details div { background: rgba(220,235,255,.35); border: 1px solid rgba(255,255,255,.75); border-radius: 12px; box-shadow: 0 4px 12px rgba(37,99,235,.12); min-height: 65px; padding: 13px 20px; }
+.details dt { color: #1e1e1e; font-size: 12px; font-weight: 600; text-transform: none; }
+.details dd { color: rgba(30,30,30,.58); font-size: 12px; font-weight: 400; }
+.verifyForm label { color: #1e1e1e; font-size: 20px; font-weight: 600; text-transform: none; }
+.verifyForm input,
+.searchField input { border-color: #0088ff; border-radius: 10px; font-size: 16px; min-height: 48px; }
+.reportTable th { background: #f9fafb; color: #0a0a0a; font-size: 12px; text-transform: none; }
+.reportTable td { color: #1e1e1e; font-size: 12px; font-weight: 400; padding: 16px 12px; }
+.historyList article { background: #fff; border: 0; border-bottom: 1px solid #f3f4f6; border-radius: 0; padding: 16px 12px; }
+
+.historyMode > .summary,
+.historyMode > .layout,
+.historyMode > .selectedCampaignCard,
+.historyMode > .card:not(:last-of-type) { display: none; }
+.historyMode > .card:last-of-type { margin-top: 24px; }
+
 .pagination {
   align-items: center;
   display: flex;

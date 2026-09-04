@@ -15,8 +15,8 @@ export function Topbar({ activePage, userProfile }: TopbarProps) {
     : pageCopy[activePage];
 
   return (
-    <header className={activePage === "monitoring" ? styles.actionsOnly : styles.topbar}>
-      {activePage === "monitoring" ? null : <div>
+    <header className={activePage === "monitoring" || activePage === "emergencyNotifications" ? styles.actionsOnly : styles.topbar}>
+      {activePage === "monitoring" || activePage === "emergencyNotifications" ? null : <div>
         <h2>{copy.title}</h2>
         {copy.subtitle ? <p>{copy.subtitle}</p> : null}
       </div>}

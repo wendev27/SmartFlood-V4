@@ -54,6 +54,19 @@
   color: #ffffff;
 }
 
+.compact {
+  border-top: 0;
+  margin-top: auto;
+  padding-top: 40px;
+}
+
+.compact .controls { gap: 12px; }
+.compact .controls button { border: .5px solid rgba(30,30,30,.24); border-radius: 4px; color: #1e1e1e; font-size: 12px; font-weight: 400; min-height: 22px; min-width: 22px; padding: 0; }
+.compact .controls .active { background: #0088ff; border-color: #0088ff; color: #fff; }
+.compactItem { align-items: center; display: flex; gap: 12px; }
+.compactItem i { color: #1e1e1e; font-size: 12px; font-style: normal; font-weight: 700; letter-spacing: 2px; }
+.compact .summary { color: #1e1e1e; font-weight: 400; }
+
 @media (max-width: 560px) {
   .pagination {
     align-items: stretch;

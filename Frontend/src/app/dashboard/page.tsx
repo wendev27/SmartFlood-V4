@@ -7,8 +7,8 @@ import { LogsPanel } from "@/components/logs/LogsPanel/LogsPanel";
 import { SystemLogs } from "@/components/logs/SystemLogs/SystemLogs";
 import { MonitoringPanel, type MonitoringView } from "@/components/monitoring/MonitoringPanel/MonitoringPanel";
 import { ReliefPanel } from "@/components/relief/ReliefPanel/ReliefPanel";
+import { BarangayReliefPanel } from "@/components/relief/BarangayReliefPanel/BarangayReliefPanel";
 import { ReliefManagementPanel } from "@/components/emergency/ReliefManagementPanel/ReliefManagementPanel";
-import { EmergencyNotificationsPanel } from "@/components/emergency/EmergencyNotificationsPanel/EmergencyNotificationsPanel";
 import { ReliefDistributionPanel } from "@/components/emergency/ReliefDistributionPanel/ReliefDistributionPanel";
 import { SensorsPanel } from "@/components/sensors/SensorsPanel/SensorsPanel";
 import { ResidentsPanel } from "@/components/residents/ResidentsPanel/ResidentsPanel";
@@ -125,7 +125,7 @@ export default function DashboardPage() {
       {activePage === "monitoring" ? <MonitoringPanel resetSignal={monitoringResetVersion} onViewChange={setMonitoringView} userProfile={session.profile} /> : null}
       {activePage === "relief" ? <ReliefPanel /> : null}
       {activePage === "reliefManagement" ? <ReliefManagementPanel /> : null}
-      {activePage === "emergencyNotifications" ? <EmergencyNotificationsPanel /> : null}
+      {activePage === "emergencyNotifications" ? <BarangayReliefPanel /> : null}
       {activePage === "reliefDistribution" ? <ReliefDistributionPanel /> : null}
       {activePage === "sensors" ? <SensorsPanel /> : null}
       {activePage === "residents" ? <ResidentsPanel /> : null}

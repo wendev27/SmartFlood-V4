@@ -1,0 +1,60 @@
+.moduleGrid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  justify-content: flex-start;
+  padding: 60px 0 24px;
+}
+
+.moduleCard {
+  align-items: center;
+  background: #ffffff;
+  border: 1px solid rgba(255, 255, 255, 0.7);
+  border-radius: 26px;
+  box-shadow: 0 6px 18px rgba(37, 99, 235, 0.12);
+  color: #1e1e1e;
+  display: flex;
+  flex: 0 1 320px;
+  flex-direction: column;
+  height: 250px;
+  justify-content: center;
+  padding: 0 28px;
+  text-align: center;
+  transition: transform 200ms ease, box-shadow 200ms ease;
+}
+
+.moduleCard:hover { box-shadow: 0 10px 24px rgba(37, 99, 235, 0.18); transform: translateY(-4px); }
+
+.moduleIcon {
+  align-items: center;
+  backdrop-filter: blur(8px);
+  background: rgba(220, 235, 255, 0.65);
+  border: 1px solid rgba(255, 255, 255, 0.75);
+  border-radius: 16px;
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.12);
+  display: flex;
+  height: 72px;
+  justify-content: center;
+  width: 72px;
+}
+
+.moduleIcon img { height: 44px; width: 44px; }
+.moduleCard strong { font-size: 26px; font-weight: 600; line-height: 1.2; margin-top: 12px; max-width: 280px; }
+
+.subpage { color: #1e1e1e; margin: 0; max-width: none; padding: 30px 0 24px; width: 100%; }
+.backButton { background: transparent; border: 0; color: #0088ff; font-size: 16px; font-weight: 600; padding: 0; }
+.subpage > h1 { font-size: 36px; line-height: 1.2; margin: 38px 0 28px; }
+.content { min-height: 500px; }
+
+.tabs { background: #fff; border: 1px solid rgba(255,255,255,.7); border-radius: 16px; box-shadow: 0 6px 18px rgba(37,99,235,.12); display: grid; height: 42px; max-width: 354px; overflow: hidden; position: relative; grid-template-columns: 1fr 1fr; }
+.tabs span { border: 1px solid #0088ff; border-radius: 16px; bottom: 0; left: 0; position: absolute; top: 0; transition: transform 500ms cubic-bezier(.22,1,.36,1); width: 50%; }
+.tabs .tabIndicatorRight { transform: translateX(100%); }
+.tabs button { background: transparent; border: 0; color: rgba(30,30,30,.58); font-size: 16px; position: relative; z-index: 1; }
+.tabs button[aria-selected="true"] { color: #1e1e1e; font-weight: 600; }
+.emptyCard { background: #fff; border-radius: 26px; box-shadow: 0 6px 18px rgba(37,99,235,.12); margin-top: 24px; min-height: 320px; }
+
+@media (max-width: 680px) {
+  .moduleGrid { justify-content: center; padding-top: 32px; }
+  .moduleCard { flex-basis: 100%; }
+  .subpage > h1 { font-size: 30px; }
+}

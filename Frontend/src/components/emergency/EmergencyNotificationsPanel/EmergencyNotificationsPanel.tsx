@@ -27,6 +27,7 @@ export function EmergencyNotificationsPanel() {
   const [message, setMessage] = useState<string | null>(null);
   const [actionError, setActionError] = useState<string | null>(null);
   const [page, setPage] = useState(1);
+  const [allocationFilter, setAllocationFilter] = useState("Family / Individual");
   const notificationsQuery = useQuery({
     queryKey: queryKeys.notifications.emergency,
     queryFn: getEmergencyNotifications,
@@ -186,21 +187,30 @@ export function EmergencyNotificationsPanel() {
       {error ? <p className={styles.errorMessage}>{error}</p> : null}
       {isBackgroundRefreshing ? <p className={styles.stateMessage}>Refreshing notifications...</p> : null}
 
+      <label className={styles.allocationFilter}>
+        <span>Filter</span>
+        <select value={allocationFilter} onChange={(event) => setAllocationFilter(event.target.value)}>
+          <option>Family / Individual</option>
+          <option>Family</option>
+          <option>Individual</option>
+        </select>
+      </label>
+
       {isInitialLoading ? (
         <div className={styles.emptyState}>Loading emergency notifications...</div>
       ) : notifications.length === 0 ? (
         <div className={styles.emptyState}>No emergency relief notifications for your barangay yet.</div>
       ) : (
         <div className={styles.grid}>
-          {paginatedNotifications.rows.map((notification) => (
+          {paginatedNotifications.rows.map((notification, index) => (
             <article className={styles.card} key={notification.notification_id}>
               <div className={styles.cardHeader}>
-                <span className={cn(styles.status, styles[statusTone(notification.status)])}>{formatStatus(notification.status)}</span>
                 <time>{formatDate(notification.created_at)}</time>
+                <span className={cn(styles.status, styles[statusTone(notification.status)])}>{formatStatus(notification.status)}</span>
               </div>
-              <h3>{notification.title}</h3>
+              <h3>Relief Allocation #{allocationDisplayNumber(notification, (page - 1) * pageSize + index)}</h3>
               <p>{notification.message}</p>
-              <AllocationMetrics notification={notification} />
+              <AllocationLineItems notification={notification} />
               <button className={styles.primaryButton} type="button" onClick={() => openNotification(notification)}>
                 View Allocation
               </button>
@@ -209,9 +219,9 @@ export function EmergencyNotificationsPanel() {
         </div>
       )}
 
-      <SharedPagination pagination={paginatedNotifications.pagination} onPageChange={setPage} label="Emergency notifications" />
+      <SharedPagination compact pagination={paginatedNotifications.pagination} onPageChange={setPage} label="Emergency notifications" />
 
-      <Modal isOpen={Boolean(selected)} onClose={() => setSelectedId(null)} labelledBy="emergency-allocation-title" size="md">
+      <Modal className={styles.allocationDialog} isOpen={Boolean(selected)} onClose={() => setSelectedId(null)} labelledBy="emergency-allocation-title" size="xl">
         {selected ? (
           <>
             <header className={styles.modalHeader}>
@@ -220,11 +230,10 @@ export function EmergencyNotificationsPanel() {
                 <h2 id="emergency-allocation-title">{selected.allocation_item?.barangay_name ?? "Barangay Allocation"}</h2>
                 <p>This notice is for reviewing the emergency allocation only. It does not confirm physical receipt.</p>
               </div>
-              <button type="button" aria-label="Close allocation details" onClick={() => setSelectedId(null)}>x</button>
+              <button type="button" aria-label="Close allocation details" onClick={() => setSelectedId(null)}>×</button>
             </header>
 
             <div className={styles.modalBody}>
-              <AllocationMetrics notification={selected} variant="large" />
               <dl className={styles.details}>
                 <div>
                   <dt>Notification Status</dt>
@@ -263,23 +272,14 @@ export function EmergencyNotificationsPanel() {
   );
 }
 
-function AllocationMetrics({ notification, variant = "default" }: { notification: EmergencyNotification; variant?: "default" | "large" }) {
+function AllocationLineItems({ notification }: { notification: EmergencyNotification }) {
   const item = notification.allocation_item;
   return (
-    <div className={cn(styles.metrics, variant === "large" && styles.largeMetrics)}>
-      <Metric label="Family Food Packs" value={item?.family_food_packs ?? 0} />
-      <Metric label="Emergency Kits" value={item?.emergency_kits ?? 0} />
-      <Metric label="Individual Relief Goods" value={item?.individual_relief_goods ?? 0} />
-    </div>
-  );
-}
-
-function Metric({ label, value }: { label: string; value: number }) {
-  return (
-    <div>
-      <strong>{value}</strong>
-      <span>{label}</span>
-    </div>
+    <dl className={styles.lineItems}>
+      <div><dt>Family Food Pack:</dt><dd>{item?.family_food_packs ?? 0}</dd></div>
+      <div><dt>Emergency Kits:</dt><dd>{item?.emergency_kits ?? 0}</dd></div>
+      <div><dt>Individual Relief Goods:</dt><dd>{item?.individual_relief_goods ?? 0}</dd></div>
+    </dl>
   );
 }
 
@@ -392,4 +392,10 @@ function formatDate(value?: string | null) {
 function shortId(value?: string | null) {
   if (!value) return "Not recorded";
   return value.length > 12 ? `${value.slice(0, 8)}...` : value;
+}
+
+function allocationDisplayNumber(notification: EmergencyNotification, index: number) {
+  const source = notification.allocation_item?.item_id ?? notification.notification_id;
+  const numeric = source.match(/\d+/g)?.join("");
+  return numeric ? numeric.slice(-3) : String(100 - index).padStart(3, "0");
 }

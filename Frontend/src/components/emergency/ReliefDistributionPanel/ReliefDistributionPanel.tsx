@@ -31,7 +31,7 @@ import styles from "./ReliefDistributionPanel.module.css";
 type LoadState = "idle" | "loading" | "verifying" | "confirming";
 const pageSize = 5;
 
-export function ReliefDistributionPanel() {
+export function ReliefDistributionPanel({ mode = "distribution" }: { mode?: "distribution" | "history" }) {
   const currentUser = getCurrentUser();
   const role = normalizeUserRole(currentUser);
   if (role === "super" || role === "cswdd") return <AdminReliefAuditPanel />;
@@ -269,7 +269,7 @@ export function ReliefDistributionPanel() {
   }
 
   return (
-    <section className={styles.stack} aria-label="QR relief distribution">
+    <section className={cn(styles.stack, mode === "history" && styles.historyMode)} aria-label={mode === "history" ? "Relief distribution history" : "QR relief distribution"}>
       <div className={styles.summary}>
         <div>
           <span>Selected Relief Program</span>
