@@ -7,15 +7,15 @@
 
 .actionButton {
   align-items: center;
-  background: rgba(218, 235, 255, 0.7);
-  border: 1px solid rgba(255, 255, 255, 0.8);
+  background: rgba(174, 209, 251, 0.28);
+  border: 0;
   border-radius: 12px;
   color: #0088ff;
   display: flex;
-  font-size: 10px;
-  font-weight: 500;
-  gap: 7px;
-  min-height: 40px;
+  font-size: 12px;
+  font-weight: 600;
+  gap: 6px;
+  height: 44px;
   padding: 0 12px;
   position: relative;
 }
@@ -28,22 +28,31 @@
 
 .actionButton svg {
   fill: none;
-  height: 20px;
+  height: 23px;
   stroke: currentColor;
   stroke-linecap: round;
   stroke-linejoin: round;
   stroke-width: 1.7;
-  width: 20px;
+  width: 23px;
 }
 
 .actionButton i {
   background: #ff3830;
   border-radius: 50%;
-  height: 9px;
-  left: 25px;
+  height: 10px;
+  left: 22px;
   position: absolute;
-  top: -2px;
-  width: 9px;
+  top: 2px;
+  width: 10px;
+}
+
+@media (min-width: 900px) {
+  .actions {
+    position: fixed;
+    right: 52px;
+    top: 36px;
+    z-index: 30;
+  }
 }
 
 @media (max-width: 520px) {

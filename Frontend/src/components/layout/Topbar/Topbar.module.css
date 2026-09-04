@@ -3,7 +3,7 @@
   display: flex;
   flex-direction: column;
   gap: 18px;
-  margin-bottom: 26px;
+  margin-bottom: 36px;
   overflow: visible;
   position: relative;
   z-index: 5000;
@@ -11,16 +11,16 @@
 
 .topbar h2 {
   color: #1e1e1e;
-  font-size: 26px;
-  line-height: 1;
-  margin: 0 0 8px;
+  font-size: 30px;
+  line-height: 1.25;
+  margin: 0;
 }
 
 .topbar p {
   color: #1e1e1e;
-  font-size: 13px;
-  line-height: 1.45;
-  margin: 0;
+  font-size: 14px;
+  line-height: 1.25;
+  margin: 6px 0 0;
 }
 
 @media (min-width: 680px) {
@@ -33,14 +33,14 @@
 
 @media (min-width: 900px) {
   .topbar {
-    margin-bottom: clamp(28px, 3vh, 42px);
+    margin-bottom: 36px;
   }
 
   .topbar h2 {
-    font-size: clamp(30px, 2.25vw, 36px);
+    font-size: 36px;
   }
 
   .topbar p {
-    font-size: clamp(13px, 0.95vw, 16px);
+    font-size: 16px;
   }
 }

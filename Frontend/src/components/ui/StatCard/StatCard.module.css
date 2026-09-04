@@ -85,3 +85,28 @@
     min-height: 150px;
   }
 }
+
+.card .statIcon {
+  align-items: center;
+  color: #0088ff;
+  display: flex;
+  height: 44px;
+  justify-content: center;
+  left: 32px;
+  margin: 0;
+  position: absolute;
+  top: 32px;
+  width: 44px;
+  z-index: 2;
+}
+
+.card .statIcon svg {
+  height: 22px;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 1.7;
+  width: 22px;
+}
+
+.cyan .statIcon { color: #ff3830; }

@@ -3,7 +3,7 @@ import type { PageCopy, PageKey } from "@/types/navigation";
 export const pageCopy: Record<PageKey, PageCopy> = {
   dashboard: {
     title: "Welcome back!",
-    subtitle: "Manage your barangay operations efficiently and effectively",
+    subtitle: "Manage your barangay operations efficiently and effectively.",
   },
   logs: {
     title: "Account Management",

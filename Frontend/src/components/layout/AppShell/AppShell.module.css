@@ -31,7 +31,7 @@
     border-radius: clamp(24px, 2vw, 33px);
     grid-column: 2;
     min-height: calc(100vh - 32px);
-    padding: 20px clamp(24px, 2.7vw, 41px) 48px;
+    padding: 52px clamp(24px, 2.7vw, 41px) 48px;
   }
 }
 

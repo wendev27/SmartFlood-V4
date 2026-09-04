@@ -39,14 +39,10 @@ export function DashboardHeaderActions({}: DashboardHeaderActionsProps = {}) {
 
   return (
     <div className={styles.actions}>
-      <button className={styles.actionButton} type="button" aria-label="Weather">
-        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 18h10a4 4 0 0 0 .4-7.98A6 6 0 0 0 6.1 8.3 4.8 4.8 0 0 0 7 18Z" /><path d="M8 6a5 5 0 0 1 9-1" /></svg>
-        <span>Weather</span>
-      </button>
       <button className={styles.actionButton} type="button" aria-label={`${alertCount} notifications`}>
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M10 21h4" /></svg>
         <span>Notification</span>
-        {alertCount > 0 ? <i /> : null}
+        <i />
       </button>
     </div>
   );
