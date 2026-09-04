@@ -47,6 +47,18 @@ body {
   text-rendering: optimizeLegibility;
 }
 
+body,
+button,
+input,
+select,
+textarea,
+table,
+.leaflet-container,
+.leaflet-container button,
+.leaflet-container input {
+  font-family: "Source Sans Pro", ui-sans-serif, system-ui, sans-serif;
+}
+
 body.modalOpen {
   overflow: hidden;
 }
