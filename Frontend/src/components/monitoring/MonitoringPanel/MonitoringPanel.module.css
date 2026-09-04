@@ -1,30 +1,36 @@
 .panel {
   min-height: calc(100vh - 220px);
-  padding-top: clamp(26px, 4vh, 58px);
+  padding: 42px 0 24px;
   width: 100%;
 }
 
 .moduleCards {
-  display: grid;
-  gap: clamp(18px, 1.6vw, 28px);
-  grid-template-columns: 1fr;
-  margin: 0 auto;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+  justify-content: center;
   max-width: 100%;
   width: 100%;
 }
 
 .moduleCard {
+  align-items: center;
   appearance: none;
   background: #ffffff;
-  border: 1px solid transparent;
-  border-radius: 9px;
-  box-shadow: 0 13px 21px rgba(15, 23, 42, 0.13);
-  color: #0a3f78;
+  border: 1px solid rgba(255, 255, 255, 0.7);
+  border-radius: 26px;
+  box-shadow: 0 6px 18px rgba(37, 99, 235, 0.12);
+  color: #1e1e1e;
   cursor: pointer;
+  display: flex;
+  flex-direction: column;
   font: inherit;
-  min-height: 208px;
-  padding: 32px 22px 26px;
-  text-align: left;
+  height: 250px;
+  justify-content: center;
+  max-width: 320px;
+  padding: 0 34px;
+  text-align: center;
+  width: 100%;
   transition:
     background-color 180ms ease,
     border-color 180ms ease,
@@ -52,31 +58,36 @@
 
 .moduleIcon {
   align-items: center;
-  background: #067bea;
-  border-radius: 10px;
-  box-shadow: 0 12px 20px rgba(0, 91, 204, 0.28);
-  color: #ffffff;
+  background: rgba(0, 136, 255, 0.12);
+  border: 1px solid rgba(255, 255, 255, 0.75);
+  border-radius: 26px;
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.12);
+  color: #0088ff;
   display: flex;
-  height: 64px;
+  height: 82px;
   justify-content: center;
-  margin: 0 auto 28px;
-  width: 64px;
+  margin: 0;
+  width: 82px;
 }
 
+.moduleIcon svg { height: 44px; width: 44px; }
+
 .moduleCard strong {
-  color: #004b88;
+  color: #1e1e1e;
   display: block;
-  font-size: 17px;
-  line-height: 1.2;
-  margin: 0 0 14px;
+  font-size: 26px;
+  font-weight: 600;
+  line-height: 1.25;
+  margin: 12px 0 0;
 }
 
 .moduleCard p {
-  color: #4e6077;
-  font-size: 11px;
-  line-height: 1.55;
-  margin: 0 0 8px;
-  max-width: 210px;
+  color: #1e1e1e;
+  font-size: 16px;
+  line-height: 20px;
+  margin: 4px 0 0;
+  text-align: left;
+  width: 100%;
 }
 
 .openText {
@@ -1392,6 +1403,8 @@
 }
 
 @media (min-width: 900px) {
+  .panel { padding-top: 60px; }
+  .moduleCards { justify-content: flex-start; }
   .analyticsFilters {
     grid-template-columns: repeat(5, minmax(120px, 1fr)) auto;
   }
@@ -1401,10 +1414,9 @@
   }
 
   .panel {
-    align-content: start;
-    display: grid;
+    display: block;
     min-height: calc(100vh - 235px);
-    padding-top: clamp(38px, 6vh, 72px);
+    padding-top: 60px;
   }
 
   .moduleCards {
@@ -1412,8 +1424,9 @@
   }
 
   .moduleCard {
-    min-height: clamp(218px, 24vh, 250px);
-    padding: clamp(30px, 3vh, 38px) 22px 28px;
+    height: 250px;
+    min-height: 250px;
+    padding: 0 34px;
   }
 
   .alertPage,

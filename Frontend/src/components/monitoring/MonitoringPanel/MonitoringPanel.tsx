@@ -33,6 +33,10 @@ interface MonitoringPanelProps {
 
 export function MonitoringPanel({ onViewChange, resetSignal = 0, userProfile }: MonitoringPanelProps) {
   const [activeView, setActiveView] = useState<MonitoringView>("main");
+  const canManageAlertLevels = /super|cdrrmo|ndrrmo/i.test(userProfile.roleLabel);
+  const visibleModules = canManageAlertLevels
+    ? monitoringModules
+    : monitoringModules.filter((item) => item.view !== "alertLevels");
 
   useEffect(() => {
     setActiveView("main");
@@ -59,19 +63,30 @@ export function MonitoringPanel({ onViewChange, resetSignal = 0, userProfile }: 
   return (
     <section className={styles.panel} aria-label="Flood monitoring modules">
       <div className={styles.moduleCards}>
-        {monitoringModules.map((item) => (
+        {visibleModules.map((item) => (
           <button className={styles.moduleCard} key={item.label} type="button" onClick={() => item.view && changeView(item.view)}>
             <span className={styles.moduleIcon}>
-              <SmartFloodIcon name={item.icon} size={40} />
+              {item.iconSrc ? <img src={item.iconSrc} alt="" /> : <MonitoringModuleIcon view={item.view} fallback={item.icon} />}
             </span>
             <strong>{item.label}</strong>
             <p>{item.caption}</p>
-            <span className={styles.openText}>Open <span aria-hidden="true">↗</span></span>
           </button>
         ))}
       </div>
     </section>
   );
+}
+
+function MonitoringModuleIcon({ view, fallback }: { view?: MonitoringView; fallback: SmartFloodIconName }) {
+  if (view === "heatmap") {
+    return <svg viewBox="0 0 44 44" fill="none" aria-hidden="true"><path d="M23.1184 4.05167C22.4584 3.53834 21.5417 3.53834 20.8817 4.05167C17.3985 6.71001 7.11343 15.3817 7.16843 25.4833C7.16843 33.66 13.8235 40.3333 22.0184 40.3333C30.2134 40.3333 36.8684 33.6783 36.8684 25.5017C36.8867 15.5467 26.5834 6.72834 23.1184 4.05167Z" stroke="currentColor" strokeWidth="2.75" strokeMiterlimit="10" /></svg>;
+  }
+
+  if (view === "history") {
+    return <svg viewBox="0 0 44 44" fill="none" aria-hidden="true"><path d="M23.8335 27.5H12.8335L16.5002 31.1667M12.8335 27.5L16.5002 23.8333" stroke="currentColor" strokeWidth="2.75" strokeLinecap="round" strokeLinejoin="round"/><path d="M40.3334 18.3333V27.5C40.3334 36.6667 36.6667 40.3333 27.5001 40.3333H16.5001C7.33341 40.3333 3.66675 36.6667 3.66675 27.5V16.5C3.66675 7.33334 7.33341 3.66667 16.5001 3.66667H25.6667" stroke="currentColor" strokeWidth="2.75" strokeLinecap="round" strokeLinejoin="round"/><path d="M40.3334 18.3333H33.0001C27.5001 18.3333 25.6667 16.5 25.6667 11V3.66667L33.0001 11L40.3334 18.3333Z" stroke="currentColor" strokeWidth="2.75" strokeLinecap="round" strokeLinejoin="round"/></svg>;
+  }
+
+  return <SmartFloodIcon name={fallback} size={40} />;
 }
 
 function FloodHistory({ onBack, userProfile }: MonitoringSubpageProps) {
@@ -889,12 +904,14 @@ const monitoringModules: Array<{
   label: string;
   caption: string;
   icon: SmartFloodIconName;
+  iconSrc?: string;
   view?: "alertLevels" | "heatmap" | "history";
 }> = [
   {
-    label: "Alert Level Management",
+    label: "Alert Level",
     caption: "View descriptive graphs and narrative reports",
     icon: "alertLevel",
+    iconSrc: "/images/dashboard/alert-level-icon.svg",
     view: "alertLevels",
   },
   {

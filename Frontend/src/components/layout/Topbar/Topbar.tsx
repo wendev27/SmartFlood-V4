@@ -15,11 +15,11 @@ export function Topbar({ activePage, userProfile }: TopbarProps) {
     : pageCopy[activePage];
 
   return (
-    <header className={styles.topbar}>
-      <div>
+    <header className={activePage === "monitoring" ? styles.actionsOnly : styles.topbar}>
+      {activePage === "monitoring" ? null : <div>
         <h2>{copy.title}</h2>
         {copy.subtitle ? <p>{copy.subtitle}</p> : null}
-      </div>
+      </div>}
       <DashboardHeaderActions />
     </header>
   );
