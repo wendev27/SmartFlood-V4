@@ -268,8 +268,83 @@ export function ReliefDistributionPanel({ mode = "distribution" }: { mode?: "dis
     }
   }
 
+  if (mode === "distribution") {
+    return (
+      <section className={styles.polishedDistribution} aria-label="Relief distribution">
+        {message ? <p className={styles.stateMessage}>{message}</p> : null}
+        {error ? <p className={styles.errorMessage}>{error}</p> : null}
+
+        <section className={styles.allocationSummaryCard}>
+          <div className={styles.allocationTitleRow}>
+            <h2>{selectedCampaign ? `${selectedScope} Allocation` : "No Relief Program Selected"}</h2>
+          </div>
+          {selectedCampaign ? <>
+            <dl className={styles.polishedDetails}>
+              <Detail label="Visit Date" value={formatDate(selectedCampaign.started_at ?? selectedCampaign.accepted_at ?? selectedCampaign.created_at)} />
+              <Detail label="Barangay" value={String(barangayCount)} />
+              <Detail label="Received" value={String(receivedCount)} />
+              <Detail label="Barangay Scope" value={selectedScope} />
+            </dl>
+            <div className={styles.polishedActions}>
+              <button type="button" disabled={!selectedIsDistributable} onClick={openScannerWindow}><ScanIcon />Open QR Code</button>
+              <button type="button" onClick={exportCampaignRecords}><DownloadIcon />Export Excel</button>
+            </div>
+          </> : <div className={styles.polishedEmpty}>Select an active relief program to begin distribution.</div>}
+        </section>
+
+        <div className={styles.verificationGrid}>
+          <section>
+            <form onSubmit={handleVerify}>
+              <label htmlFor="beneficiary-identifier">Enter Family/Individual UUID*</label>
+              <input id="beneficiary-identifier" value={identifier} onChange={(event) => setIdentifier(event.target.value)} placeholder="Historical campaigns are view-only" disabled={!selectedIsActive} />
+              <button className={styles.hiddenSubmit} type="submit" disabled={!selectedIsActive || state === "verifying"} tabIndex={-1}>Verify</button>
+            </form>
+          </section>
+          <section>
+            <h2>Beneficiary Result</h2>
+            <div className={cn(styles.resultField, result && styles.resultFieldActive)}>{result ? resultTitle(result.result) : "Result"}</div>
+            {result?.result === "ELIGIBLE" ? <button className={styles.confirmButton} type="button" disabled={state === "confirming"} onClick={handleConfirm}>{state === "confirming" ? "Confirming..." : "Confirm Relief Received"}</button> : null}
+          </section>
+        </div>
+        <p className={styles.uuidHint}>Enter the UUID (Universal Unique Identifier) if the QR cannot be scanned.</p>
+
+        <section className={styles.distributionFilters}>
+          <button className={styles.allFilter} type="button">All</button>
+          <label><SearchIcon /><input value={beneficiarySearch} onChange={(event) => { setBeneficiarySearch(event.target.value); setBeneficiaryPage(1); }} placeholder="Search family name or full name" /></label>
+          <button className={styles.zoneFilter} type="button"><PinIcon />Barangay Zone</button>
+        </section>
+
+        <section className={styles.distributionTableCard}>
+          <div className={styles.tableWrap}>
+            <table className={styles.reportTable}>
+              <thead><tr><th>Family</th><th>Assigned Relief</th><th>Status</th><th>Scheduled Date</th><th>Received At</th></tr></thead>
+              <tbody>
+                {beneficiaryStatusRows.length === 0 ? <tr><td colSpan={5}>No beneficiaries match this relief program.</td></tr> : beneficiaryStatusRows.map((row) => (
+                  <tr key={row.family_id}>
+                    <td>{row.family_name}</td><td>Relief allocation</td><td className={styles.statusCell}>{row.status_label}</td>
+                    <td>{formatDate(selectedCampaign?.started_at ?? selectedCampaign?.accepted_at ?? selectedCampaign?.created_at)}</td>
+                    <td>{row.received_at ? formatDate(row.received_at) : "——"}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </section>
+        <SharedPagination compact pagination={beneficiaryPagination} onPageChange={setBeneficiaryPage} label="Beneficiaries" />
+
+        <Modal className={styles.switcherDialog} isOpen={isSwitcherOpen} labelledBy="relief-campaign-switcher-title" onClose={() => setIsSwitcherOpen(false)} size="xl">
+          <header className={styles.switcherHeader}><div><span>Relief Program Switcher</span><h3 id="relief-campaign-switcher-title">Switch Relief Program</h3><p>Select the campaign batch to use for records and verification.</p></div><button type="button" onClick={() => setIsSwitcherOpen(false)} aria-label="Close campaign switcher">×</button></header>
+          <div className={styles.switcherBody}>
+            <CampaignGroup actionLabel="Open Distribution" campaigns={activeCampaigns} emptyText="No relief programs are currently in distribution." label="Active" onSelect={selectCampaign} selectedBatchId={selectedCampaign?.batch_id ?? null} />
+            <CampaignGroup actionLabel="View Status" campaigns={notReadyCampaigns} emptyText="No accepted or notified campaigns are waiting for distribution." label="Not Ready" onSelect={selectCampaign} selectedBatchId={selectedCampaign?.batch_id ?? null} />
+          </div>
+        </Modal>
+      </section>
+    );
+  }
+
   return (
-    <section className={cn(styles.stack, mode === "history" && styles.historyMode)} aria-label={mode === "history" ? "Relief distribution history" : "QR relief distribution"}>
+    <section className={cn(styles.stack, mode === "history" ? styles.historyMode : styles.distributionMode)} aria-label={mode === "history" ? "Relief distribution history" : "QR relief distribution"}>
       <div className={styles.summary}>
         <div>
           <span>Selected Relief Program</span>
@@ -294,23 +369,21 @@ export function ReliefDistributionPanel({ mode = "distribution" }: { mode?: "dis
         <section className={cn(styles.card, styles.selectedCampaignCard)}>
           <header className={styles.cardHeader}>
             <span>Campaign Summary</span>
-            <h3>{selectedCampaign.plan_name}</h3>
+            <h3>{selectedScope} Allocation</h3>
             <p>{selectedIsActive ? "This campaign is open for barangay beneficiary verification." : "This campaign is read-only."}</p>
           </header>
           <dl className={styles.details}>
-            <Detail label="Strategy" value={selectedCampaign.plan_id.replace(/_/g, " ")} />
-            <Detail label="Status" value={formatStatus(selectedCampaign.status)} />
-            <Detail label="Started" value={formatDate(selectedCampaign.started_at ?? selectedCampaign.accepted_at ?? selectedCampaign.created_at)} />
-            <Detail label="Barangays" value={String(barangayCount)} />
+            <Detail label="Visit Date" value={formatDate(selectedCampaign.started_at ?? selectedCampaign.accepted_at ?? selectedCampaign.created_at)} />
+            <Detail label="Barangay" value={String(barangayCount)} />
             <Detail label="Received" value={String(receivedCount)} />
             <Detail label="Barangay Scope" value={selectedScope} />
           </dl>
           <div className={styles.actionRow}>
             <button className={styles.primaryButton} type="button" disabled={!selectedIsDistributable} onClick={openScannerWindow}>
-              Open QR Scanner
+              Open QR Code
             </button>
             <button className={styles.secondaryButton} type="button" onClick={exportCampaignRecords}>
-              Download History Report
+              Export Excel
             </button>
           </div>
           {!selectedIsDistributable && selectedCampaign.status === "in_distribution" ? (
@@ -323,7 +396,7 @@ export function ReliefDistributionPanel({ mode = "distribution" }: { mode?: "dis
         <section className={styles.card}>
           <header className={styles.cardHeader}>
             <span>Step 2</span>
-            <h3>Enter / Scan Beneficiary QR</h3>
+            <h3>Enter Family/Individual UUID*</h3>
             <p>
               {selectedIsActive
                 ? `Verifying beneficiary for: ${selectedCampaign.plan_name}. Verification does not mark relief as received.`
@@ -335,7 +408,7 @@ export function ReliefDistributionPanel({ mode = "distribution" }: { mode?: "dis
               Beneficiary QR / Identifier
               <input
                 autoComplete="off"
-                placeholder="family:uuid or resident:uuid"
+                placeholder="Historical campaigns are view-only"
                 value={identifier}
                 onChange={(event) => setIdentifier(event.target.value)}
               />
@@ -377,7 +450,9 @@ export function ReliefDistributionPanel({ mode = "distribution" }: { mode?: "dis
           </div>
           <div className={styles.filterBar}>
             <div className={styles.segmented} aria-label="Beneficiary status filter">
-              {(["all", "received", "not_received"] as ReliefBeneficiaryStatusFilter[]).map((filter) => (
+              {(["all", "received", "not_received"] as string[]).map((filterValue) => {
+                const filter = filterValue as ReliefBeneficiaryStatusFilter;
+                return (
                 <button
                   className={beneficiaryFilter === filter ? styles.activeSegment : undefined}
                   key={filter}
@@ -389,12 +464,13 @@ export function ReliefDistributionPanel({ mode = "distribution" }: { mode?: "dis
                 >
                   {beneficiaryFilterLabel(filter)}
                 </button>
-              ))}
+                );
+              })}
             </div>
             <label className={styles.searchField}>
               <span>Search</span>
               <input
-                placeholder="Search family or family head..."
+                placeholder="Search family name or full name"
                 value={beneficiarySearch}
                 onChange={(event) => {
                   setBeneficiarySearch(event.target.value);
@@ -408,19 +484,21 @@ export function ReliefDistributionPanel({ mode = "distribution" }: { mode?: "dis
               <thead>
                 <tr>
                   <th>Family</th>
-                  <th>Family Head</th>
+                  <th>Assigned Relief</th>
                   <th>Status</th>
+                  <th>Scheduled Date</th>
                   <th>Received At</th>
                 </tr>
               </thead>
               <tbody>
                 {beneficiaryStatusRows.length === 0 ? (
-                  <tr><td colSpan={4}>No beneficiaries match this campaign status view.</td></tr>
+                  <tr><td colSpan={5}>No beneficiaries match this campaign status view.</td></tr>
                 ) : beneficiaryStatusRows.map((row) => (
                   <tr key={row.family_id}>
                     <td>{row.family_name}</td>
-                    <td>{row.family_head_name ?? "Not recorded"}</td>
+                    <td>Relief allocation</td>
                     <td>{row.status_label}</td>
+                    <td>{formatDate(selectedCampaign.started_at ?? selectedCampaign.accepted_at ?? selectedCampaign.created_at)}</td>
                     <td>{row.received_at ? formatDate(row.received_at) : "-"}</td>
                   </tr>
                 ))}
@@ -643,6 +721,11 @@ function DistributionResultCard({
     </section>
   );
 }
+
+function ScanIcon() { return <svg width="21" height="21" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M4 7V4h3M17 4h3v3M20 17v3h-3M7 20H4v-3M8 8h8v8H8z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" /></svg>; }
+function DownloadIcon() { return <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 3v12m0 0 4-4m-4 4-4-4M5 21h14" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" /></svg>; }
+function SearchIcon() { return <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="11" cy="11" r="7" stroke="currentColor" strokeWidth="2"/><path d="m16 16 4 4" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/></svg>; }
+function PinIcon() { return <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M20 10c0 5-8 11-8 11S4 15 4 10a8 8 0 1 1 16 0Z" stroke="currentColor" strokeWidth="2"/><circle cx="12" cy="10" r="2.5" stroke="currentColor" strokeWidth="2"/></svg>; }
 
 
 function Metric({ compact = false, label, value }: { compact?: boolean; label: string; value: number | string }) {
