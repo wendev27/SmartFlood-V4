@@ -6,54 +6,29 @@ import { fetchJson } from "@/services/apiClient";
 import { clearStoredSession, setStoredSession, type StoredSessionUser } from "@/lib/authSession";
 import styles from "./LoginPage.module.css";
 
-function FrogLogo() {
-  return (
-    <svg className={styles.logoMark} viewBox="0 0 190 118" aria-hidden="true">
-      <path d="M48 68c-13 3-22 9-26 20 14 0 27-1 38-5-10 7-24 10-42 10 20 11 53 13 77 4 25 9 57 7 78-4-19 0-33-3-43-10 11 4 24 5 38 5-4-11-13-17-26-20 1-4 2-8 2-12 0-23-22-41-49-41S46 33 46 56c0 4 1 8 2 12Z" />
-      <path className={styles.logoStroke} d="M61 59c8-10 20-15 34-15s26 5 34 15M65 76c20 10 40 10 60 0" />
-      <circle className={styles.logoEye} cx="61" cy="24" r="17" />
-      <circle className={styles.logoEye} cx="129" cy="24" r="17" />
-      <circle className={styles.logoPupil} cx="61" cy="24" r="6" />
-      <circle className={styles.logoPupil} cx="129" cy="24" r="6" />
-      <path className={styles.logoStroke} d="M54 18c5-8 15-8 20 0M122 18c5-8 15-8 20 0" />
-      <circle className={styles.logoPupil} cx="83" cy="42" r="3" />
-      <circle className={styles.logoPupil} cx="107" cy="42" r="3" />
-    </svg>
-  );
-}
-
-function LockIcon() {
-  return (
-    <svg className={styles.lockIcon} viewBox="0 0 24 24" aria-hidden="true">
-      <path d="M7 10V8a5 5 0 0 1 10 0v2" />
-      <path d="M6 10h12a1 1 0 0 1 1 1v8a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1v-8a1 1 0 0 1 1-1Z" />
-    </svg>
-  );
-}
-
 function UserIcon() {
-  return (
-    <svg viewBox="0 0 20 20" aria-hidden="true">
-      <path d="M10 10a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z" />
-      <path d="M5 16a5 5 0 0 1 10 0" />
-    </svg>
-  );
+  return <svg viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="7" r="3" /><path d="M4.75 16a5.25 5.25 0 0 1 10.5 0" /></svg>;
 }
 
 function PasswordIcon() {
+  return <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M5.83 8.97V5.63A4.17 4.17 0 0 1 10 1.47a4.17 4.17 0 0 1 4.17 4.16v3.34" /><rect x="2.5" y="8.97" width="15" height="9.17" rx="1.67" /></svg>;
+}
+
+function EyeIcon({ crossed }: { crossed: boolean }) {
   return (
     <svg viewBox="0 0 20 20" aria-hidden="true">
-      <path d="M6 8V6a4 4 0 0 1 8 0v2" />
-      <path d="M5 8h10v8H5z" />
+      <path d="M1.72 10.29a.84.84 0 0 1 0-.58A8.95 8.95 0 0 1 10 4.17a8.95 8.95 0 0 1 8.28 5.54.84.84 0 0 1 0 .58A8.95 8.95 0 0 1 10 15.83a8.95 8.95 0 0 1-8.28-5.54Z" />
+      <circle cx="10" cy="10" r="2.5" />
+      {crossed ? <path d="M3 3l14 14" /> : null}
     </svg>
   );
 }
 
-function EyeIcon() {
+function LoginErrorIcon() {
   return (
-    <svg viewBox="0 0 20 20" aria-hidden="true">
-      <path d="M2.5 10s2.7-4.5 7.5-4.5 7.5 4.5 7.5 4.5-2.7 4.5-7.5 4.5S2.5 10 2.5 10Z" />
-      <circle cx="10" cy="10" r="2" />
+    <svg className={styles.errorIcon} viewBox="0 0 44 44" aria-hidden="true">
+      <path d="M27.32 3.67H16.68c-1.25 0-3.01.73-3.89 1.61L5.28 12.8c-.88.88-1.61 2.64-1.61 3.88v10.64c0 1.25.73 3.01 1.61 3.89l7.52 7.51c.88.88 2.64 1.61 3.88 1.61h10.64c1.25 0 3.01-.73 3.89-1.61l7.51-7.52c.88-.88 1.61-2.64 1.61-3.88V16.68c0-1.25-.73-3.01-1.61-3.89L31.2 5.28c-.88-.88-2.64-1.61-3.88-1.61Z" />
+      <path d="m15.58 28.42 12.84-12.84M28.42 28.42 15.58 15.58" opacity=".45" />
     </svg>
   );
 }
@@ -95,83 +70,45 @@ export function LoginPage() {
 
   return (
     <main className={styles.page}>
-      <section className={styles.brandPanel} aria-label="SmartFlood introduction">
-        <div className={styles.topOrb} />
-        <div className={styles.bottomOrb} />
-        <div className={styles.brandContent}>
-          <div className={styles.logoBlock}>
-            <FrogLogo />
-            <strong>smartflood</strong>
-          </div>
-          <h1>Flood Monitoring &amp; Management System</h1>
-          <div className={styles.rule} />
-          <p className={styles.quote}>
-            When floods rise, SmartFlood stands ready, empowering communities and ensuring no one faces the storm alone.
-          </p>
-        </div>
-        <p className={styles.copyright}>© 2026 Barangay Management System</p>
-      </section>
+      <div className={styles.wordmark}>Smart<span>Flood</span></div>
 
       <section className={styles.formPanel} aria-label="Login">
         <div className={styles.loginCard}>
-          <div className={styles.lockBadge}>
-            <LockIcon />
-          </div>
+          {error ? (
+            <div className={styles.errorMessage} role="alert">
+              <LoginErrorIcon />
+              <div><strong>Login Failed</strong><p>{error}</p></div>
+            </div>
+          ) : null}
+
           <div className={styles.heading}>
-            <h2>Welcome Back</h2>
-            <p>Enter your credentials to access the system</p>
+            <div className={styles.mobileWordmark}>Smart<span>Flood</span></div>
+            <h1>Welcome back!</h1>
+            <p>Sign in to continue to <span>SmartFlood</span></p>
           </div>
 
-          <form className={styles.loginForm} onSubmit={submitLogin}>
-          <div className={styles.formFields}>
-            <label className={styles.fieldGroup}>
+          <form className={styles.loginForm} onSubmit={submitLogin} noValidate>
+            <label className={styles.fieldGroup} htmlFor="email">
               <span>Username</span>
               <span className={styles.inputShell}>
                 <UserIcon />
-                <input
-                  aria-label="Email"
-                  autoComplete="email"
-                  placeholder="Email"
-                  type="email"
-                  value={email}
-                  onChange={(event) => setEmail(event.target.value)}
-                />
+                <input id="email" autoComplete="username" placeholder="Email" type="email" value={email} onChange={(event) => setEmail(event.target.value)} />
               </span>
             </label>
 
-            <label className={styles.fieldGroup}>
+            <label className={styles.fieldGroup} htmlFor="password">
               <span>Password</span>
               <span className={styles.inputShell}>
                 <PasswordIcon />
-                <input
-                  aria-label="Password"
-                  autoComplete="current-password"
-                  placeholder="Enter password"
-                  type={showPassword ? "text" : "password"}
-                  value={password}
-                  onChange={(event) => setPassword(event.target.value)}
-                />
-                <button
-                  className={styles.iconButton}
-                  type="button"
-                  aria-label={showPassword ? "Hide password" : "Show password"}
-                  onClick={() => setShowPassword((current) => !current)}
-                >
-                  <EyeIcon />
+                <input id="password" autoComplete="current-password" placeholder="Enter password" type={showPassword ? "text" : "password"} value={password} onChange={(event) => setPassword(event.target.value)} />
+                <button className={styles.iconButton} type="button" aria-label={showPassword ? "Hide password" : "Show password"} onClick={() => setShowPassword((current) => !current)}>
+                  <EyeIcon crossed={showPassword} />
                 </button>
               </span>
             </label>
-          </div>
 
-          {error ? <p className={styles.errorMessage}>{error}</p> : null}
-
-          <button className={styles.forgotLink} type="button">
-            Forgot password?
-          </button>
-
-          <button className={styles.loginButton} type="submit" disabled={isSubmitting}>
-            {isSubmitting ? "Logging in..." : "Login"}
-          </button>
+            <button className={styles.forgotLink} type="button">Forgot password?</button>
+            <button className={styles.loginButton} type="submit" disabled={isSubmitting}>{isSubmitting ? "Logging in..." : "Login"}</button>
           </form>
         </div>
       </section>
