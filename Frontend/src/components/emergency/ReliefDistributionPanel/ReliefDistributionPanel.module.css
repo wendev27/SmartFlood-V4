@@ -563,6 +563,34 @@
   .distributionMode > .card:nth-of-type(2) .filterBar { grid-template-columns: 1fr; }
 }
 
+.polishedHistory { color: #1e1e1e; display: flex; flex-direction: column; min-height: calc(100dvh - 210px); }
+.historyFilterRow { display: grid; gap: 28px; grid-template-columns: repeat(3,minmax(0,1fr)); margin: 10px auto 0; max-width: 1000px; width: 100%; }
+.historyFilterRow > label,
+.dateRangeControl { display: grid; font-size: 16px; gap: 8px; position: relative; }
+.historyFilterRow select,
+.dateRangeControl > button { appearance: none; background-color: transparent; border: .8px solid rgba(30,30,30,.25); border-radius: 16px; color: #1e1e1e; font-size: 14px; height: 42px; padding: 0 44px 0 20px; width: 100%; }
+.historyFilterRow select { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 24 24' fill='none' stroke='%230088ff' stroke-width='2'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E"); background-position: right 14px center; background-repeat: no-repeat; }
+.dateRangeControl > button { align-items: center; display: flex; gap: 12px; overflow: hidden; text-align: left; white-space: nowrap; }
+.dateRangeControl > button svg { color: #0088ff; flex: 0 0 auto; }
+.dateRangeControl > button svg:last-child { margin-left: auto; }
+.datePopover { background: #fff; border: 1px solid rgba(255,255,255,.7); border-radius: 16px; box-shadow: 0 10px 30px rgba(37,99,235,.18); display: grid; gap: 12px; grid-template-columns: 1fr 1fr; padding: 16px; position: absolute; right: 0; top: 76px; width: 320px; z-index: 30; }
+.datePopover label { display: grid; font-size: 12px; font-weight: 600; gap: 8px; }
+.datePopover input { border: 1px solid rgba(30,30,30,.25); border-radius: 10px; height: 40px; min-width: 0; padding: 0 8px; }
+.datePopover > button { background: #0088ff; border: 0; border-radius: 10px; color: #fff; grid-column: 1/-1; height: 36px; }
+.historyTables { margin-top: 52px; }
+.historyTableBlock { margin: 0 auto; max-width: 1000px; overflow-x: auto; width: 100%; }
+.historyTableBlock + .historyTableBlock { margin-top: 78px; }
+.polishedHistoryTable { border-collapse: collapse; min-width: 760px; table-layout: fixed; width: 100%; }
+.polishedHistoryTable th,
+.polishedHistoryTable td { border-bottom: 1px solid #f3f4f6; font-size: 12px; height: 64px; padding: 0 16px; text-align: left; }
+.polishedHistoryTable th { background: #f9fafb; color: #0a0a0a; font-weight: 700; }
+.receivedStatus { color: #10b981; font-weight: 600; }
+
+@media (max-width: 760px) {
+  .historyFilterRow { grid-template-columns: 1fr; }
+  .datePopover { left: 0; right: auto; width: min(320px,100%); }
+}
+
 .polishedDistribution { color: #1e1e1e; display: flex; flex-direction: column; min-height: calc(100dvh - 210px); }
 .allocationSummaryCard,
 .verificationGrid > section,

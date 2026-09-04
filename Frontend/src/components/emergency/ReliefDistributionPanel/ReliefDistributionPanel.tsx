@@ -52,6 +52,10 @@ export function ReliefDistributionPanel({ mode = "distribution" }: { mode?: "dis
   const [beneficiarySearch, setBeneficiarySearch] = useState("");
   const [beneficiaryPage, setBeneficiaryPage] = useState(1);
   const [beneficiaryRefreshVersion, setBeneficiaryRefreshVersion] = useState(0);
+  const [historyType, setHistoryType] = useState<"Family / Individual" | "Family" | "Individual">("Family / Individual");
+  const [historyStartDate, setHistoryStartDate] = useState("");
+  const [historyEndDate, setHistoryEndDate] = useState("");
+  const [isHistoryDateOpen, setIsHistoryDateOpen] = useState(false);
   const [state, setState] = useState<LoadState>("loading");
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -73,6 +77,14 @@ export function ReliefDistributionPanel({ mode = "distribution" }: { mode?: "dis
   const receivedCount = historyPagination?.total ?? history.filter((record) => record.status === "received").length;
   const barangayCount = selectedCampaign?.progress?.total_barangays ?? selectedCampaign?.progress?.barangays?.length ?? 0;
   const selectedScope = selectedCampaign ? campaignScopeLabel(selectedCampaign) : "No campaign selected";
+  const filteredDistributionHistory = useMemo(() => history.filter((record) => {
+    const timestamp = record.verified_at ?? record.created_at;
+    if (!timestamp) return !historyStartDate && !historyEndDate;
+    const date = new Date(timestamp);
+    if (Number.isNaN(date.getTime())) return false;
+    const day = localDateKey(date);
+    return (!historyStartDate || day >= historyStartDate) && (!historyEndDate || day <= historyEndDate);
+  }), [history, historyEndDate, historyStartDate]);
 
   useEffect(() => {
     let cancelled = false;
@@ -266,6 +278,35 @@ export function ReliefDistributionPanel({ mode = "distribution" }: { mode?: "dis
     } finally {
       setState("idle");
     }
+  }
+
+  if (mode === "history") {
+    const showFamilies = historyType !== "Individual";
+    const showIndividuals = historyType !== "Family";
+    return (
+      <section className={styles.polishedHistory} aria-label="Relief distribution history">
+        {error ? <p className={styles.errorMessage}>{error}</p> : null}
+        <div className={styles.historyFilterRow}>
+          <label><span>Barangay</span><select value={selectedCampaign?.batch_id ?? ""} onChange={(event) => { const campaign = campaigns.find((item) => item.batch_id === event.target.value); if (campaign) selectCampaign(campaign); }}>{campaigns.length === 0 ? <option value="">No barangay campaigns</option> : campaigns.map((campaign) => <option key={campaign.batch_id} value={campaign.batch_id}>{campaignScopeLabel(campaign)}</option>)}</select></label>
+          <label><span>Type of</span><select value={historyType} onChange={(event) => setHistoryType(event.target.value as typeof historyType)}><option>Family / Individual</option><option>Family</option><option>Individual</option></select></label>
+          <div className={styles.dateRangeControl}>
+            <span>Date Range</span>
+            <button type="button" aria-expanded={isHistoryDateOpen} onClick={() => setIsHistoryDateOpen((open) => !open)}><CalendarIcon />{historyDateLabel(historyStartDate, historyEndDate)}<ChevronIcon /></button>
+            {isHistoryDateOpen ? <div className={styles.datePopover}>
+              <label>Start date<input type="date" value={historyStartDate} max={historyEndDate || undefined} onChange={(event) => setHistoryStartDate(event.target.value)} /></label>
+              <label>End date<input type="date" value={historyEndDate} min={historyStartDate || undefined} onChange={(event) => setHistoryEndDate(event.target.value)} /></label>
+              <button type="button" onClick={() => setIsHistoryDateOpen(false)}>Apply Date Range</button>
+            </div> : null}
+          </div>
+        </div>
+
+        <section className={styles.historyTables} aria-label="Relief distribution records">
+          {showFamilies ? <HistoryRecordsTable label="Family" records={filteredDistributionHistory} /> : null}
+          {showIndividuals ? <HistoryRecordsTable label="Individual" records={[]} /> : null}
+        </section>
+        <SharedPagination compact pagination={historyPagination} onPageChange={setHistoryPage} label="Distribution history" />
+      </section>
+    );
   }
 
   if (mode === "distribution") {
@@ -722,10 +763,33 @@ function DistributionResultCard({
   );
 }
 
+function HistoryRecordsTable({ label, records }: { label: "Family" | "Individual"; records: ReliefDistributionRecord[] }) {
+  return (
+    <div className={styles.historyTableBlock}>
+      <table className={styles.polishedHistoryTable}>
+        <thead><tr><th>ID</th><th>{label === "Family" ? "Family Name" : "Last Name"}</th><th>{label === "Family" ? "Family Head" : "First Name"}</th><th>Status</th><th>Type of</th></tr></thead>
+        <tbody>
+          {records.length === 0 ? <tr><td colSpan={5}>No {label.toLowerCase()} distribution records found.</td></tr> : records.map((record) => (
+            <tr key={record.distribution_id}>
+              <td>{shortId(record.family_id)}</td>
+              <td>{record.family_name ?? "Family"}</td>
+              <td>{record.family_head_name ?? "Not recorded"}</td>
+              <td className={styles.receivedStatus}>{formatStatus(record.status)}</td>
+              <td className={styles.receivedStatus}>{label}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
 function ScanIcon() { return <svg width="21" height="21" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M4 7V4h3M17 4h3v3M20 17v3h-3M7 20H4v-3M8 8h8v8H8z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" /></svg>; }
 function DownloadIcon() { return <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 3v12m0 0 4-4m-4 4-4-4M5 21h14" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" /></svg>; }
 function SearchIcon() { return <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="11" cy="11" r="7" stroke="currentColor" strokeWidth="2"/><path d="m16 16 4 4" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/></svg>; }
 function PinIcon() { return <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M20 10c0 5-8 11-8 11S4 15 4 10a8 8 0 1 1 16 0Z" stroke="currentColor" strokeWidth="2"/><circle cx="12" cy="10" r="2.5" stroke="currentColor" strokeWidth="2"/></svg>; }
+function CalendarIcon() { return <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M6 3v3M18 3v3M4 9h16M5 5h14a1 1 0 0 1 1 1v14H4V6a1 1 0 0 1 1-1Z" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" /></svg>; }
+function ChevronIcon() { return <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="m6 9 6 6 6-6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" /></svg>; }
 
 
 function Metric({ compact = false, label, value }: { compact?: boolean; label: string; value: number | string }) {
@@ -785,6 +849,16 @@ function formatDate(value?: string | null) {
     hour: "numeric",
     minute: "2-digit",
   }).format(new Date(value));
+}
+
+function localDateKey(value: Date) {
+  return `${value.getFullYear()}-${String(value.getMonth() + 1).padStart(2, "0")}-${String(value.getDate()).padStart(2, "0")}`;
+}
+
+function historyDateLabel(start: string, end: string) {
+  if (!start && !end) return "Select date range";
+  const format = (value: string) => value ? new Intl.DateTimeFormat("en-US", { month: "short", day: "numeric", year: "numeric", timeZone: "UTC" }).format(new Date(`${value}T00:00:00Z`)) : "Any date";
+  return `${format(start)} • ${format(end)}`;
 }
 
 function campaignTiming(campaign: ReliefCampaign) {
