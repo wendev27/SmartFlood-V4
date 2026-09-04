@@ -8,7 +8,7 @@ import { LoadingState } from "@/components/ui/LoadingState";
 import styles from "./MapPanel.module.css";
 
 interface MapPanelProps {
-  variant?: "dashboard" | "wide";
+  variant?: "dashboard" | "wide" | "embedded";
   sensors?: Record<string, unknown>[];
   isLoading?: boolean;
   error?: string;
@@ -16,6 +16,7 @@ interface MapPanelProps {
   selectedSensorId?: string | null;
   onSensorSelect?: (sensorId: string) => void;
   focusZoom?: number;
+  showWithoutSensors?: boolean;
 }
 
 const SensorLeafletMap = dynamic(
@@ -32,6 +33,7 @@ export function MapPanel({
   selectedSensorId,
   onSensorSelect,
   focusZoom,
+  showWithoutSensors = false,
 }: MapPanelProps) {
   return (
     <article className={cn(styles.map, styles[variant])} aria-label="Flood monitoring map">
@@ -43,7 +45,7 @@ export function MapPanel({
         <div className={styles.mapState}>
           <LoadingState message="Loading sensor nodes..." />
         </div>
-      ) : sensors.length === 0 ? (
+      ) : sensors.length === 0 && !showWithoutSensors ? (
         <div className={styles.mapState}>
           <EmptyState title="No sensor nodes available" description="Live sensor nodes will appear on the map once the API returns data." />
         </div>

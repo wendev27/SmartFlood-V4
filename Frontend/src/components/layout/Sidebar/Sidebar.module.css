@@ -6,55 +6,50 @@
 
 .navCard {
   align-self: stretch;
-  background: rgba(255, 255, 255, 0.13);
-  border: 1px solid rgba(255, 255, 255, 0.35);
+  background: rgba(255, 255, 255, 0.52);
+  backdrop-filter: blur(11px);
+  border: 3px solid rgba(255, 255, 255, 0.76);
   border-radius: 24px;
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.16);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.05);
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 0;
   margin: 0;
-  padding: 18px 14px 14px;
+  padding: 0;
 }
 
 .brand {
   align-items: center;
-  color: #ffffff;
+  color: #1e1e1e;
   display: flex;
   gap: 8px;
-  margin: 0 0 16px;
-  padding: 0 8px;
+  height: 140px;
+  margin: 0;
+  min-height: 140px;
+  padding: 0 36px;
 }
 
 .brandMark {
-  fill: none;
-  stroke: #ffffff;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-  stroke-width: 4;
-  width: 38px;
-}
-
-.brand p {
-  font-size: 7px;
-  font-weight: 800;
-  line-height: 1;
-  margin: 0 0 -2px;
-  opacity: 0.88;
+  background: url("/images/dashboard/smartflood-logo.png") 31% 47% / 150% auto no-repeat;
+  display: block;
+  flex: 0 0 50px;
+  height: 50px;
+  overflow: hidden;
 }
 
 .brand h1 {
-  font-size: 20px;
+  font-size: 26px;
+  letter-spacing: -0.5px;
   line-height: 1;
   margin: 0;
 }
 
 .mobileToggle {
   align-items: center;
-  background: rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.55);
   border: 1px solid rgba(255, 255, 255, 0.38);
   border-radius: 12px;
-  color: #ffffff;
+  color: #0088ff;
   display: flex;
   font-size: 13px;
   font-weight: 800;
@@ -68,7 +63,7 @@
 .mobileToggle span,
 .mobileToggle span::before,
 .mobileToggle span::after {
-  background: #ffffff;
+  background: #0088ff;
   border-radius: 999px;
   content: "";
   display: block;
@@ -96,19 +91,92 @@
 .navLinks {
   display: none;
   flex-direction: column;
-  gap: 10px;
+  gap: 6px;
+  flex: 1;
+  overflow-y: auto;
+  padding: 0 20px 20px;
+  position: relative;
 }
+
+.activeIndicator {
+  background: rgba(220, 235, 255, 0.65);
+  border: 1px solid rgba(255, 255, 255, 0.7);
+  border-radius: 40px;
+  box-shadow: 0 6px 18px rgba(37, 99, 235, 0.12);
+  height: 64px;
+  left: 20px;
+  pointer-events: none;
+  position: absolute;
+  right: 20px;
+  top: 0;
+  transition: transform 500ms cubic-bezier(0.22, 1, 0.36, 1);
+  z-index: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .activeIndicator { transition: none; }
+}
+
+.profileCard {
+  align-items: center;
+  background: rgba(255, 255, 255, 0.46);
+  border: 1px solid rgba(255, 255, 255, 0.75);
+  border-radius: 32px;
+  box-shadow: 0 6px 18px rgba(37, 99, 235, 0.12);
+  display: flex;
+  gap: 8px;
+  margin: 0 20px 20px;
+  min-height: 64px;
+  padding: 7px 10px;
+}
+
+.profileSeal {
+  border-radius: 50%;
+  flex: 0 0 44px;
+  height: 44px;
+  object-fit: cover;
+  width: 44px;
+}
+
+.profileAvatar {
+  background: #fff;
+  border: 2px solid #9acbff;
+  border-radius: 50%;
+  color: #0088ff;
+  display: grid;
+  flex: 0 0 42px;
+  font-size: 12px;
+  font-weight: 700;
+  height: 42px;
+  place-items: center;
+}
+
+.profileCard div { min-width: 0; flex: 1; }
+.profileCard strong, .profileCard small { color: #0088ff; display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.profileCard strong { font-size: 14px; }
+.profileCard small { font-size: 12px; }
+.profileCard button { background: transparent; border: 0; color: #0088ff; display: grid; flex: 0 0 30px; padding: 5px; place-items: center; }
+.profileCard button svg { fill: none; height: 20px; stroke: currentColor; stroke-linecap: round; stroke-linejoin: round; stroke-width: 1.7; width: 20px; }
 
 .open .navLinks {
   display: flex;
 }
 
 @media (min-width: 900px) {
+  .sidebar {
+    bottom: 16px;
+    height: calc(100vh - 32px);
+    left: 16px;
+    position: fixed;
+    top: 16px;
+    width: clamp(240px, 20.833vw, 300px);
+    z-index: 40;
+  }
+
   .navCard {
     border-radius: clamp(24px, 2vw, 32px);
-    gap: clamp(10px, 1.4vh, 16px);
-    margin-right: clamp(10px, 1.1vw, 18px);
-    padding: clamp(20px, 1.5vw, 28px);
+    height: calc(100vh - 32px);
+    padding: 0;
   }
 
   .mobileToggle {
@@ -117,6 +185,6 @@
 
   .navLinks {
     display: flex;
-    gap: clamp(10px, 1.4vh, 16px);
+    gap: 6px;
   }
 }

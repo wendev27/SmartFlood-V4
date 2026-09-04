@@ -10,14 +10,14 @@
 }
 
 .topbar h2 {
-  color: var(--color-ink);
+  color: #1e1e1e;
   font-size: 26px;
   line-height: 1;
   margin: 0 0 8px;
 }
 
 .topbar p {
-  color: #536274;
+  color: #1e1e1e;
   font-size: 13px;
   line-height: 1.45;
   margin: 0;
@@ -37,7 +37,7 @@
   }
 
   .topbar h2 {
-    font-size: clamp(28px, 2.25vw, 40px);
+    font-size: clamp(30px, 2.25vw, 36px);
   }
 
   .topbar p {

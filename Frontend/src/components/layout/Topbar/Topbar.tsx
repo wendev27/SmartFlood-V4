@@ -20,7 +20,7 @@ export function Topbar({ activePage, userProfile }: TopbarProps) {
         <h2>{copy.title}</h2>
         {copy.subtitle ? <p>{copy.subtitle}</p> : null}
       </div>
-      <DashboardHeaderActions userProfile={userProfile} />
+      <DashboardHeaderActions />
     </header>
   );
 }

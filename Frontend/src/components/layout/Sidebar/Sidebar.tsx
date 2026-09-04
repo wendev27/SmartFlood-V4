@@ -4,17 +4,40 @@ import { navigationItems } from "@/data/navigation";
 import { cn } from "@/lib/cn";
 import type { NavItem, PageKey } from "@/types/navigation";
 import { NavLinkItem } from "@/components/navigation/NavLinkItem/NavLinkItem";
+import type { DashboardUserProfile } from "@/components/layout/AppShell/AppShell";
+import { clearStoredSession } from "@/lib/authSession";
 import styles from "./Sidebar.module.css";
 
 interface SidebarProps {
   activePage: PageKey;
   isOpen: boolean;
   items?: NavItem[];
+  userProfile: DashboardUserProfile;
   onNavigate: (page: PageKey) => void;
   onToggleMobileNav: () => void;
 }
 
-export function Sidebar({ activePage, isOpen, items = navigationItems, onNavigate, onToggleMobileNav }: SidebarProps) {
+export function Sidebar({ activePage, isOpen, items = navigationItems, userProfile, onNavigate, onToggleMobileNav }: SidebarProps) {
+  const barangayKey = String(userProfile.barangayName ?? "").toLowerCase().replace("ñ", "n");
+  const barangaySeal = barangayKey.includes("longos")
+    ? "/images/dashboard/barangay-longos-seal.png"
+    : barangayKey.includes("tanong")
+      ? "/images/dashboard/barangay-tanong-seal.jpg"
+      : barangayKey.includes("potrero")
+        ? "/images/dashboard/barangay-potrero-seal.png"
+        : "";
+  const activeItemIndex = items.findIndex((item) => item.key === activePage);
+  const barangayLabel = String(userProfile.barangayName || userProfile.displayName || "Barangay")
+    .replace(/^barangay\s+/i, "")
+    .trim();
+  const systemLogLabel = barangayLabel ? `Barangay ${barangayLabel} System Logs` : "Barangay System Logs";
+
+  function logout() {
+    fetch("/api/auth/logout", { method: "POST", keepalive: true }).catch(() => undefined);
+    clearStoredSession();
+    window.location.href = "/";
+  }
+
   return (
     <aside className={styles.sidebar} aria-label="Main navigation">
       <nav className={cn(styles.navCard, isOpen && styles.open)}>
@@ -29,26 +52,37 @@ export function Sidebar({ activePage, isOpen, items = navigationItems, onNavigat
           Menu
         </button>
         <div className={styles.brand}>
-          <svg className={styles.brandMark} viewBox="0 0 92 52" aria-hidden="true">
-            <path d="M13 34h46c8 0 14-6 14-14S67 6 59 6c-5 0-9 2-12 6-3-6-8-9-15-9C21 3 12 12 12 23c0 4 1 8 4 11h-3z" />
-            <circle cx="27" cy="24" r="5" />
-            <circle cx="47" cy="24" r="5" />
-            <path d="M20 41c8 5 16 5 24 0 8-5 16-5 24 0" />
-          </svg>
-          <div>
-            <p>smartflood</p>
-            <h1>SmartFlood</h1>
-          </div>
+          <span className={styles.brandMark} aria-hidden="true" />
+          <h1>SmartFlood</h1>
         </div>
         <div className={styles.navLinks} id="smartflood-nav-links">
+          {activeItemIndex >= 0 ? (
+            <span
+              className={styles.activeIndicator}
+              style={{ transform: `translateY(${activeItemIndex * 70}px)` }}
+              aria-hidden="true"
+            />
+          ) : null}
           {items.map((item) => (
             <NavLinkItem
               key={item.key}
-              item={item}
+              item={item.key === "systemLogs" ? { ...item, label: systemLogLabel } : item}
               isActive={item.key === activePage}
               onNavigate={onNavigate}
             />
           ))}
+        </div>
+        <div className={styles.profileCard}>
+          {barangaySeal
+            ? <img className={styles.profileSeal} src={barangaySeal} alt="" />
+            : <span className={styles.profileAvatar}>{userProfile.initials}</span>}
+          <div>
+            <strong>{userProfile.displayName || userProfile.roleLabel}</strong>
+            <small>Disaster Response</small>
+          </div>
+          <button type="button" onClick={logout} aria-label="Log out">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10 6H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h4M14 8l4 4-4 4M18 12H9" /></svg>
+          </button>
         </div>
       </nav>
     </aside>

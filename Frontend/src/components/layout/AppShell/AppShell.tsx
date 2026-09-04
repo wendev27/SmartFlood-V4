@@ -45,6 +45,7 @@ export function AppShell({
         activePage={activePage}
         isOpen={isMobileNavOpen}
         items={navigationItems}
+        userProfile={userProfile}
         onNavigate={onNavigate}
         onToggleMobileNav={onToggleMobileNav}
       />

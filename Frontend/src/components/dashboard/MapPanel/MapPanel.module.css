@@ -1,6 +1,6 @@
 .map {
   background: #1f1f1f;
-  border-radius: 8px;
+  border-radius: 26px;
   height: auto;
   min-height: 250px;
   overflow: visible;
@@ -15,6 +15,11 @@
 
 .wide {
   height: clamp(320px, 42vh, 430px);
+  min-height: 320px;
+}
+
+.embedded {
+  aspect-ratio: 1000 / 525;
   min-height: 320px;
 }
 

@@ -1,18 +1,15 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import type { DashboardUserProfile } from "@/components/layout/AppShell/AppShell";
-import { clearStoredSession } from "@/lib/authSession";
 import { getFloodStatusClass } from "@/lib/statusStyles";
 import { getSensors } from "@/services/sensorsService";
 import styles from "./DashboardHeaderActions.module.css";
 
 interface DashboardHeaderActionsProps {
-  userProfile: DashboardUserProfile;
+  userProfile?: unknown;
 }
 
-export function DashboardHeaderActions({ userProfile }: DashboardHeaderActionsProps) {
-  const [isProfileOpen, setIsProfileOpen] = useState(false);
+export function DashboardHeaderActions({}: DashboardHeaderActionsProps = {}) {
   const [alertCount, setAlertCount] = useState(0);
 
   useEffect(() => {
@@ -40,64 +37,17 @@ export function DashboardHeaderActions({ userProfile }: DashboardHeaderActionsPr
     };
   }, []);
 
-  function logout() {
-    fetch("/api/auth/logout", {
-      method: "POST",
-      keepalive: true,
-    }).catch(() => undefined);
-    clearStoredSession();
-    window.location.href = "/";
-  }
-
   return (
     <div className={styles.actions}>
-      <button className={styles.alertButton} type="button" aria-label="Notifications">
-        <span className={styles.bell} />
-        <strong>{alertCount}</strong>
+      <button className={styles.actionButton} type="button" aria-label="Weather">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 18h10a4 4 0 0 0 .4-7.98A6 6 0 0 0 6.1 8.3 4.8 4.8 0 0 0 7 18Z" /><path d="M8 6a5 5 0 0 1 9-1" /></svg>
+        <span>Weather</span>
       </button>
-      <div
-        className={styles.profileMenu}
-        onMouseEnter={() => setIsProfileOpen(true)}
-        onMouseLeave={() => setIsProfileOpen(false)}
-      >
-        <button
-          className={styles.profileChip}
-          type="button"
-          aria-expanded={isProfileOpen}
-          aria-haspopup="menu"
-          onClick={() => setIsProfileOpen((current) => !current)}
-        >
-          <div>
-            <b>{userProfile.roleLabel}</b>
-            <span>{userProfile.roleSubtitle}</span>
-          </div>
-          <span className={styles.avatar}>{userProfile.initials}</span>
-        </button>
-        {isProfileOpen ? (
-          <div className={styles.profileDropdown} role="menu">
-            <div className={styles.dropdownHeader}>
-              <span className={styles.dropdownAvatar}>{userProfile.initials}</span>
-              <div>
-                <b>{userProfile.displayName}</b>
-                <span>{userProfile.email || "No email available"}</span>
-              </div>
-            </div>
-            <dl className={styles.profileDetails}>
-              <div>
-                <dt>Role</dt>
-                <dd>{userProfile.roleLabel}</dd>
-              </div>
-              <div>
-                <dt>Access</dt>
-                <dd>{userProfile.logLabel}</dd>
-              </div>
-            </dl>
-            <button className={styles.logoutButton} type="button" role="menuitem" onClick={logout}>
-              Logout
-            </button>
-          </div>
-        ) : null}
-      </div>
+      <button className={styles.actionButton} type="button" aria-label={`${alertCount} notifications`}>
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M10 21h4" /></svg>
+        <span>Notification</span>
+        {alertCount > 0 ? <i /> : null}
+      </button>
     </div>
   );
 }

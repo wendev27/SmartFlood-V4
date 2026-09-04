@@ -1,49 +1,66 @@
 .link {
   align-items: center;
-  border-radius: 36px;
-  color: #ffffff;
+  border: 1px solid transparent;
+  border-radius: 40px;
+  color: #1e1e1e;
   display: flex;
-  font-size: 14px;
-  font-weight: 800;
-  gap: 10px;
-  line-height: 1.05;
-  min-height: 50px;
-  padding: 5px 10px;
+  font-size: 15px;
+  font-weight: 600;
+  gap: 12px;
+  line-height: 1.25;
+  min-height: 64px;
+  padding: 10px 16px;
+  position: relative;
   text-decoration: none;
-  transition: background 160ms ease, box-shadow 160ms ease, transform 160ms ease;
+  transition: background-color 300ms ease, color 300ms ease;
 }
 
 .link:hover,
 .link:focus-visible {
-  background: rgba(255, 255, 255, 0.18);
+  background: rgba(255, 255, 255, 0.55);
+  color: #0088ff;
   outline: 0;
-  transform: translateX(2px);
 }
 
 .active {
-  background: rgba(255, 255, 255, 0.25);
-  box-shadow: 0 14px 22px rgba(9, 48, 93, 0.22);
+  color: #0088ff;
 }
 
+.link { z-index: 1; }
+
 .icon {
-  background: rgba(255, 255, 255, 0.28);
-  border-radius: 50%;
-  box-shadow: 0 7px 16px rgba(0, 49, 117, 0.24);
+  border-radius: 14px;
   display: grid;
-  flex: 0 0 40px;
-  height: 40px;
+  flex: 0 0 44px;
+  height: 44px;
   place-items: center;
   position: relative;
 }
 
-.icon svg {
-  height: 30px;
-  width: 30px;
+.active .icon {
+  background: rgba(255, 255, 255, 0.62);
+  border: 1px solid rgba(255, 255, 255, 0.75);
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.12);
 }
+
+.icon svg {
+  height: 22px;
+  width: 22px;
+}
+
+.icon svg path,
+.icon svg circle {
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 1.375;
+}
+
+.icon svg [stroke="none"] { stroke: none; }
 
 @media (min-width: 900px) {
   .link {
-    font-size: clamp(13px, 1vw, 17px);
-    min-height: clamp(48px, 5.4vh, 58px);
+    font-size: 15px;
+    min-height: 64px;
   }
 }

@@ -65,16 +65,15 @@ export function navigationItemsForRole(role: DashboardRole): NavItem[] {
   }
 
   return [
-    { key: 'dashboard', label: 'Dashboard', icon: 'home' },
+    { key: 'dashboard', label: 'Home', icon: 'home' },
     { key: 'monitoring', label: 'Flood Monitoring Module', icon: 'droplet' },
-    { key: 'sensors', label: 'Sensor History', icon: 'signal' },
     {
       key: 'emergencyNotifications',
-      label: 'Emergency Notifications',
-      icon: 'document',
+      label: 'Relief Management',
+      icon: 'cube',
     },
-    { key: 'reliefDistribution', label: 'Relief Distribution', icon: 'check' },
-    { key: 'residents', label: 'Resident Information', icon: 'users' },
+    { key: 'reliefDistribution', label: 'Emergency Report Management', icon: 'document' },
+    { key: 'residents', label: 'Registry of Barangay Inhabitants (RBI)', icon: 'users' },
     {
       key: 'accounts',
       label: 'Resident Account Registration Management',
