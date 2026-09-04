@@ -1516,3 +1516,109 @@
     max-width: min(1220px, 100%);
   }
 }
+
+/* Port 5173 Flood Heatmap and Flood History composition. */
+.heatmapPage {
+  gap: 36px;
+  max-width: 1025px;
+  padding: 0 0 16px;
+}
+
+.historyPage {
+  max-width: 1000px;
+  padding: 0 0 16px;
+}
+
+.heatmapTop,
+.subpageHeader {
+  align-items: flex-end;
+  margin-top: 0;
+}
+
+.heatmapTop .backButton,
+.subpageHeader .backButton {
+  color: #0088ff;
+  font-size: 14px;
+  font-weight: 600;
+  margin: 0 0 32px;
+}
+
+.heatmapTop h2,
+.historyPage h2 {
+  color: #1e1e1e;
+  font-size: 36px;
+  font-weight: 700;
+  line-height: 1.25;
+  margin: 0;
+}
+
+.reviewButton,
+.refreshHistory {
+  align-items: center;
+  background: #0088ff;
+  border-radius: 16px;
+  box-shadow: 0 10px 15px rgba(0, 0, 0, 0.1);
+  display: inline-flex;
+  font-size: 16px;
+  font-weight: 600;
+  gap: 12px;
+  height: 48px;
+  justify-content: center;
+  padding: 0 24px;
+}
+
+.heatmapCard {
+  border: 0;
+  border-radius: 26px;
+  box-shadow: 0 10px 15px rgba(0, 0, 0, 0.1);
+  padding: 32px;
+}
+
+.heatmapHeader h3,
+.chartCard h3,
+.distributionCard h3 {
+  color: #1e1e1e;
+  font-size: 20px;
+  font-weight: 600;
+}
+
+.mapCanvas {
+  border: 0;
+  border-radius: 26px;
+  height: 380px;
+}
+
+.chartCard {
+  border: 0;
+  border-radius: 10px;
+  box-shadow: 0 10px 15px rgba(0, 0, 0, 0.1);
+  padding: 24px;
+}
+
+.distributionCard {
+  border: 0;
+  border-radius: 26px;
+  box-shadow: 0 10px 15px rgba(0, 0, 0, 0.1);
+  padding: 24px;
+}
+
+.historyCard {
+  border: 0;
+  border-radius: 16px;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+  margin-top: 32px;
+}
+
+.historyCard h3 {
+  background: #0088ff;
+  font-size: 20px;
+  padding: 16px 24px;
+}
+
+.historyBody { padding: 20px 24px 28px; }
+
+@media (max-width: 679px) {
+  .heatmapTop h2,
+  .historyPage h2 { font-size: 30px; }
+  .heatmapCard { padding: 20px; }
+}

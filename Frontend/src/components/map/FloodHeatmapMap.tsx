@@ -12,7 +12,7 @@ type FloodHeatmapMapProps = {
   readings: FloodHistoryRow[];
 };
 
-const fallbackCenter: [number, number] = [14.62202, 121.0528];
+const fallbackCenter: [number, number] = [14.6625, 120.9567];
 
 export function FloodHeatmapMap({ readings }: FloodHeatmapMapProps) {
   const validReadings = useMemo(() => readings.flatMap(toValidReading), [readings]);

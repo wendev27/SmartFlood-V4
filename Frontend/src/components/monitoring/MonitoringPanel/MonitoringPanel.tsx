@@ -89,6 +89,16 @@ function MonitoringModuleIcon({ view, fallback }: { view?: MonitoringView; fallb
   return <SmartFloodIcon name={fallback} size={40} />;
 }
 
+function ClipboardListIcon() {
+  return (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <path d="M9 5H6a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-3" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+      <rect x="9" y="2" width="6" height="4" rx="1" stroke="currentColor" strokeWidth="2" />
+      <path d="M9 12h6M9 16h6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+    </svg>
+  );
+}
+
 function FloodHistory({ onBack, userProfile }: MonitoringSubpageProps) {
   const pageSize = 5;
   const [history, setHistory] = useState<FloodHistoryRow[]>([]);
@@ -104,6 +114,7 @@ function FloodHistory({ onBack, userProfile }: MonitoringSubpageProps) {
   const [customEnd, setCustomEnd] = useState("");
   const [refreshVersion, setRefreshVersion] = useState(0);
   const [historyPage, setHistoryPage] = useState(1);
+  const [isHistoryReportOpen, setIsHistoryReportOpen] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -200,8 +211,9 @@ function FloodHistory({ onBack, userProfile }: MonitoringSubpageProps) {
         </div>
         <div className={styles.subpageHeaderActions}>
           <DashboardHeaderActions userProfile={userProfile} />
-          <button className={styles.refreshHistory} type="button" onClick={() => setRefreshVersion((current) => current + 1)}>
-            {isLoading ? "Refreshing..." : "Refresh Data"}
+          <button className={styles.refreshHistory} type="button" onClick={() => setIsHistoryReportOpen(true)}>
+            <ClipboardListIcon />
+            View Historical Report
           </button>
         </div>
       </div>
@@ -367,6 +379,20 @@ function FloodHistory({ onBack, userProfile }: MonitoringSubpageProps) {
           <SharedPagination pagination={paginatedHistory.pagination} onPageChange={setHistoryPage} label="Flood history records" />
         </div>
       </article>
+      <Modal isOpen={isHistoryReportOpen} onClose={() => setIsHistoryReportOpen(false)} labelledBy="historical-report-title" className={styles.reportDialog}>
+        <header className={styles.reportHeader}>
+          <div><h2 id="historical-report-title">Narrative Report</h2><p>Flood history summary for the selected filters</p></div>
+          <button type="button" aria-label="Close historical report" onClick={() => setIsHistoryReportOpen(false)}>×</button>
+        </header>
+        <div className={styles.reportBody}>
+          <p>{filteredHistory.length > 0 ? `A total of ${filteredHistory.length} flood readings match the selected period. The highest recorded water level was ${highestWaterLevel.toFixed(2)}m, including ${countHistoryLevel(filteredHistory, "Severe")} severe and ${countHistoryLevel(filteredHistory, "Flood Warning")} warning readings.` : "No flood readings match the selected filters."}</p>
+          <dl className={styles.reportGrid}>
+            <ReportDetail label="Total Records" value={filteredHistory.length} />
+            <ReportDetail label="Highest Water Level" value={`${highestWaterLevel.toFixed(2)}m`} />
+            <ReportDetail label="Latest Reading" value={formatTimestamp(latestReadingTime)} />
+          </dl>
+        </div>
+      </Modal>
     </section>
   );
 }
@@ -422,12 +448,11 @@ function FloodHeatmap({ onBack, userProfile }: MonitoringSubpageProps) {
             Back
           </button>
           <h2>Flood Heatmap</h2>
-          <p>Monitor flood levels and manage alerts</p>
         </div>
         <div className={styles.subpageHeaderActions}>
           <DashboardHeaderActions userProfile={userProfile} />
           <button className={styles.reviewButton} type="button" onClick={() => setIsReportOpen(true)}>
-            <span aria-hidden="true">▣</span>
+            <ClipboardListIcon />
             Review Narrative Report
           </button>
         </div>
