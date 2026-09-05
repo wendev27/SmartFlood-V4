@@ -15,7 +15,8 @@ export function Topbar({ activePage, userProfile }: TopbarProps) {
   const isBarangayRegistration = activePage === "accounts" && /barangay/i.test(userProfile.roleLabel);
   const isSystemLogsPage = activePage === "systemLogs";
   const isCswddRelief = activePage === "relief" && /cswdd/i.test(userProfile.roleLabel);
-  const isActionsOnly = activePage === "monitoring" || activePage === "emergencyNotifications" || isBarangayModuleLanding || isBarangayRbi || isBarangayRegistration || isSystemLogsPage || isCswddRelief;
+  const isCdrrmoAccount = activePage === "logs" && /cdrrmo|command center|super admin/i.test(`${userProfile.roleLabel} ${userProfile.displayName}`);
+  const isActionsOnly = activePage === "monitoring" || activePage === "emergencyNotifications" || isBarangayModuleLanding || isBarangayRbi || isBarangayRegistration || isSystemLogsPage || isCswddRelief || isCdrrmoAccount;
   const copy = activePage === "systemLogs"
     ? { ...pageCopy[activePage], title: userProfile.logLabel }
     : pageCopy[activePage];

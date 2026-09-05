@@ -1,10 +1,26 @@
 .card {
-  border: 1px solid #e5e7eb;
+  background: #fff;
+  border: 0;
   border-radius: 14px;
-  box-shadow: 0 2px 8px rgba(28, 48, 70, 0.035);
-  margin: 0 auto;
-  max-width: 1260px;
-  padding: 30px 32px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, .1), 0 1px 2px rgba(0, 0, 0, .1);
+  display: flex;
+  flex-direction: column;
+  margin: 52px auto 0;
+  max-width: none;
+  min-height: 650px;
+  padding: 24px 24px 20px;
+  font-family: "Source Sans Pro", ui-sans-serif, system-ui, sans-serif;
+  font-synthesis: none;
+  letter-spacing: 0;
+}
+
+.card button,
+.card input,
+.card select,
+.card table {
+  font-family: "Source Sans Pro", ui-sans-serif, system-ui, sans-serif;
+  font-synthesis: none;
+  letter-spacing: 0;
 }
 
 .errorMessage {
@@ -20,15 +36,15 @@
 .toolbar {
   align-items: center;
   display: grid;
-  gap: 12px;
+  gap: 6px;
   grid-template-columns: 1fr;
-  margin-bottom: 42px;
+  margin-bottom: 24px;
 }
 
 .search {
   align-items: center;
   border: 1px solid #cbd5e1;
-  border-radius: 9px;
+  border-radius: 10px;
   display: flex;
   height: 42px;
   padding: 0 12px;
@@ -48,7 +64,9 @@
   background: #ffffff;
   border: 0;
   color: #64748b;
-  font-size: 13px;
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 20px;
   min-width: 0;
   outline: 0;
   width: 100%;
@@ -56,18 +74,23 @@
 
 .toolbar select {
   border: 1px solid #cbd5e1;
-  border-radius: 9px;
-  height: 42px;
-  padding: 0 14px;
+  border-radius: 10px;
+  height: 40px;
+  padding: 0 8px;
 }
 
 .exportButton,
 .addButton {
-  border-radius: 8px;
-  font-size: 13px;
-  font-weight: 700;
-  height: 42px;
-  padding: 0 18px;
+  align-items: center;
+  border-radius: 10px;
+  display: flex;
+  font-size: 14px;
+  font-weight: 400;
+  gap: 8px;
+  height: 40px;
+  justify-content: center;
+  padding: 0 10px;
+  width: 100px;
   white-space: nowrap;
 }
 
@@ -77,16 +100,25 @@
   color: #64748b;
 }
 
+.exportButton svg {
+  flex: 0 0 13px;
+  height: 13px;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 2;
+  width: 13px;
+}
+
 .addButton {
-  background: var(--color-blue);
-  border: 1px solid var(--color-blue);
+  background: #0088ff;
+  border: 1px solid #0088ff;
   color: #ffffff;
 }
 
 .emailLink {
-  display: block;
-  color: #334155;
-  font-size: 13px;
+  color: rgba(30, 30, 30, .55);
+  font-size: 14px;
   text-decoration: underline;
   text-underline-offset: 2px;
 }
@@ -117,6 +149,29 @@
   border-collapse: separate;
   border-spacing: 0;
 }
+
+.tableScroll th,
+.tableScroll td {
+  color: rgba(30, 30, 30, .55);
+  font-size: 14px;
+  font-weight: 400;
+  height: 64px;
+  line-height: 20px;
+  padding: 0 16px;
+}
+
+.tableScroll tbody td { height: 93px; }
+.tableScroll th { color: rgba(30, 30, 30, .55); font-weight: 700; line-height: 20px; }
+.tableScroll th:nth-child(1) { width: 30%; }
+.tableScroll th:nth-child(2) { width: 15%; }
+.tableScroll th:nth-child(3) { width: 15%; }
+.tableScroll th:nth-child(4) { width: 18%; }
+.tableScroll th:nth-child(5) { width: 13%; }
+
+.department { color: #1e1e1e; font-size: 12px; font-weight: 600; line-height: 16px; }
+.enabled, .disabled { font-size: 12px; font-weight: 600; line-height: 16px; }
+.enabled { color: #10b981; }
+.disabled { color: #ff3830; }
 
 .tableScroll thead th {
   box-shadow: 0 1px 0 #edf2f7;
@@ -170,17 +225,17 @@
 
 .actionPill {
   align-items: center;
-  background: #f8fbff;
-  border: 1px solid #bfd5ff;
-  border-radius: 999px;
-  color: #0f61ff;
+  background: transparent;
+  border: 0;
+  border-radius: 0;
+  color: #0088ff;
   cursor: pointer;
   display: inline-flex;
-  font-size: 13px;
-  font-weight: 800;
+  font-size: 12px;
+  font-weight: 700;
   gap: 7px;
-  min-height: 34px;
-  padding: 0 12px;
+  min-height: 22px;
+  padding: 0;
   transition:
     background-color 160ms ease,
     border-color 160ms ease,
@@ -189,9 +244,9 @@
 
 .actionPill:hover,
 .actionPill:focus-visible {
-  background: #eef6ff;
-  border-color: #1a8cff;
-  box-shadow: 0 6px 16px rgba(15, 97, 255, 0.12);
+  background: transparent;
+  border-color: transparent;
+  box-shadow: none;
   outline: 0;
 }
 
@@ -252,41 +307,71 @@
 }
 
 .accountDialog {
-  --modal-width: 820px;
-  border-radius: 8px;
+  --modal-width: 800px;
+  border-radius: 10px;
+  box-shadow: 0 11px 15px -7px rgba(0, 0, 0, .2), 0 24px 38px 3px rgba(0, 0, 0, .14), 0 9px 46px 8px rgba(0, 0, 0, .12);
   width: min(var(--modal-width), calc(100dvw - 32px));
+}
+
+.accountBackdrop {
+  -webkit-backdrop-filter: blur(6px);
+  backdrop-filter: blur(6px);
+  background: rgba(15, 23, 42, .45);
+}
+
+.previewDialog { min-height: 660px; }
+
+.editDialog {
+  --modal-width: 800px;
+  min-height: 546px;
 }
 
 .passwordDialog {
-  --modal-width: 480px;
-  border-radius: 8px;
+  --modal-width: 448px;
+  border-radius: 10px;
+  box-shadow: 0 25px 25px rgba(0, 0, 0, .25);
   width: min(var(--modal-width), calc(100dvw - 32px));
 }
 
+.deleteDialog { --modal-width: 448px; border-radius: 10px; box-shadow: 0 25px 25px rgba(0, 0, 0, .25); }
+.deleteContent { height: 220px; padding: 24px; }
+.deleteHeading { align-items: center; display: flex; gap: 12px; min-height: 48px; }
+.warningIcon { align-items: center; background: #ffc9c9; border-radius: 50%; color: #ff3830; display: flex; flex: 0 0 48px; font-size: 25px; font-weight: 600; height: 48px; justify-content: center; }
+.deleteHeading h3 { color: #0a0a0a; font-size: 18px; font-weight: 600; line-height: 28px; margin: 0; }
+.deleteHeading p { color: #4a5565; font-size: 14px; font-weight: 600; line-height: 20px; margin: 0; }
+.deleteWarning { align-items: center; background: #f9fafb; border-radius: 10px; color: #4a5565; display: flex; font-size: 14px; font-weight: 600; height: 45px; justify-content: center; margin-top: 16px; }
+.deleteActions { display: grid; gap: 16px; grid-template-columns: 1fr 1fr; margin-top: 15px; }
+.deleteActions button { border: 0; border-radius: 10px; color: #fff; font-size: 16px; font-weight: 600; height: 48px; }
+.deleteActions button:first-child { background: #6a7282; }
+.deleteActions button:last-child { background: #ff3830; }
+.deleteActions button:disabled { cursor: not-allowed; opacity: .55; }
+
 .modalHeader {
-  align-items: flex-start;
-  background: var(--color-blue);
-  color: #ffffff;
+  align-items: center;
+  background: #fff;
+  color: rgba(0, 0, 0, .9);
   display: flex;
   justify-content: space-between;
-  min-height: 92px;
-  padding: 24px 28px;
+  min-height: 64px;
+  padding: 16px 24px;
 }
 
 .modalHeader > div {
   min-width: 0;
 }
 
+.headerActions { align-items: center; display: flex; gap: 16px; }
+
 .modalHeader h3 {
-  font-size: 22px;
-  line-height: 1.1;
-  margin: 0 0 6px;
+  font-size: 20px;
+  font-weight: 600;
+  letter-spacing: .15px;
+  line-height: 32px;
+  margin: 0;
 }
 
 .modalHeader p {
-  color: rgba(255, 255, 255, 0.84);
-  font-size: 13px;
-  margin: 0;
+  display: none;
 }
 
 .modalHeader button {
@@ -294,7 +379,7 @@
   background: transparent;
   border: 0;
   border-radius: 50%;
-  color: #ffffff;
+  color: rgba(0, 0, 0, .55);
   cursor: pointer;
   display: inline-flex;
   font-size: 20px;
@@ -305,39 +390,123 @@
 }
 
 .modalHeader button:hover {
-  background: rgba(255, 255, 255, 0.16);
+  background: #f1f5f9;
 }
+
+.editModalHeader h3 {
+  font-weight: 700;
+}
+
+.editDialog .modalHeader {
+  min-height: 32px;
+  padding: 24px 24px 0;
+}
+
+.editDialog .accountForm {
+  overflow: visible;
+  padding: 6px 24px 24px;
+}
+
+.editDialog .editFormGrid { gap: 14px; }
+
+.editDialog .accountForm input,
+.editDialog .accountForm select {
+  appearance: none;
+  font-size: 14px;
+  height: 46px;
+  padding: 0 9px;
+}
+
+.enabledControl {
+  align-items: center;
+  border: 1px solid #000;
+  border-radius: 10px;
+  color: rgba(0, 0, 0, .9);
+  display: flex;
+  font-size: 16px;
+  height: 61px;
+  padding: 0 14px;
+}
+
+.accountNote {
+  align-items: center;
+  background: rgba(220, 235, 255, .65);
+  border-radius: 10px;
+  box-shadow: 0 1px 1px rgba(0, 0, 0, .14), 0 1px 3px rgba(0, 0, 0, .12);
+  color: rgba(30, 30, 30, .5);
+  display: flex;
+  font-size: 12px;
+  letter-spacing: .4px;
+  margin-top: 20px;
+  min-height: 62px;
+  padding: 12px 24px;
+}
+
+.accountNote strong { font-weight: 600; }
+
+.modalHeader .headerActions button {
+  background: transparent;
+  border: 0;
+  border-radius: 0;
+  display: block;
+  height: 22px;
+  min-height: 22px;
+  padding: 0;
+  width: 22px;
+}
+
+.modalHeader .headerActions button:hover,
+.modalHeader .headerActions button:focus-visible {
+  background: transparent;
+  outline: 0;
+  opacity: .72;
+}
+
+.headerActions svg {
+  fill: currentColor;
+  height: 22px;
+  opacity: .8;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 2;
+  width: 22px;
+}
+
+.editAdminButton { color: #0088ff !important; }
+.deleteAdminButton { color: #ff3830 !important; }
 
 .accountForm,
 .detailGrid {
   min-height: 0;
   overflow-y: auto;
-  padding: 26px 28px;
+  padding: 24px;
 }
 
 .formGrid {
   display: grid;
-  gap: 16px;
+  gap: 19px;
   grid-template-columns: 1fr;
 }
 
 .accountForm label {
   color: #334155;
   display: grid;
-  font-size: 13px;
-  font-weight: 800;
-  gap: 7px;
+  font-size: 12px;
+  font-weight: 400;
+  gap: 8px;
 }
 
 .accountForm input,
 .accountForm select {
-  border: 1px solid #d8e2ee;
-  border-radius: 8px;
+  background: #fff;
+  border: 1px solid rgba(0, 0, 0, .25);
+  border-radius: 10px;
   color: #1f2937;
-  font-size: 13px;
-  height: 42px;
+  font-size: 16px;
+  height: 61px;
   min-width: 0;
-  padding: 0 12px;
+  padding: 0 14px;
   width: 100%;
 }
 
@@ -365,34 +534,92 @@
   display: grid;
   gap: 12px;
   grid-template-columns: 1fr;
-  margin-top: 24px;
+  margin-top: 20px;
 }
+
+.accountDialog:not(.editDialog) .accountForm label {
+  font-size: 0;
+  gap: 0;
+}
+
+.formActions button {
+  box-shadow: none;
+  font-family: "Source Sans Pro", ui-sans-serif, system-ui, sans-serif;
+}
+
+.addFormActions {
+  gap: 6.67%;
+}
+
+.addFormActions button {
+  border-radius: 10px;
+  font-size: 15px;
+  font-weight: 600;
+  height: 40px;
+  letter-spacing: .43px;
+  min-height: 40px;
+  text-transform: uppercase;
+}
+
+.addFormActions button:first-child,
+.editFormActions button:first-child {
+  background: #fff;
+  border: 1px solid #0088ff;
+  color: #0088ff;
+}
+
+.addFormActions button:last-child,
+.editFormActions button:last-child,
+.previewActions button {
+  background: #0088ff;
+  border: 1px solid #0088ff;
+  color: #fff;
+}
+
+.editFormActions {
+  gap: 5.4%;
+}
+
+.editFormActions button {
+  border-radius: 10px;
+  font-size: 18px;
+  font-weight: 600;
+  height: 50px;
+  letter-spacing: .15px;
+  min-height: 50px;
+  text-transform: none;
+}
+
+.formActions button:hover:not(:disabled) { filter: brightness(.97); }
+.formActions button:disabled { cursor: not-allowed; opacity: .55; }
 
 .detailGrid {
   display: grid;
   gap: 14px;
   grid-template-columns: 1fr;
-  padding-bottom: 16px;
+  padding-bottom: 0;
+  padding-top: 30px;
 }
 
 .detailGrid div {
-  background: #f8fbff;
-  border: 1px solid #e6eef8;
-  border-radius: 8px;
-  padding: 14px;
+  background: #fff;
+  border: 1px solid #ccc;
+  border-radius: 10px;
+  min-height: 46px;
+  padding: 9px;
 }
 
 .detailGrid dt {
   color: #64748b;
   font-size: 13px;
-  font-weight: 800;
-  margin-bottom: 6px;
+  font-weight: 400;
+  margin-bottom: 8px;
 }
 
 .detailGrid dd {
   color: #1f2937;
   font-size: 13px;
-  font-weight: 800;
+  font-weight: 400;
   margin: 0;
 }
 
@@ -401,7 +628,7 @@
   display: flex;
   flex-wrap: wrap;
   gap: 10px;
-  padding: 18px 28px 26px;
+  padding: 20px 24px 24px;
 }
 
 .previewActions button {
@@ -409,6 +636,13 @@
   display: inline-flex;
   gap: 8px;
   justify-content: center;
+  border-radius: 10px;
+  font-size: 18px;
+  font-weight: 600;
+  height: 50px;
+  letter-spacing: .15px;
+  min-height: 50px;
+  width: 100%;
 }
 
 .keyIcon::before {
@@ -511,13 +745,20 @@
 
 @media (min-width: 900px) {
   .toolbar {
-    grid-template-columns: minmax(180px, 1.3fr) repeat(3, minmax(130px, 0.8fr)) auto auto;
+    grid-template-columns: 252px 190px 112px 112px 1fr 112px 112px;
   }
 
-  .formGrid,
-  .detailGrid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+  .toolbar .exportButton { grid-column: 6; }
+  .toolbar .addButton { grid-column: 7; }
+
+  .tableScroll.tableScroll {
+    overflow: visible;
+    padding-right: 0;
   }
+
+  .card { height: 650px; }
+
+  .formGrid, .detailGrid { grid-template-columns: 1fr; }
 
   .formActions {
     grid-template-columns: 1fr 1fr;

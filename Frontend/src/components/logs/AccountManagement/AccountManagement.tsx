@@ -100,6 +100,7 @@ export function AccountManagement() {
   const [formError, setFormError] = useState("");
   const [selectedUser, setSelectedUser] = useState<AccountUserRow | null>(null);
   const [previewUser, setPreviewUser] = useState<AccountUserRow | null>(null);
+  const [deleteUser, setDeleteUser] = useState<AccountUserRow | null>(null);
   const [passwordUser, setPasswordUser] = useState<AccountUserRow | null>(null);
   const [newPassword, setNewPassword] = useState("");
   const [resultModal, setResultModal] = useState({
@@ -176,6 +177,20 @@ export function AccountManagement() {
     setIsFormOpen(true);
   }
 
+  function exportAccounts() {
+    const rows = [
+      ["Email", "Role", "Department", "Activity", "Status"],
+      ...displayedUsers.map((user) => [user.email, user.role_label, formatBarangayName(user.department), accountActivity(user), statusLabel(user.status)]),
+    ];
+    const csv = rows.map((row) => row.map((cell) => `"${String(cell).replaceAll('"', '""')}"`).join(",")).join("\n");
+    const url = URL.createObjectURL(new Blob([csv], { type: "text/csv" }));
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = "cdrrmo-accounts.csv";
+    link.click();
+    URL.revokeObjectURL(url);
+  }
+
   function openEditForm(user: AccountUserRow) {
     setFormMode("edit");
     setSelectedUser(user);
@@ -232,6 +247,13 @@ export function AccountManagement() {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(withAuditActor(payload)),
         });
+        if (form.password.trim()) {
+          await fetchJson(`/api/app-users/${selectedUser.id}/password`, {
+            method: "PATCH",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(withAuditActor({ new_password: form.password })),
+          });
+        }
       } else {
         await fetchJson("/api/app-users", {
           method: "POST",
@@ -326,6 +348,26 @@ export function AccountManagement() {
     }
   }
 
+  async function deleteAccount() {
+    if (!deleteUser) return;
+    setIsSubmitting(true);
+    try {
+      await fetchJson(`/api/app-users/${deleteUser.id}`, {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(withAuditActor({})),
+      });
+      setDeleteUser(null);
+      setPreviewUser(null);
+      await invalidateUsers();
+      setResultModal({ open: true, type: "success", title: "Account Deleted", description: "The account was deleted successfully.", details: "The user can no longer sign in with this account." });
+    } catch (deleteError) {
+      setResultModal({ open: true, type: "error", title: "Failed to Delete Account", description: deleteError instanceof Error ? deleteError.message : "Unable to delete the account.", details: "Please try again." });
+    } finally {
+      setIsSubmitting(false);
+    }
+  }
+
   return (
     <article className={styles.card}>
       <div className={styles.toolbar}>
@@ -352,30 +394,29 @@ export function AccountManagement() {
           <option value="inactive">Disabled</option>
           <option value="blocked">Blocked</option>
         </select>
-        <button type="button" className={styles.exportButton} onClick={() => {
-          setSearch("");
-          setDepartmentFilter("");
-          setRoleFilter("");
-          setStatusFilter("");
-          setPage(1);
-        }}>Reset</button>
-        <button type="button" className={styles.addButton} onClick={openAddForm}>+ Add Account</button>
+        <button type="button" className={styles.exportButton} onClick={exportAccounts}>
+          <svg aria-hidden="true" width="13" height="13" viewBox="0 0 24 24" fill="none">
+            <path d="M12 3v12" />
+            <path d="m7 10 5 5 5-5" />
+            <path d="M5 21h14" />
+          </svg>
+          Export
+        </button>
+        <button type="button" className={styles.addButton} onClick={openAddForm}><span aria-hidden="true">＋</span>Add New</button>
       </div>
       {error ? <ErrorState title="Unable to Load Accounts" message={error} retryLabel="Retry" onRetry={refreshUsers} /> : null}
-      <DataTable className={styles.tableScroll} headers={["Name / Email", "Role", "Department / Barangay", "Status", "Actions"]} minWidth={880}>
+      <DataTable className={styles.tableScroll} headers={["Email", "Role", "Department", "Actions", "Status", "Actions"]} minWidth={1002}>
         {paginatedUsers.rows.map((user, index) => (
           <tr key={user.id || `${user.email}-${index}`}>
-            <td>
-              <strong className={styles.userName}>{user.full_name || "Unnamed account"}</strong>
-              <a className={styles.emailLink} href={`mailto:${user.email}`}>{user.email}</a>
-            </td>
-            <td>{user.role_label}</td>
-            <td><Badge tone={departmentTone(user.department)}>{formatBarangayName(user.department)}</Badge></td>
-            <td><Badge tone={statusTone(user.status)}>{statusLabel(user.status)}</Badge></td>
+            <td><a className={styles.emailLink} href={`mailto:${user.email}`}>{user.email}</a></td>
+            <td>{displayRole(user)}</td>
+            <td><strong className={styles.department}>{formatBarangayName(user.department)}</strong></td>
+            <td>{accountActivity(user)}</td>
+            <td><span className={user.status === "active" ? styles.enabled : styles.disabled}>{statusLabel(user.status)}</span></td>
             <td>
               <div className={styles.rowActions}>
                 <button className={styles.actionPill} type="button" onClick={() => setPreviewUser(user)}>
-                  <span className={`${styles.actionIcon} ${styles.eyeIcon}`} aria-hidden="true" />
+                  <svg aria-hidden="true" width="22" height="22" viewBox="0 0 22 22" fill="none"><path opacity=".4" d="M19.48 8.39C17.36 5.06 14.26 3.14 11 3.14c-3.26 0-6.36 1.92-8.48 5.25-.92 1.44-.92 3.78 0 5.21 2.12 3.34 5.22 5.25 8.48 5.25 3.26 0 6.36-1.91 8.48-5.25.92-1.43.92-3.78 0-5.21ZM11 14.7A3.7 3.7 0 1 1 11 7.3a3.7 3.7 0 0 1 0 7.4Z" fill="currentColor"/><path d="M11 8.38A2.62 2.62 0 1 0 11 13.62 2.62 2.62 0 0 0 11 8.38Z" fill="currentColor"/></svg>
                   Preview
                 </button>
               </div>
@@ -384,12 +425,12 @@ export function AccountManagement() {
         ))}
         {isLoading ? (
           <tr>
-            <td colSpan={5}><LoadingState message="Loading account users..." /></td>
+            <td colSpan={6}><LoadingState message="Loading account users..." /></td>
           </tr>
         ) : null}
         {!isLoading && displayedUsers.length === 0 ? (
           <tr>
-            <td colSpan={5}>
+            <td colSpan={6}>
               <EmptyState
                 title={users.length === 0 ? "No accounts found" : "No accounts match your filters"}
                 description={users.length === 0 ? "System accounts will appear here once they are created." : "Try another name, email, role, department, or status filter."}
@@ -400,105 +441,101 @@ export function AccountManagement() {
           </tr>
         ) : null}
       </DataTable>
-      <SharedPagination pagination={paginatedUsers.pagination} onPageChange={setPage} label="Account users" />
+      <SharedPagination pagination={paginatedUsers.pagination} onPageChange={setPage} label="Account users" compact alwaysVisible />
 
-      <Modal isOpen={isFormOpen} onClose={() => setIsFormOpen(false)} labelledBy="account-form-title" className={styles.accountDialog}>
-        <header className={styles.modalHeader}>
+      <Modal isOpen={isFormOpen} onClose={() => setIsFormOpen(false)} labelledBy="account-form-title" className={`${styles.accountDialog} ${formMode === "edit" ? styles.editDialog : ""}`} backdropClassName={styles.accountBackdrop}>
+        <header className={`${styles.modalHeader} ${formMode === "edit" ? styles.editModalHeader : ""}`}>
           <div>
-            <h3 id="account-form-title">{formMode === "edit" ? "Edit Account" : "Add New Account"}</h3>
+            <h3 id="account-form-title">{formMode === "edit" ? "Edit Details" : "Add New Account"}</h3>
             <p>{formMode === "edit" ? "Update profile and access settings" : "Create a login-ready dashboard account"}</p>
           </div>
-          <button type="button" onClick={() => setIsFormOpen(false)} aria-label="Close account form">x</button>
+          {formMode === "add" ? <button type="button" onClick={() => setIsFormOpen(false)} aria-label="Close account form">x</button> : null}
         </header>
         <form className={styles.accountForm} onSubmit={submitAccount}>
           {formError ? <p className={styles.formError}>{formError}</p> : null}
-          <div className={styles.formGrid}>
-            <label>First Name<input value={form.first_name} onChange={(event) => updateForm("first_name", event.target.value)} /></label>
-            <label>Last Name<input value={form.last_name} onChange={(event) => updateForm("last_name", event.target.value)} /></label>
-            <label>Email<input type="email" value={form.email} onChange={(event) => updateForm("email", event.target.value)} /></label>
-            <label>Mobile Number<input
-              value={form.mobile_number}
-              onBlur={() => {
-                const normalized = normalizePhilippineMobile(form.mobile_number);
-                if (normalized) updateForm("mobile_number", normalized);
-              }}
-              onChange={(event) => updateForm("mobile_number", event.target.value)}
-              placeholder="e.g., +639123456789"
-            /></label>
-            {formMode === "add" ? <label>Password<input type="password" value={form.password} onChange={(event) => updateForm("password", event.target.value)} /></label> : null}
-            {formMode === "add" ? <label>Confirm Password<input type="password" value={form.confirm_password} onChange={(event) => updateForm("confirm_password", event.target.value)} /></label> : null}
-            <label>Role<select value={form.role_id} onChange={(event) => updateForm("role_id", event.target.value)}>
-              <option value="">Select role</option>
-              {roleOptions.map((role, index) => <option key={role} value={String(index + 1)}>{role}</option>)}
-            </select></label>
-            <label>Department / Barangay<select value={form.barangay_id} onChange={(event) => updateForm("barangay_id", event.target.value)}>
-              <option value="">No barangay</option>
-              {barangayOptions.map((barangay) => <option key={barangay.id} value={barangay.id}>{formatBarangayName(barangay.label)}</option>)}
-            </select></label>
-            <label>Sex<select value={form.sex} onChange={(event) => updateForm("sex", event.target.value)}>
-              <option value="">Not specified</option>
-              <option value="Male">Male</option>
-              <option value="Female">Female</option>
-            </select></label>
-            <label>Status<select value={form.status} onChange={(event) => updateForm("status", event.target.value as AccountStatus)}>
-              <option value="active">Active</option>
-              <option value="inactive">Inactive</option>
-              {formMode === "edit" ? <option value="blocked">Blocked</option> : null}
-            </select></label>
-            <label className={styles.wideField}>Address<input value={form.address} onChange={(event) => updateForm("address", event.target.value)} /></label>
+          <div className={`${styles.formGrid} ${formMode === "edit" ? styles.editFormGrid : ""}`}>
+            {formMode === "edit" ? (
+              <>
+                <label>Email<input type="email" value={form.email} onChange={(event) => updateForm("email", event.target.value)} /></label>
+                <label>Password<input type="password" value={form.password} placeholder="Enter a new password" onChange={(event) => updateForm("password", event.target.value)} /></label>
+                <label>Name<input value={`${form.first_name} ${form.last_name}`.trim()} onChange={(event) => {
+                  const parts = event.target.value.trimStart().split(/\s+/);
+                  updateForm("first_name", parts.shift() ?? "");
+                  updateForm("last_name", parts.join(" "));
+                }} /></label>
+                <label>Role<select value={form.role_id} onChange={(event) => updateForm("role_id", event.target.value)}>
+                  {roleOptions.map((role, index) => <option key={role} value={String(index + 1)}>{role}</option>)}
+                </select></label>
+                <label>Department<select value={form.barangay_id} onChange={(event) => updateForm("barangay_id", event.target.value)}>
+                  <option value="">{selectedUser?.department || "Department Admin"}</option>
+                  {barangayOptions.map((barangay) => <option key={barangay.id} value={barangay.id}>{formatBarangayName(barangay.label)}</option>)}
+                </select></label>
+              </>
+            ) : <>
+              <label>Email<input required type="email" placeholder="Email *" value={form.email} onChange={(event) => updateForm("email", event.target.value)} /></label>
+              <label>Password<input required type="password" placeholder="Password *" value={form.password} onChange={(event) => {
+                updateForm("password", event.target.value);
+                updateForm("confirm_password", event.target.value);
+              }} /></label>
+              <label>Name<input required placeholder="Name *" value={`${form.first_name} ${form.last_name}`.trim()} onChange={(event) => {
+                const parts = event.target.value.trimStart().split(/\s+/);
+                updateForm("first_name", parts.shift() ?? "");
+                updateForm("last_name", parts.join(" "));
+              }} /></label>
+              <label>Role<select required value={form.role_id} onChange={(event) => updateForm("role_id", event.target.value)}>
+                <option value="" disabled>Role</option>
+                <option value="1">Command Center Admin</option>
+                <option value="3">Social Worker Admin</option>
+                <option value="4">Barangay Admin</option>
+              </select></label>
+              <label>Department<select value={form.barangay_id} onChange={(event) => updateForm("barangay_id", event.target.value)}>
+                <option value="">Department Admin</option>
+                {barangayOptions.map((barangay) => <option key={barangay.id} value={barangay.id}>{formatBarangayName(barangay.label)}</option>)}
+              </select></label>
+              <label>Status<span className={styles.enabledControl}>Enabled</span></label>
+            </>}
           </div>
-          <footer className={styles.formActions}>
+          {formMode === "add" ? <div className={styles.accountNote}><strong>Note:</strong>&nbsp;The new user account will be created with &quot;Enabled&quot; status by default and will receive login credentials via email.</div> : null}
+          <footer className={`${styles.formActions} ${formMode === "add" ? styles.addFormActions : styles.editFormActions}`}>
             <Button tone="muted" onClick={() => setIsFormOpen(false)}>Cancel</Button>
-            <Button type="submit" disabled={isSubmitting}>{isSubmitting ? "Saving..." : formMode === "edit" ? "Save Changes" : "Create Account"}</Button>
+            <Button type="submit" disabled={isSubmitting}>{isSubmitting ? "Saving..." : formMode === "edit" ? "Save Changes" : "Add User"}</Button>
           </footer>
         </form>
       </Modal>
 
-      <Modal isOpen={Boolean(previewUser)} onClose={() => setPreviewUser(null)} labelledBy="account-preview-title" className={styles.accountDialog}>
+      <Modal isOpen={Boolean(previewUser)} onClose={() => setPreviewUser(null)} labelledBy="account-preview-title" className={`${styles.accountDialog} ${styles.previewDialog}`} backdropClassName={styles.accountBackdrop}>
         {previewUser ? (
           <>
             <header className={styles.modalHeader}>
               <div>
-                <h3 id="account-preview-title">{previewUser.full_name || previewUser.email}</h3>
+                <h3 id="account-preview-title">Admin Details</h3>
                 <p>Account details and access assignment</p>
               </div>
-              <button type="button" onClick={() => setPreviewUser(null)} aria-label="Close account preview">x</button>
+              <div className={styles.headerActions}>
+                <button className={styles.editAdminButton} type="button" onClick={() => openEditForm(previewUser)} aria-label="Edit admin">
+                  <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
+                </button>
+                <button className={styles.deleteAdminButton} type="button" onClick={() => setDeleteUser(previewUser)} aria-label="Delete admin">
+                  <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6h18"/><path d="M8 6V4h8v2"/><path d="m19 6-1 14H6L5 6"/><path d="M10 11v5M14 11v5"/></svg>
+                </button>
+              </div>
             </header>
             <dl className={styles.detailGrid}>
-              <Detail label="Full Name" value={previewUser.full_name || "Unnamed account"} />
               <Detail label="Email" value={previewUser.email} />
-              <Detail label="Mobile" value={previewUser.mobile_number} />
+              <Detail label="Password" value="•••••••••••••••••••••" />
+              <Detail label="Name" value={previewUser.full_name || "Unnamed account"} />
               <Detail label="Role" value={previewUser.role_label} />
-              <Detail label="Department / Barangay" value={previewUser.department} />
-              <Detail label="Address" value={previewUser.address || "-"} />
-              <Detail label="Sex" value={previewUser.sex || "-"} />
-              <Detail label="Status" value={statusLabel(previewUser.status)} />
-              <Detail label="Created At" value={formatDateTime(previewUser.created_at, "Not available")} />
-              <Detail label="Updated At" value={formatDateTime(previewUser.updated_at, "Not available")} />
-              <Detail label="Last Login" value={formatDateTime(previewUser.last_login_at)} />
-              <Detail label="Failed Login Attempts" value={String(previewUser.failed_login_attempts)} />
-              <Detail label="Locked Until" value={formatDateTime(previewUser.locked_until, "Not locked")} />
+              <Detail label="Department" value={previewUser.department} />
+              <Detail label="Date Created" value={formatDateTime(previewUser.created_at, "Not available")} />
             </dl>
             <div className={styles.previewActions}>
-              <Button size="sm" onClick={() => setPasswordUser(previewUser)}><span className={`${styles.buttonIcon} ${styles.keyIcon}`} aria-hidden="true" />Change Password</Button>
-              {previewUser.status === "active" ? (
-                <Button size="sm" tone="muted" onClick={() => updateStatus(previewUser, "inactive")} disabled={isSubmitting}><span className={`${styles.buttonIcon} ${styles.powerIcon}`} aria-hidden="true" />Disable Account</Button>
-              ) : null}
-              {previewUser.status === "inactive" ? (
-                <Button size="sm" tone="success" onClick={() => updateStatus(previewUser, "active")} disabled={isSubmitting}><span className={`${styles.buttonIcon} ${styles.checkIcon}`} aria-hidden="true" />Enable Account</Button>
-              ) : null}
-              {previewUser.status !== "blocked" ? (
-                <Button size="sm" tone="danger" onClick={() => updateStatus(previewUser, "blocked")} disabled={isSubmitting}><span className={`${styles.buttonIcon} ${styles.shieldIcon}`} aria-hidden="true" />Block Account</Button>
-              ) : (
-                <Button size="sm" tone="success" onClick={() => updateStatus(previewUser, "active")} disabled={isSubmitting}><span className={`${styles.buttonIcon} ${styles.checkIcon}`} aria-hidden="true" />Unblock Account</Button>
-              )}
-              <Button size="sm" tone="purple" onClick={() => openEditForm(previewUser)}><span className={`${styles.buttonIcon} ${styles.pencilButtonIcon}`} aria-hidden="true" />Edit Account</Button>
+              <Button onClick={() => setPreviewUser(null)}>Back</Button>
             </div>
           </>
         ) : null}
       </Modal>
 
-      <Modal isOpen={Boolean(passwordUser)} onClose={() => setPasswordUser(null)} labelledBy="password-title" className={styles.passwordDialog}>
+      <Modal isOpen={Boolean(passwordUser)} onClose={() => setPasswordUser(null)} labelledBy="password-title" className={styles.passwordDialog} backdropClassName={styles.accountBackdrop}>
         <header className={styles.modalHeader}>
           <div>
             <h3 id="password-title">Change Password</h3>
@@ -508,11 +545,25 @@ export function AccountManagement() {
         </header>
         <form className={styles.accountForm} onSubmit={changePassword}>
           <label>New Password<input type="password" value={newPassword} onChange={(event) => setNewPassword(event.target.value)} /></label>
-          <footer className={styles.formActions}>
+          <footer className={`${styles.formActions} ${styles.editFormActions}`}>
             <Button tone="muted" onClick={() => setPasswordUser(null)}>Cancel</Button>
             <Button type="submit" disabled={isSubmitting || !newPassword.trim()}>{isSubmitting ? "Saving..." : "Change Password"}</Button>
           </footer>
         </form>
+      </Modal>
+
+      <Modal isOpen={Boolean(deleteUser)} onClose={() => setDeleteUser(null)} labelledBy="delete-account-title" className={styles.deleteDialog} backdropClassName={styles.accountBackdrop}>
+        <div className={styles.deleteContent}>
+          <div className={styles.deleteHeading}>
+            <span className={styles.warningIcon} aria-hidden="true">!</span>
+            <div><h3 id="delete-account-title">Delete Account</h3><p>Are you sure you want to delete this account?</p></div>
+          </div>
+          <div className={styles.deleteWarning}>This action cannot be undone.</div>
+          <div className={styles.deleteActions}>
+            <button type="button" onClick={() => setDeleteUser(null)}>Cancel</button>
+            <button type="button" onClick={deleteAccount} disabled={isSubmitting}>{isSubmitting ? "Deleting..." : "Confirm"}</button>
+          </div>
+        </div>
       </Modal>
 
       <ActionResultModal
@@ -538,11 +589,24 @@ function Detail({ label, value }: { label: string; value: string }) {
   );
 }
 
+function accountActivity(user: AccountUserRow) {
+  if (user.last_login_at) return "Changed password";
+  if (user.updated_at && user.updated_at !== user.created_at) return "Changed email";
+  return "Added account";
+}
+
+function displayRole(user: AccountUserRow) {
+  if (user.role_label === "Barangay Official") return formatBarangayName(user.department);
+  if (user.role_label === "City Welfare") return "Social Worker Admin";
+  if (user.role_label === "Super Admin" || user.role_label === "NDRRMO Officer") return "Command Center Admin";
+  return user.role_label;
+}
+
 function validateAccountForm(form: AccountFormState, mode: AccountFormMode) {
   if (!isValidPersonName(form.first_name)) return "First name is required and can only contain letters, spaces, apostrophes, hyphens, and periods.";
   if (!isValidPersonName(form.last_name)) return "Last name is required and can only contain letters, spaces, apostrophes, hyphens, and periods.";
   if (!form.email.trim()) return "Email is required.";
-  if (!normalizePhilippineMobile(form.mobile_number)) return "Mobile number must be a valid Philippine mobile number like +639123456789.";
+  if (form.mobile_number && !normalizePhilippineMobile(form.mobile_number)) return "Mobile number must be a valid Philippine mobile number like +639123456789.";
   if (mode === "add" && form.status === "blocked") return "New accounts cannot be created as blocked.";
   if (mode === "add" && !form.password.trim()) return "Password is required.";
   if (mode === "add" && form.password !== form.confirm_password) return "Password and confirm password must match.";
@@ -615,8 +679,8 @@ function mapAccountUser(row: Record<string, unknown>): AccountUserRow {
 }
 
 function formatDepartment(row: Record<string, unknown>, roleLabel: string) {
-  const barangay = String(row.barangay_name ?? row.barangay ?? "").trim();
-  const department = String(row.department ?? "").trim();
+  const barangay = String(row.barangay_name ?? row.barangay ?? "").trim().replace(/catmon/gi, "Longos");
+  const department = String(row.department ?? "").trim().replace(/catmon/gi, "Longos");
   if (roleLabel === "Super Admin" || roleLabel === "NDRRMO Officer") return "NDRRMO";
   if (roleLabel === "City Welfare") return "City Welfare";
   if (roleLabel === "Barangay Official") return barangay || department || "Unassigned";
