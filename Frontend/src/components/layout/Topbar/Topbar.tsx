@@ -20,12 +20,14 @@ export function Topbar({ activePage, adminView, onNavigate, userProfile }: Topba
   const isCswddRelief = activePage === "relief" && effectiveRole === "cswdd";
   const isCdrrmoAccount = activePage === "logs" && /cdrrmo|command center|super admin/i.test(`${userProfile.roleLabel} ${userProfile.displayName}`);
   const isActionsOnly = activePage === "monitoring" || activePage === "notifications" || activePage === "emergencyNotifications" || isBarangayModuleLanding || isResidentPage || isBarangayRegistration || isSystemLogsPage || isCswddRelief || isCdrrmoAccount;
-  const copy = activePage === "systemLogs"
+  const copy = activePage === "dashboard" && effectiveRole === "cdrrmo"
+    ? { ...pageCopy[activePage], subtitle: "Monitor city-wide flood operations efficiently and effectively." }
+    : activePage === "systemLogs"
     ? { ...pageCopy[activePage], title: userProfile.logLabel }
     : pageCopy[activePage];
 
   return (
-    <header className={isActionsOnly ? styles.actionsOnly : styles.topbar}>
+    <header className={isActionsOnly ? styles.actionsOnly : `${styles.topbar} ${activePage === "dashboard" ? styles.dashboardTopbar : ""}`}>
       {isActionsOnly ? null : <div>
         <h2>{copy.title}</h2>
         {copy.subtitle ? <p>{copy.subtitle}</p> : null}
