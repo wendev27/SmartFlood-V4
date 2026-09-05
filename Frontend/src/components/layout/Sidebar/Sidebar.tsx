@@ -3,11 +3,42 @@
 import { navigationItems } from "@/data/navigation";
 import { cn } from "@/lib/cn";
 import type { NavItem, PageKey } from "@/types/navigation";
-import { NavLinkItem } from "@/components/navigation/NavLinkItem/NavLinkItem";
+import { NavLinkItem, SidebarIcon } from "@/components/navigation/NavLinkItem/NavLinkItem";
 import type { DashboardUserProfile } from "@/components/layout/AppShell/AppShell";
 import { clearStoredSession } from "@/lib/authSession";
 import { formatBarangayName } from "@/lib/formatters";
 import styles from "./Sidebar.module.css";
+
+const commandCenterAccess = [
+  {
+    label: "CSWDD",
+    seal: "/images/cswdd/cswdd-seal.png",
+    items: [
+      { key: "dashboard", label: "Home", icon: "home" },
+      { key: "monitoring", label: "Flood Monitoring Module", icon: "droplet" },
+      { key: "relief", label: "Relief Management", icon: "cube" },
+      { key: "residents", label: "Resident Information", icon: "users" },
+      { key: "systemLogs", label: "CSWDD System Logs", icon: "document" },
+    ] as NavItem[],
+  },
+  ...[
+    ["Barangay Longos", "/images/dashboard/barangay-longos-seal.png"],
+    ["Barangay Tañong", "/images/dashboard/barangay-tanong-seal.jpg"],
+    ["Barangay Potrero", "/images/dashboard/barangay-potrero-seal.png"],
+  ].map(([label, seal]) => ({
+    label,
+    seal,
+    items: [
+      { key: "dashboard", label: "Home", icon: "home" },
+      { key: "monitoring", label: "Flood Monitoring Module", icon: "droplet" },
+      { key: "emergencyNotifications", label: "Relief Management", icon: "cube" },
+      { key: "reliefDistribution", label: "Emergency Report Management", icon: "document" },
+      { key: "residents", label: "Registry of Barangay Inhabitants (RBI)", icon: "users" },
+      { key: "accounts", label: "Resident Account Registration Management", icon: "check" },
+      { key: "systemLogs", label: `${label} System Logs`, icon: "document" },
+    ] as NavItem[],
+  })),
+];
 
 interface SidebarProps {
   activePage: PageKey;
@@ -20,6 +51,8 @@ interface SidebarProps {
 
 export function Sidebar({ activePage, isOpen, items = navigationItems, userProfile, onNavigate, onToggleMobileNav }: SidebarProps) {
   const isCswdd = /cswdd|city welfare/i.test(`${userProfile.roleLabel} ${userProfile.displayName}`);
+  const isCdrrmo = /cdrrmo|command center|super admin/i.test(`${userProfile.roleLabel} ${userProfile.displayName}`);
+  const isBarangay = !isCswdd && !isCdrrmo;
   const barangayKey = String(userProfile.barangayName ?? "").toLowerCase().replace("ñ", "n");
   const barangaySeal = isCswdd
     ? "/images/cswdd/cswdd-seal.png"
@@ -70,18 +103,39 @@ export function Sidebar({ activePage, isOpen, items = navigationItems, userProfi
           {items.map((item) => (
             <NavLinkItem
               key={item.key}
-              item={item.key === "systemLogs" && !isCswdd ? { ...item, label: systemLogLabel } : item}
+              item={item.key === "systemLogs" && isBarangay ? { ...item, label: systemLogLabel } : item}
               isActive={item.key === activePage}
               onNavigate={onNavigate}
             />
           ))}
+          {isCdrrmo ? (
+            <div className={styles.accessGroups}>
+              {commandCenterAccess.map((group) => (
+                <details className={styles.accessGroup} key={group.label}>
+                  <summary>
+                    <img src={group.seal} alt="" />
+                    <span>{group.label}</span>
+                    <svg className={styles.chevron} viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="m5 7.5 5 5 5-5" /></svg>
+                  </summary>
+                  <div className={styles.accessItems}>
+                    {group.items.map((item) => (
+                      <button type="button" key={`${group.label}-${item.key}`} onClick={() => onNavigate(item.key)}>
+                        <span className={styles.accessIcon}><SidebarIcon item={item} /></span>
+                        <span>{item.label}</span>
+                      </button>
+                    ))}
+                  </div>
+                </details>
+              ))}
+            </div>
+          ) : null}
         </div>
         <div className={styles.profileCard}>
           {barangaySeal
             ? <img className={styles.profileSeal} src={barangaySeal} alt="" />
-            : <span className={styles.profileAvatar}>{userProfile.initials}</span>}
+            : <span className={styles.profileAvatar}>{isCdrrmo ? "CO" : userProfile.initials}</span>}
           <div>
-            <strong>{isCswdd ? "CSWDD Official" : formatBarangayName(userProfile.displayName || userProfile.roleLabel)}</strong>
+            <strong>{isCswdd ? "CSWDD Official" : isCdrrmo ? "CDRRMO Command Center" : formatBarangayName(userProfile.displayName || userProfile.roleLabel)}</strong>
             <small>Disaster Response</small>
           </div>
           <button type="button" onClick={logout} aria-label="Log out">

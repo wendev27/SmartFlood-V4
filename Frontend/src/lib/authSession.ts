@@ -112,23 +112,23 @@ export function profileForUser(user: StoredSessionUser, role: NormalizedRole): D
 }
 
 export function roleLabelForRole(role: NormalizedRole, user?: StoredSessionUser) {
-  if (role === "super") return "Super Admin";
+  if (role === "super") return "CDRRMO Command Center";
   if (role === "cdrrmo") return "CDRRMO Admin";
   if (role === "cswdd") return "CSWDD Admin";
   return user?.role_label || "Barangay Admin";
 }
 
 export function roleSubtitleForRole(role: NormalizedRole, user?: StoredSessionUser) {
-  if (role === "super") return "Full Access";
+  if (role === "super") return "Disaster Response";
   if (role === "cdrrmo") return "Disaster Response";
   if (role === "cswdd") return "City Welfare";
   return formatBarangayName(user?.barangay_name) || "Administrator";
 }
 
 export function logLabelForRole(role: NormalizedRole, user?: StoredSessionUser | null) {
-  if (role === "super") return "System Logs";
+  if (role === "super") return "CDRRMO Command Center System Logs";
   if (role === "cswdd") return "CSWDD System Logs";
-  if (role === "cdrrmo") return "CDRRMO System Logs";
+  if (role === "cdrrmo") return "CDRRMO Command Center System Logs";
 
   const barangay = formatBarangayName(user?.barangay_name ?? user?.barangay ?? user?.department ?? "").replace(/^Barangay\s+/i, "").trim();
   return barangay ? `Barangay ${barangay} System Logs` : "Barangay System Logs";

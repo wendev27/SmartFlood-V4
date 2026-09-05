@@ -22,8 +22,6 @@ export const navigationItems: NavItem[] = [
 ];
 
 export function navigationItemsForRole(role: DashboardRole): NavItem[] {
-  if (role === 'super') return navigationItems;
-
   const logsLabel =
     role === 'barangay'
       ? 'Barangay Logs'
@@ -45,12 +43,12 @@ export function navigationItemsForRole(role: DashboardRole): NavItem[] {
     ];
   }
 
-  if (role === 'cdrrmo') {
+  if (role === 'cdrrmo' || role === 'super') {
     return [
-      { key: 'dashboard', label: 'Dashboard', icon: 'home' },
+      { key: 'dashboard', label: 'Home', icon: 'home' },
       { key: 'monitoring', label: 'Flood Monitoring Module', icon: 'droplet' },
-      { key: 'sensors', label: 'Sensor History', icon: 'signal' },
-      { key: 'systemLogs', label: logsLabel, icon: 'document' },
+      { key: 'logs', label: 'Account Management', icon: 'check' },
+      { key: 'systemLogs', label: 'CDRRMO Command Center System Logs', icon: 'document' },
     ];
   }
 

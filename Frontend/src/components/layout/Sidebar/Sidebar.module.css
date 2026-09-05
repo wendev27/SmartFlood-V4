@@ -113,6 +113,65 @@
   z-index: 0;
 }
 
+.accessGroups {
+  border-top: 1px solid rgba(0, 136, 255, 0.1);
+  margin-top: 10px;
+  padding-top: 14px;
+}
+
+.accessGroup {
+  border: 1px solid transparent;
+  border-radius: 28px;
+  margin-bottom: 12px;
+  overflow: hidden;
+}
+
+.accessGroup[open] {
+  background: rgba(255, 255, 255, 0.42);
+  border-color: rgba(255, 255, 255, 0.7);
+  box-shadow: 0 6px 18px rgba(37, 99, 235, 0.08);
+}
+
+.accessGroup summary {
+  align-items: center;
+  cursor: pointer;
+  display: flex;
+  font-size: 14px;
+  font-weight: 600;
+  gap: 12px;
+  min-height: 56px;
+  padding: 8px 16px;
+}
+
+.accessGroup summary::-webkit-details-marker { display: none; }
+.accessGroup summary::marker { content: ""; }
+.accessGroup summary img { border-radius: 50%; flex: 0 0 36px; height: 36px; object-fit: cover; width: 36px; }
+.accessGroup summary span { flex: 1; line-height: 1.2; }
+.chevron { height: 18px; transition: transform 200ms ease; width: 18px; }
+.chevron path { stroke: #0088ff; stroke-linecap: round; stroke-linejoin: round; stroke-width: 2; }
+.accessGroup[open] .chevron { transform: rotate(180deg); }
+
+.accessItems { padding: 4px 12px 12px; }
+.accessItems button {
+  align-items: center;
+  background: transparent;
+  border: 0;
+  border-radius: 18px;
+  color: #303030;
+  display: flex;
+  font-size: 13px;
+  gap: 12px;
+  min-height: 56px;
+  padding: 8px 12px;
+  text-align: left;
+  width: 100%;
+}
+.accessItems button:hover { background: rgba(255, 255, 255, 0.65); color: #0088ff; }
+.accessIcon { display: grid; flex: 0 0 36px; height: 36px; place-items: center; }
+.accessIcon svg { fill: none; height: 21px; width: 21px; }
+.accessIcon svg path, .accessIcon svg circle { stroke: currentColor; stroke-linecap: round; stroke-linejoin: round; stroke-width: 1.5; }
+.accessIcon svg [stroke="none"] { stroke: none; }
+
 @media (prefers-reduced-motion: reduce) {
   .activeIndicator { transition: none; }
 }
