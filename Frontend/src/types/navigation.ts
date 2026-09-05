@@ -9,7 +9,8 @@ export type PageKey =
   | "reliefDistribution"
   | "sensors"
   | "residents"
-  | "accounts";
+  | "accounts"
+  | "notifications";
 
 export type DashboardRole = "super" | "barangay" | "cswdd" | "cdrrmo";
 

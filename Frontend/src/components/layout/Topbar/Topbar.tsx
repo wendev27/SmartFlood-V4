@@ -7,10 +7,11 @@ import styles from "./Topbar.module.css";
 interface TopbarProps {
   activePage: PageKey;
   adminView?: AdminViewContext | null;
+  onNavigate: (page: PageKey, adminView?: AdminViewContext) => void;
   userProfile: DashboardUserProfile;
 }
 
-export function Topbar({ activePage, adminView, userProfile }: TopbarProps) {
+export function Topbar({ activePage, adminView, onNavigate, userProfile }: TopbarProps) {
   const effectiveRole = adminView?.role ?? (/barangay/i.test(userProfile.roleLabel) ? "barangay" : /cswdd/i.test(userProfile.roleLabel) ? "cswdd" : "cdrrmo");
   const isBarangayModuleLanding = activePage === "reliefDistribution" && effectiveRole === "barangay";
   const isResidentPage = activePage === "residents";
@@ -18,7 +19,7 @@ export function Topbar({ activePage, adminView, userProfile }: TopbarProps) {
   const isSystemLogsPage = activePage === "systemLogs";
   const isCswddRelief = activePage === "relief" && effectiveRole === "cswdd";
   const isCdrrmoAccount = activePage === "logs" && /cdrrmo|command center|super admin/i.test(`${userProfile.roleLabel} ${userProfile.displayName}`);
-  const isActionsOnly = activePage === "monitoring" || activePage === "emergencyNotifications" || isBarangayModuleLanding || isResidentPage || isBarangayRegistration || isSystemLogsPage || isCswddRelief || isCdrrmoAccount;
+  const isActionsOnly = activePage === "monitoring" || activePage === "notifications" || activePage === "emergencyNotifications" || isBarangayModuleLanding || isResidentPage || isBarangayRegistration || isSystemLogsPage || isCswddRelief || isCdrrmoAccount;
   const copy = activePage === "systemLogs"
     ? { ...pageCopy[activePage], title: userProfile.logLabel }
     : pageCopy[activePage];
@@ -29,7 +30,7 @@ export function Topbar({ activePage, adminView, userProfile }: TopbarProps) {
         <h2>{copy.title}</h2>
         {copy.subtitle ? <p>{copy.subtitle}</p> : null}
       </div>}
-      <DashboardHeaderActions />
+      <DashboardHeaderActions onNavigate={() => onNavigate("notifications", adminView ?? undefined)} />
     </header>
   );
 }

@@ -45,4 +45,8 @@ export const pageCopy: Record<PageKey, PageCopy> = {
     title: "Resident Account Registration Management",
     subtitle: "",
   },
+  notifications: {
+    title: "Notification",
+    subtitle: "",
+  },
 };

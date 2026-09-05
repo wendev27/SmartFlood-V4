@@ -3,6 +3,7 @@
   display: flex;
   flex: 0 0 auto;
   gap: 10px;
+  position: relative;
 }
 
 .actionButton {
@@ -43,8 +44,35 @@
   left: 22px;
   position: absolute;
   top: 2px;
-  width: 10px;
+  min-width: 18px;
+  padding: 0 4px;
+  width: auto;
+  color: #fff;
+  font-size: 9px;
+  font-style: normal;
+  font-weight: 700;
+  line-height: 18px;
+  text-align: center;
 }
+
+.actionButton i span { display: inline; }
+
+.notificationPanel { background:#fff;border:1px solid #e5e7eb;border-radius:14px;box-shadow:0 16px 40px rgba(15,23,42,.18);overflow:hidden;position:absolute;right:0;top:52px;width:min(360px,calc(100vw - 32px));z-index:80 }
+.notificationPanel header { align-items:center;border-bottom:1px solid #eef2f7;display:flex;justify-content:space-between;padding:16px }
+.notificationPanel header strong { color:#1e1e1e;font-size:15px }
+.notificationPanel header span { color:#64748b;font-size:12px }
+.notificationList { max-height:320px;overflow-y:auto }
+.notificationList>button { align-items:center;background:#fff;border:0;border-bottom:1px solid #f1f5f9;display:flex;gap:12px;padding:14px 16px;text-align:left;width:100% }
+.notificationList>button:hover,.notificationList>button:focus-visible { background:#f8fbff;outline:0 }
+.notificationList>button>i { border-radius:50%;height:10px;min-width:10px;width:10px }
+.notificationList .severe { background:#ff3347 }
+.notificationList .warning { background:#ff7417 }
+.notificationList strong,.notificationList small { display:block }
+.notificationList strong { color:#1e1e1e;font-size:13px }
+.notificationList small { color:#64748b;font-size:12px;margin-top:3px }
+.empty { color:#64748b;font-size:13px;margin:0;padding:28px 16px;text-align:center }
+.viewAll { background:#f8fbff;border:0;color:#0088ff;font-size:12px;font-weight:700;padding:13px;width:100% }
+.viewAll:hover,.viewAll:focus-visible { background:#eaf4ff;outline:0 }
 
 @media (min-width: 900px) {
   .actions {
@@ -59,3 +87,5 @@
   .actionButton span { display: none; }
   .actionButton { padding: 0 10px; }
 }
+
+.actionButton i{background:#ff3830;border-radius:50%;height:10px;left:22px;min-width:0;padding:0;position:absolute;top:2px;width:10px}

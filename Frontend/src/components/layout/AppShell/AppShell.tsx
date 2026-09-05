@@ -57,7 +57,7 @@ export function AppShell({
         onToggleMobileNav={onToggleMobileNav}
       />
       <section className={styles.dashboard}>
-        {hideTopbar ? null : <Topbar activePage={activePage} adminView={adminView} userProfile={userProfile} />}
+        {hideTopbar ? null : <Topbar activePage={activePage} adminView={adminView} onNavigate={onNavigate} userProfile={userProfile} />}
         {children}
       </section>
     </main>

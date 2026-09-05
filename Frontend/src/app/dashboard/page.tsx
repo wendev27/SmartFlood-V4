@@ -15,6 +15,7 @@ import { EmergencyReportPanel } from "@/components/emergency/EmergencyReportPane
 import { SensorsPanel } from "@/components/sensors/SensorsPanel/SensorsPanel";
 import { ResidentsPanel } from "@/components/residents/ResidentsPanel/ResidentsPanel";
 import { VerificationPanel } from "@/components/verification/VerificationPanel/VerificationPanel";
+import { NotificationPanel } from "@/components/notifications/NotificationPanel/NotificationPanel";
 import { navigationItemsForRole } from "@/data/navigation";
 import { getCurrentUser, normalizeUserRole, profileForUser } from "@/lib/authSession";
 import type { DashboardRole, PageKey } from "@/types/navigation";
@@ -31,6 +32,7 @@ const pageKeys: PageKey[] = [
   "sensors",
   "residents",
   "accounts",
+  "notifications",
 ];
 
 function getPageFromHash(hash: string): PageKey {
@@ -55,7 +57,7 @@ export default function DashboardPage() {
   const allowedPages = useMemo(
     () => session && (session.role === "cdrrmo" || session.role === "super")
       ? pageKeys
-      : navigationItems.map((item) => item.key),
+      : [...navigationItems.map((item) => item.key), "notifications"],
     [navigationItems, session],
   );
 
@@ -142,6 +144,7 @@ export default function DashboardPage() {
         <ResidentsPanel title={adminView?.role === "cswdd" || session.role === "cswdd" ? "Resident Information" : undefined} />
       ) : null}
       {activePage === "accounts" ? <VerificationPanel /> : null}
+      {activePage === "notifications" ? <NotificationPanel onBack={() => handleNavigate("dashboard")} /> : null}
     </AppShell>
   );
 }
