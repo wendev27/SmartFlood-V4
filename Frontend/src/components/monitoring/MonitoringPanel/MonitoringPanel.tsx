@@ -1,6 +1,7 @@
 "use client";
 
 import dynamic from "next/dynamic";
+import { useQuery } from "@tanstack/react-query";
 import { useEffect, useMemo, useState } from "react";
 import { SmartFloodIcon, type SmartFloodIconName } from "@/components/icons/SmartFloodIcon";
 import type { DashboardUserProfile } from "@/components/layout/AppShell/AppShell";
@@ -11,10 +12,11 @@ import { LoadingState } from "@/components/ui/LoadingState";
 import { Modal } from "@/components/ui/Modal/Modal";
 import { Pagination as SharedPagination, type PaginationState } from "@/components/ui/Pagination/Pagination";
 import { formatBarangayName, normalizeBarangayForCompare } from "@/lib/formatters";
+import { queryKeys, queryStaleTime } from "@/lib/queryKeys";
 import { resolveSensorCoordinates } from "@/lib/sensorMapping";
-import { filterSensorsForUserScope } from "@/lib/sensorScope";
 import { getFloodStatusClass, getFloodStatusLabel } from "@/lib/statusStyles";
 import { getFloodMonitoringData, getSensorHistory, type FloodHistoryRow } from "@/services/floodService";
+import { getSensors } from "@/services/sensorsService";
 import styles from "./MonitoringPanel.module.css";
 
 const FloodHeatmapMap = dynamic(
@@ -523,7 +525,17 @@ function FloodHeatmap({ onBack, userProfile }: MonitoringSubpageProps) {
 }
 
 function AlertLevelManagement({ onBack, userProfile }: MonitoringSubpageProps) {
-  const visibleActivity = filterSensorsForUserScope(recentActivity, userProfile);
+  const sensorsQuery = useQuery({
+    queryKey: queryKeys.sensors.latest,
+    queryFn: getSensors,
+    staleTime: queryStaleTime.realTime,
+    refetchInterval: 5_000,
+    refetchIntervalInBackground: false,
+  });
+  const visibleActivity = useMemo(() => buildAlertActivity(sensorsQuery.data ?? []), [sensorsQuery.data]);
+  const activityError = sensorsQuery.error instanceof Error
+    ? sensorsQuery.error.message
+    : sensorsQuery.error ? "Unable to load recent alert activity." : "";
 
   return (
     <section className={styles.alertPage} aria-label="Alert level management">
@@ -533,7 +545,7 @@ function AlertLevelManagement({ onBack, userProfile }: MonitoringSubpageProps) {
             <span aria-hidden="true">←</span>
             Back
           </button>
-          <h2>Alert Level Management</h2>
+          <h2>Alert Level</h2>
         </div>
         <DashboardHeaderActions userProfile={userProfile} />
       </div>
@@ -541,7 +553,7 @@ function AlertLevelManagement({ onBack, userProfile }: MonitoringSubpageProps) {
       <article className={styles.configPanel}>
         <div className={styles.panelHeader}>
           <div>
-            <h3>Alert Level Configuration</h3>
+            <h3>Alert Level Configuration*</h3>
             <p>Manage flood alert thresholds and automated actions</p>
           </div>
         </div>
@@ -568,8 +580,20 @@ function AlertLevelManagement({ onBack, userProfile }: MonitoringSubpageProps) {
       <article className={styles.activityPanel}>
         <h3>Recent Alert Activity</h3>
         <div className={styles.activityList}>
+          {sensorsQuery.isPending ? <LoadingState message="Loading current alert activity..." /> : null}
+          {activityError ? (
+            <ErrorState
+              title="Unable to Load Alert Activity"
+              message={activityError}
+              retryLabel="Retry"
+              onRetry={() => sensorsQuery.refetch()}
+            />
+          ) : null}
+          {!sensorsQuery.isPending && !activityError && visibleActivity.length === 0 ? (
+            <EmptyState title="No active flood alerts" description="All available sensor readings are currently below the alert threshold." />
+          ) : null}
           {visibleActivity.map((activity) => (
-            <section className={`${styles.activityItem} ${styles[activity.tone]}`} key={activity.title}>
+            <section className={`${styles.activityItem} ${styles[activity.tone]}`} key={activity.key}>
               <span className={styles.activityIcon}>
                 <SmartFloodIcon name="alertLevel" size={20} />
               </span>
@@ -582,6 +606,10 @@ function AlertLevelManagement({ onBack, userProfile }: MonitoringSubpageProps) {
           ))}
         </div>
       </article>
+
+      <p className={styles.alertSource}>
+        According to PAGASA: <a href="https://www.pagasa.dost.gov.ph/" target="_blank" rel="noreferrer">https://www.pagasa.dost.gov.ph/</a>
+      </p>
     </section>
   );
 }
@@ -871,48 +899,48 @@ const monitoringModules: Array<{
 
 const alertLevels = [
   {
-    name: "Flood Alert",
-    range: "0.25m - 0.50m",
-    action: "Suggested Automated Action",
-    note: "Knee-deep, alert residents / monitor closely",
+    name: "Alert",
+    range: "0.25m - 0.74m",
+    action: "Automated Action",
+    note: "Alert residents and increase monitoring frequency",
     tone: "alert",
   },
   {
-    name: "Flood Warning",
-    range: "0.75m - 1.00m",
-    action: "Suggested Automated Action",
-    note: "Waist-deep, prepare evacuation",
+    name: "Alarm",
+    range: "0.75m - 1.19m",
+    action: "Automated Action",
+    note: "Prepare evacuation teams and affected households",
     tone: "warning",
   },
   {
-    name: "Severe",
-    range: "1.20m - 1.50m",
-    action: "Suggested Automated Action",
-    note: "Chest-deep, forced evacuation",
+    name: "Critical",
+    range: "1.20m and above",
+    action: "Automated Action",
+    note: "Initiate evacuation and emergency response protocols",
     tone: "critical",
   },
 ] as const;
 
-const recentActivity = [
-  {
-    title: "Severe Alert Detected",
-    meta: "SNS-001 reached Severe level at 1.35m.",
-    badge: "Severe",
-    tone: "critical",
-    barangayName: "Barangay Tañong",
-  },
-  {
-    title: "Flood Warning level at Barangay Potrero",
-    meta: "Water level: 0.90m · 15 minutes ago",
-    badge: "Flood Warning",
-    tone: "warning",
-    barangayName: "Barangay Potrero",
-  },
-  {
-    title: "Flood Alert level at Barangay Longos",
-    meta: "Water level: 0.35m · 1 hour ago",
-    badge: "Flood Alert",
-    tone: "alert",
-    barangayName: "Barangay Longos",
-  },
-] as const;
+function buildAlertActivity(sensors: Record<string, unknown>[]) {
+  return sensors.flatMap((sensor, index) => {
+    const rawLevel = sensor.waterLevelM ?? sensor.waterLevel ?? sensor.level;
+    const waterLevel = Number.parseFloat(String(rawLevel ?? ""));
+    const level = getFloodStatusClass(sensor.computedStatus ?? sensor.risk ?? sensor.status, rawLevel);
+    if (!Number.isFinite(waterLevel) || !["flood_alert", "flood_warning", "severity"].includes(level)) return [];
+
+    const badge = getFloodStatusLabel(level, waterLevel);
+    const sensorId = String(sensor.sensorId ?? sensor.sensor_id ?? sensor._id ?? sensor.name ?? `Sensor ${index + 1}`);
+    const barangay = formatBarangayName(String(sensor.barangayName ?? sensor.barangay ?? "Unknown barangay"));
+    const timestamp = String(sensor.lastReadingAt ?? sensor.updatedAt ?? sensor.timestamp ?? sensor.createdAt ?? "");
+    const tone = level === "severity" ? "critical" : level === "flood_warning" ? "warning" : "alert";
+
+    return [{
+      key: `${sensorId}-${timestamp || index}`,
+      title: `${badge} level at ${barangay}`,
+      meta: `${sensorId} recorded ${formatWaterLevel(waterLevel)}${timestamp ? ` · ${formatTimestamp(timestamp)}` : ""}`,
+      badge,
+      tone,
+      timestamp: timestamp ? new Date(timestamp).getTime() : 0,
+    }];
+  }).sort((a, b) => b.timestamp - a.timestamp);
+}
