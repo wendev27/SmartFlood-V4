@@ -119,7 +119,7 @@ const vulnerabilityCountFields = [
 ] as const;
 
 export function ResidentsPanel() {
-  const pageSize = 5;
+  const pageSize = 3;
   const queryClient = useQueryClient();
   const [currentUser] = useState(() => getCurrentUser());
   const canViewResidentInfo = canViewResidents(currentUser);
@@ -171,6 +171,8 @@ export function ResidentsPanel() {
   const familiesError = familiesQuery.error instanceof Error ? familiesQuery.error.message : familiesQuery.error ? "Unable to load family clusters." : "";
   const refreshResidents = () => residentsQuery.refetch();
   const refreshFamilies = () => familiesQuery.refetch();
+  const vulnerableSectorCount = useMemo(() => familyClusters.reduce((total, family) => total
+    + family.pwd + family.elderly + family.fourPs + family.lactating + family.pregnant + family.infant + family.toddler, 0), [familyClusters]);
 
   const displayedResidents = useMemo(
     () => residents.filter((resident) => matchesSearch(residentSearch, [
@@ -419,7 +421,14 @@ export function ResidentsPanel() {
   }
 
   return (
-    <section className={styles.panel} aria-label="Resident information">
+    <section className={cn(styles.panel, isBarangayOfficial && styles.barangayPanel)} aria-label="Resident information">
+      <button className={styles.backButton} type="button" onClick={() => { window.location.hash = "dashboard"; }}>← Back</button>
+      <h1 className={styles.pageTitle}>Registry of Barangay Inhabitants (RBI)</h1>
+      <section className={styles.summary} aria-label="RBI summary">
+        <SummaryCard label="Total Residents" value={residents.length} icon="residents" />
+        <SummaryCard label="Total Families" value={familyClusters.length} icon="families" />
+        <SummaryCard label="Vulnerable Sectors" value={vulnerableSectorCount} icon="vulnerable" />
+      </section>
       <div className={styles.scrollArea}>
         <article className={styles.card}>
           <h3>All Residents</h3>
@@ -456,7 +465,7 @@ export function ResidentsPanel() {
                     <th>Address</th>
                     <th>Barangay</th>
                     <th>Contact</th>
-                    <th>Actions</th>
+                    {!isBarangayOfficial ? <th>Actions</th> : null}
                   </tr>
                 </thead>
                 <tbody>
@@ -466,15 +475,13 @@ export function ResidentsPanel() {
                       className={cn(resident.selected && styles.selected)}
                     >
                       <td>{String((residentPage - 1) * pageSize + index + 1).padStart(3, "0")}</td>
-                      <td>
-                        <span className={styles.linkText}>{resident.name}</span>
-                      </td>
+                      <td>{isBarangayOfficial && canManageResidentRecords ? <button className={styles.linkButton} title={resident.name} type="button" onClick={() => openEditResident(resident)}>{resident.name}</button> : <span className={styles.linkText} title={resident.name}>{resident.name}</span>}</td>
                       <td>{resident.age}</td>
                       <td>{resident.sex}</td>
                       <td>{formatBarangayName(resident.address)}</td>
                       <td>{formatBarangayName(resident.barangay)}</td>
                       <td>{resident.contact}</td>
-                      <td>
+                      {!isBarangayOfficial ? <td>
                         {canManageResidentRecords && (!isBarangayOfficial || isSameBarangayForUser(currentUser, resident)) ? (
                           <button className={styles.editButton} type="button" onClick={() => openEditResident(resident)}>
                             <span aria-hidden="true">/</span>
@@ -483,17 +490,17 @@ export function ResidentsPanel() {
                         ) : (
                           <span className={styles.viewOnlyText}>View only</span>
                         )}
-                      </td>
+                      </td> : null}
                     </tr>
                   ))}
                   {isResidentsLoading ? (
                     <tr>
-                      <td colSpan={8}><LoadingState message="Loading residents..." /></td>
+                      <td colSpan={isBarangayOfficial ? 7 : 8}><LoadingState message="Loading residents..." /></td>
                     </tr>
                   ) : null}
                   {!isResidentsLoading && displayedResidents.length === 0 ? (
                     <tr>
-                      <td colSpan={8}>
+                      <td colSpan={isBarangayOfficial ? 7 : 8}>
                         <EmptyState
                           title={residents.length === 0 ? "No residents found" : "No residents match your search"}
                           description={residents.length === 0 ? "Resident records will appear here once they are created." : "Try another name, address, ID, age, sex, or contact number."}
@@ -506,9 +513,12 @@ export function ResidentsPanel() {
                 </tbody>
               </table>
             </div>
-            <SharedPagination pagination={paginatedResidents.pagination} onPageChange={setResidentPage} label="Residents" />
           </div>
         </article>
+
+        {paginatedResidents.pagination.totalPages > 1 ? <div className={styles.tablePagination}>
+          <SharedPagination compact pagination={paginatedResidents.pagination} onPageChange={setResidentPage} label="Residents" />
+        </div> : null}
 
         <article className={styles.card}>
           <h3>Family Cluster</h3>
@@ -519,7 +529,7 @@ export function ResidentsPanel() {
                 <span className={styles.searchIcon} aria-hidden="true" />
                 <input
                   type="search"
-                  placeholder="Search by family ID, name, head, or address..."
+                  placeholder="Search by name, ID, address, age, sex, or contact..."
                   value={familySearch}
                   onChange={(event) => setFamilySearch(event.target.value)}
                 />
@@ -547,9 +557,9 @@ export function ResidentsPanel() {
                 <tbody>
                   {paginatedFamilies.rows.map((cluster, index) => (
                     <tr key={cluster.family_id || `${cluster.familyName}-${index}`}>
-                      <td>{`FC-${String((familyPage - 1) * pageSize + index + 1).padStart(3, "0")}`}</td>
+                      <td>{isBarangayOfficial ? String((familyPage - 1) * pageSize + index + 1).padStart(3, "0") : `FC-${String((familyPage - 1) * pageSize + index + 1).padStart(3, "0")}`}</td>
                       <td>
-                        <button className={styles.linkButton} type="button" onClick={() => setSelectedFamily(cluster)}>
+                        <button className={styles.linkButton} title={cluster.familyName} type="button" onClick={() => setSelectedFamily(cluster)}>
                           {cluster.familyName}
                         </button>
                       </td>
@@ -580,9 +590,11 @@ export function ResidentsPanel() {
                 </tbody>
               </table>
             </div>
-            <SharedPagination pagination={paginatedFamilies.pagination} onPageChange={setFamilyPage} label="Family clusters" />
           </div>
         </article>
+        {paginatedFamilies.pagination.totalPages > 1 ? <div className={styles.tablePagination}>
+          <SharedPagination compact pagination={paginatedFamilies.pagination} onPageChange={setFamilyPage} label="Family clusters" />
+        </div> : null}
       </div>
       <Modal
         isOpen={canManageResidentRecords && isResidentModalOpen}
@@ -813,7 +825,7 @@ export function ResidentsPanel() {
                     <tbody>
                       {paginatedConnectedResidents.rows.map((resident, index) => (
                         <tr key={resident.resident_id || `${resident.first_name}-${resident.last_name}-${index}`}>
-                          <td>{resident.name}</td>
+                          <td><span className={styles.memberName} title={resident.name}>{resident.name}</span></td>
                           <td>{resident.age}</td>
                           <td>{resident.sex}</td>
                           <td>{resident.contact}</td>
@@ -852,6 +864,18 @@ export function ResidentsPanel() {
       />
     </section>
   );
+}
+
+function SummaryCard({ label, value, icon }: { label: string; value: number; icon: "residents" | "families" | "vulnerable" }) {
+  return <article><span className={styles.summaryIcon}>{icon === "families" ? <HeartIcon /> : <PeopleIcon grouped={icon === "vulnerable"} />}</span><div><h2>{label}</h2><p>{value.toLocaleString()}</p></div></article>;
+}
+
+function PeopleIcon({ grouped = false }: { grouped?: boolean }) {
+  return <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx={grouped ? "8" : "12"} cy="8" r="3"/><path d={grouped ? "M2.5 20c.4-4 2.2-6 5.5-6s5.1 2 5.5 6M16 7a3 3 0 0 1 0 6m-1 2c3.5 0 5.5 1.7 6 5" : "M5 21c.6-5 2.8-7 7-7s6.4 2 7 7"}/></svg>;
+}
+
+function HeartIcon() {
+  return <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1.1-1.1a5.5 5.5 0 0 0-7.8 7.8l1.1 1.1L12 21l7.8-7.5 1.1-1.1a5.5 5.5 0 0 0-.1-7.8Z"/></svg>;
 }
 
 function mapResident(row: Record<string, unknown>): ResidentRow {
