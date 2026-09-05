@@ -594,7 +594,7 @@ export function ReliefPanel({ mode = "all" }: { mode?: "all" | "recommendation" 
           <div className={styles.panelHeader}>
             <div>
               <h3>AI Allocation Suggestions</h3>
-              <p>{currentEmergencyAllocation ? "Review the persisted emergency allocation workflow." : generatedPlans.length > 0 ? "Choose how SmartFlood should prioritize relief allocation." : "Generate AI allocation plans from current flood data and available inventory."}</p>
+              <p>{hasActiveCampaign ? "Review the persisted emergency allocation workflow." : generatedPlans.length > 0 ? "Choose how SmartFlood should prioritize relief allocation." : "Generate AI allocation plans from current flood data and available inventory."}</p>
             </div>
             {generatedPlans.length === 0 && mode !== "recommendation" ? <div className={styles.actions}>
               <Button className={styles.actionButton} onClick={openGenerationWorkflow} disabled={isGenerating || isCheckingActiveAllocation}>
@@ -609,7 +609,7 @@ export function ReliefPanel({ mode = "all" }: { mode?: "all" | "recommendation" 
           {isCheckingActiveAllocation ? <p className={styles.stateMessage}>Checking current allocation...</p> : null}
           {isGenerating ? <p className={styles.stateMessage}>{newAllocationStep === "closing" ? "Ending current allocation..." : "Generating AI allocation plans..."}</p> : null}
 
-          {!isLoading && !isGenerating && currentEmergencyAllocation ? (
+          {!isLoading && !isGenerating && currentEmergencyAllocation && hasActiveCampaign ? (
             <section className={styles.activeAllocation} aria-label="Active emergency allocation">
               <div className={styles.activeAllocationHeader}>
                 <div>
@@ -780,11 +780,27 @@ export function ReliefPanel({ mode = "all" }: { mode?: "all" | "recommendation" 
             </>
           ) : null}
 
-          {!isLoading && !isGenerating && generatedPlans.length === 0 && !currentEmergencyAllocation ? (
-              <EmptyState
-                title="No allocation plans generated yet"
-                description="Generate a recommendation once flood data is available, then choose a strategy to review barangay allocations."
-              />
+          {!isLoading && !isGenerating && generatedPlans.length === 0 && !hasActiveCampaign ? (
+            <section className={styles.noStrategyPage} aria-label="No ongoing relief strategy">
+              <div className={styles.noStrategyIcon} aria-hidden="true">
+                <img src="/images/cswdd/relief-recommendation.svg" alt="" />
+              </div>
+              <span>No ongoing strategy</span>
+              <h2>Create an AI-Optimized Relief Strategy</h2>
+              <p>
+                Enter the relief inventory currently available to CSWDD. SmartFlood will analyze flood severity and affected populations,
+                then generate strategies for barangay allocation.
+              </p>
+              <button type="button" onClick={openGenerationWorkflow} disabled={isCheckingActiveAllocation}>
+                <img src="/images/cswdd/input-relief.svg" alt="" />
+                {isCheckingActiveAllocation ? "Checking allocation..." : "Input Available Relief"}
+              </button>
+              <div className={styles.noStrategySteps}>
+                <div><strong>1</strong><span>Enter available relief inventory</span></div>
+                <div><strong>2</strong><span>Review generated strategies</span></div>
+                <div><strong>3</strong><span>Accept and notify barangays</span></div>
+              </div>
+            </section>
           ) : null}
         </div> : null}
 
