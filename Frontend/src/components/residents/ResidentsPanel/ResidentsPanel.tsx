@@ -119,12 +119,14 @@ const vulnerabilityCountFields = [
 ] as const;
 
 export function ResidentsPanel({ title = "Registry of Barangay Inhabitants (RBI)" }: { title?: string }) {
-  const pageSize = 3;
+  const pageSize = 5;
   const queryClient = useQueryClient();
   const [currentUser] = useState(() => getCurrentUser());
   const canViewResidentInfo = canViewResidents(currentUser);
-  const canManageResidentRecords = canManageResidents(currentUser);
+  // Resident Information / RBI is intentionally read-only for every dashboard role.
+  const canManageResidentRecords = false;
   const isBarangayOfficial = isBarangayUser(currentUser);
+  const showResidentActions = canManageResidentRecords && !isBarangayOfficial;
   const assignedBarangay = assignedBarangayForUser(currentUser);
   const [residentSearch, setResidentSearch] = useState("");
   const [familySearch, setFamilySearch] = useState("");
@@ -455,7 +457,7 @@ export function ResidentsPanel({ title = "Registry of Barangay Inhabitants (RBI)
             ) : null}
 
             <div className={styles.wrap}>
-              <table className={styles.table}>
+              <table className={cn(styles.table, styles.residentTable)}>
                 <thead>
                   <tr>
                     <th>ID</th>
@@ -465,7 +467,7 @@ export function ResidentsPanel({ title = "Registry of Barangay Inhabitants (RBI)
                     <th>Address</th>
                     <th>Barangay</th>
                     <th>Contact</th>
-                    {!isBarangayOfficial ? <th>Actions</th> : null}
+                    {showResidentActions ? <th>Actions</th> : null}
                   </tr>
                 </thead>
                 <tbody>
@@ -481,7 +483,7 @@ export function ResidentsPanel({ title = "Registry of Barangay Inhabitants (RBI)
                       <td>{formatBarangayName(resident.address)}</td>
                       <td>{formatBarangayName(resident.barangay)}</td>
                       <td>{resident.contact}</td>
-                      {!isBarangayOfficial ? <td>
+                      {showResidentActions ? <td>
                         {canManageResidentRecords && (!isBarangayOfficial || isSameBarangayForUser(currentUser, resident)) ? (
                           <button className={styles.editButton} type="button" onClick={() => openEditResident(resident)}>
                             <span aria-hidden="true">/</span>
@@ -495,12 +497,12 @@ export function ResidentsPanel({ title = "Registry of Barangay Inhabitants (RBI)
                   ))}
                   {isResidentsLoading ? (
                     <tr>
-                      <td colSpan={isBarangayOfficial ? 7 : 8}><LoadingState message="Loading residents..." /></td>
+                      <td colSpan={showResidentActions ? 8 : 7}><LoadingState message="Loading residents..." /></td>
                     </tr>
                   ) : null}
                   {!isResidentsLoading && displayedResidents.length === 0 ? (
                     <tr>
-                      <td colSpan={isBarangayOfficial ? 7 : 8}>
+                      <td colSpan={showResidentActions ? 8 : 7}>
                         <EmptyState
                           title={residents.length === 0 ? "No residents found" : "No residents match your search"}
                           description={residents.length === 0 ? "Resident records will appear here once they are created." : "Try another name, address, ID, age, sex, or contact number."}
@@ -540,7 +542,7 @@ export function ResidentsPanel({ title = "Registry of Barangay Inhabitants (RBI)
             ) : null}
 
             <div className={styles.wrap}>
-              <table className={styles.table}>
+              <table className={cn(styles.table, styles.familyTable)}>
                 <thead>
                   <tr>
                     <th>ID</th>

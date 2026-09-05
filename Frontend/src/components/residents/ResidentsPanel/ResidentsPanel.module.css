@@ -832,3 +832,59 @@
 }
 
 .panel.panel { margin-left: 0; margin-right: 0; max-width: none; width: 100%; }
+
+/* Resident Information table geometry from the web-app reference. */
+.barangayPanel .card { border-radius: 16px; height: 489px; min-height: 489px; }
+.barangayPanel .card > h3 { flex-basis: 70px; height: 70px; padding: 0 22px; }
+.barangayPanel .cardBody { flex-basis: 419px; height: 419px; padding: 23px 14px 0; }
+.barangayPanel .toolbar { margin-bottom: 21px; }
+.barangayPanel .compactToolbar { max-width: none; width: 100%; }
+.barangayPanel .compactToolbar .searchField { max-width: none; width: 100%; }
+.barangayPanel .table { min-width: 900px; width: 100%; }
+.barangayPanel .table:has(thead th:nth-child(8)) { min-width: 1040px; }
+.barangayPanel .table th,.barangayPanel .table td { height: 53px; padding-left: 14px; padding-right: 14px; }
+.barangayPanel .table th { height: 43px; }
+
+.barangayPanel .residentTable th:nth-child(1) { width: 7%; }
+.barangayPanel .residentTable th:nth-child(2) { width: 21%; }
+.barangayPanel .residentTable th:nth-child(3) { width: 10%; }
+.barangayPanel .residentTable th:nth-child(4) { width: 15%; }
+.barangayPanel .residentTable th:nth-child(5) { width: 22%; }
+.barangayPanel .residentTable th:nth-child(6) { width: 15%; }
+.barangayPanel .residentTable th:nth-child(7) { width: 10%; }
+
+.barangayPanel .familyTable th:nth-child(1) { width: 7%; }
+.barangayPanel .familyTable th:nth-child(2) { width: 21%; }
+.barangayPanel .familyTable th:nth-child(3) { width: 22%; }
+.barangayPanel .familyTable th:nth-child(n+4) { width: 8.333%; }
+
+.barangayPanel .searchField {
+  align-items: center;
+  box-sizing: border-box;
+  gap: 11px;
+  height: 43px;
+  min-height: 43px;
+  padding: 0 13px;
+}
+
+.barangayPanel .searchField input {
+  background: transparent;
+  height: 100%;
+  line-height: 43px;
+  padding: 0;
+}
+
+.barangayPanel .searchIcon {
+  border-color: #9ca3af;
+  flex: 0 0 14px;
+  height: 14px;
+  margin-left: 0;
+  width: 14px;
+}
+
+.barangayPanel .searchIcon::after { background: #9ca3af; }
+
+@media (max-width: 520px) {
+  .barangayPanel .compactToolbar,
+  .barangayPanel .compactToolbar .searchField { max-width: none; width: 100%; }
+}
