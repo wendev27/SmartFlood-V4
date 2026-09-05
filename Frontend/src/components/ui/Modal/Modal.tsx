@@ -13,10 +13,11 @@ interface ModalProps {
   labelledBy: string;
   children: ReactNode;
   className?: string;
+  backdropClassName?: string;
   size?: "sm" | "md" | "lg" | "xl";
 }
 
-export function Modal({ isOpen, onClose, labelledBy, children, className, size = "lg" }: ModalProps) {
+export function Modal({ isOpen, onClose, labelledBy, children, className, backdropClassName, size = "lg" }: ModalProps) {
   const [isMounted, setIsMounted] = useState(false);
 
   useEffect(() => {
@@ -43,7 +44,7 @@ export function Modal({ isOpen, onClose, labelledBy, children, className, size =
 
   return createPortal(
     <div
-      className={styles.backdrop}
+      className={cn(styles.backdrop, backdropClassName)}
       aria-hidden={!isOpen}
       onClick={(event) => {
         if (event.target === event.currentTarget) {

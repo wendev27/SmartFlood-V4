@@ -147,6 +147,60 @@
   color: #1d4ed8;
 }
 
+.cswddBackdrop {
+  background:rgba(255,255,255,.52);
+  backdrop-filter:blur(11px);
+}
+
+.cswddDialog {
+  --modal-width:520px;
+  border:1px solid rgba(255,255,255,.7);
+  border-radius:26px;
+  box-shadow:0 6px 18px rgba(37,99,235,.12);
+}
+
+.cswddCard {
+  background:#fff;
+  color:#1e1e1e;
+  min-height:0;
+  padding:48px 42px 36px;
+}
+
+.cswddCard .iconWrap { display:none; }
+.cswddCard h2,.cswddCard.success h2,.cswddCard.error h2,.cswddCard.warning h2,.cswddCard.info h2 {
+  color:#1e1e1e;
+  font-size:26px;
+  font-weight:700;
+  line-height:normal;
+  margin:0;
+}
+.cswddCard .description {
+  color:#1e1e1e;
+  font-size:17px;
+  line-height:normal;
+  margin-top:20px;
+  max-width:420px;
+}
+.cswddCard .details {
+  background:transparent;
+  border:0;
+  color:#1e1e1e;
+  font-size:14px;
+  font-weight:400;
+  line-height:1.45;
+  margin-top:18px;
+  padding:0;
+}
+.cswddCard .actions { margin-top:28px; }
+.cswddCard .primaryButton {
+  border:0;
+  border-radius:16px;
+  box-shadow:0 10px 7.5px rgba(0,0,0,.1),0 4px 3px rgba(0,0,0,.1);
+  font-size:16px;
+  font-weight:600;
+  height:48px;
+}
+
 @media (max-width: 520px) {
   .card {
     min-height: 300px;

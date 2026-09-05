@@ -73,6 +73,7 @@ export function ReliefPanel({ mode = "all" }: { mode?: "all" | "recommendation" 
   const pageSize = 5;
   const queryClient = useQueryClient();
   const [generationInventory, setGenerationInventory] = useState<Record<GenerationInventoryField, string>>(generationInventoryDefaults);
+  const [generationBarangay, setGenerationBarangay] = useState("Barangay Tañong");
   const [isGenerationOpen, setIsGenerationOpen] = useState(false);
   const [selectedReport, setSelectedReport] = useState<ReliefRecommendation | null>(null);
   const [generatedPlans, setGeneratedPlans] = useState<ReliefAllocationPlan[]>([]);
@@ -562,14 +563,23 @@ export function ReliefPanel({ mode = "all" }: { mode?: "all" | "recommendation" 
 
   return (
     <>
-      <section className={styles.stack} aria-label="AI relief recommendations">
+      {mode === "recommendation" ? (
+        <div className={styles.recommendationPageHeader}>
+          <h1>AI-Optimized Relief Recommendation</h1>
+          <button type="button" onClick={openGenerationWorkflow} disabled={isGenerating || isCheckingActiveAllocation}>
+            <img src="/images/cswdd/input-relief.svg" alt="" />
+            Input Available Relief
+          </button>
+        </div>
+      ) : null}
+      <section className={`${styles.stack} ${mode === "recommendation" ? styles.recommendationMode : ""}`} aria-label="AI relief recommendations">
         {mode !== "history" ? <div className={`${styles.panel} ${styles.historyPanel}`}>
           <div className={styles.panelHeader}>
             <div>
               <h3>AI Allocation Suggestions</h3>
               <p>{currentEmergencyAllocation ? "Review the persisted emergency allocation workflow." : generatedPlans.length > 0 ? "Choose how SmartFlood should prioritize relief allocation." : "Generate AI allocation plans from current flood data and available inventory."}</p>
             </div>
-            {generatedPlans.length === 0 ? <div className={styles.actions}>
+            {generatedPlans.length === 0 && mode !== "recommendation" ? <div className={styles.actions}>
               <Button className={styles.actionButton} onClick={openGenerationWorkflow} disabled={isGenerating || isCheckingActiveAllocation}>
                 {isGenerating ? "Generating..." : isCheckingActiveAllocation ? "Checking..." : hasActiveCampaign ? "Generate New Recommendation" : "Generate Recommendation"}
               </Button>
@@ -675,8 +685,8 @@ export function ReliefPanel({ mode = "all" }: { mode?: "all" | "recommendation" 
                 <>
                   <div className={styles.selectedStrategyHeader}>
                     <div>
-                      <span>Selected Strategy</span>
                       <h4>{selectedPlan.plan_name}</h4>
+                      <span>Selected strategy</span>
                     </div>
                     <div className={styles.strategyTabs} aria-label="Switch allocation strategy">
                       {generatedPlans.map((plan) => (
@@ -846,39 +856,59 @@ export function ReliefPanel({ mode = "all" }: { mode?: "all" | "recommendation" 
       </section>
 
       <Modal
-        className={styles.inventoryDialog}
+        className={`${styles.inventoryDialog} ${mode === "recommendation" ? styles.cswddInventoryDialog : ""}`}
+        backdropClassName={mode === "recommendation" ? styles.cswddBackdrop : undefined}
         isOpen={isGenerationOpen}
         labelledBy="generate-relief-title"
         onClose={closeGenerationModal}
       >
         <header className={styles.modalHeader}>
           <div>
-            <h3 id="generate-relief-title">Generate Relief Recommendation</h3>
-            <p>Input current available relief inventory to calculate recommended allocation.</p>
+            <h3 id="generate-relief-title">{mode === "recommendation" ? "Input Available Relief" : "Generate Relief Recommendation"}</h3>
+            {mode === "recommendation" ? null : <p>Input current available relief inventory to calculate recommended allocation.</p>}
           </div>
           <button className={styles.closeButtonLight} type="button" onClick={closeGenerationModal} aria-label="Close">
-            x
+            {mode === "recommendation" ? <img src="/images/cswdd/close-square.svg" alt="" /> : "x"}
           </button>
         </header>
         <div className={styles.inventoryBody}>
+          {mode === "recommendation" ? (
+            <>
+              <label className={styles.inventoryBarangay}>
+                <span>Select Barangay</span>
+                <span className={styles.inventorySelectWrap}>
+                  <select value={generationBarangay} onChange={(event) => setGenerationBarangay(event.target.value)}>
+                    <option>Barangay Tañong</option>
+                    <option>Barangay Catmon</option>
+                    <option>Barangay Potrero</option>
+                  </select>
+                  <img src="/images/cswdd/arrow-down.svg" alt="" />
+                </span>
+              </label>
+              <p className={styles.inventoryStockTitle}>Available Relief Stock</p>
+            </>
+          ) : null}
           <div className={styles.inventoryList}>
             <GenerationQuantityField
               label="Family Food Packs"
-              unit="packs"
+              unit={mode === "recommendation" ? "Packs" : "packs"}
+              icon="/images/cswdd/food-pack.svg"
               value={generationInventory.family_food_packs}
               onBlur={() => normalizeGenerationQuantity("family_food_packs")}
               onChange={(value) => updateGenerationQuantity("family_food_packs", value)}
             />
             <GenerationQuantityField
               label="Medicine Kits"
-              unit="kits"
+              unit={mode === "recommendation" ? "Kits" : "kits"}
+              icon="/images/cswdd/medicine-kit.svg"
               value={generationInventory.medicine_kits}
               onBlur={() => normalizeGenerationQuantity("medicine_kits")}
               onChange={(value) => updateGenerationQuantity("medicine_kits", value)}
             />
             <GenerationQuantityField
               label="Relief Goods for Individual"
-              unit="pcs"
+              unit={mode === "recommendation" ? "Pcs" : "pcs"}
+              icon="/images/cswdd/relief-goods.svg"
               value={generationInventory.relief_goods_individual}
               onBlur={() => normalizeGenerationQuantity("relief_goods_individual")}
               onChange={(value) => updateGenerationQuantity("relief_goods_individual", value)}
@@ -896,14 +926,15 @@ export function ReliefPanel({ mode = "all" }: { mode?: "all" | "recommendation" 
       </Modal>
 
       <Modal
-        className={styles.confirmDialog}
+        className={`${styles.confirmDialog} ${mode === "recommendation" ? styles.cswddConfirmDialog : ""}`}
+        backdropClassName={mode === "recommendation" ? styles.cswddBackdrop : undefined}
         isOpen={isNewAllocationConfirmOpen}
         labelledBy="new-relief-allocation-title"
         onClose={cancelNewAllocation}
       >
         <header className={styles.modalHeader}>
           <div>
-            <h3 id="new-relief-allocation-title">Start New Relief Allocation?</h3>
+            <h3 id="new-relief-allocation-title">{mode === "recommendation" ? "End Current Relief Allocation?" : "Start New Relief Allocation?"}</h3>
             <p>A relief allocation is currently active.</p>
           </div>
           <button
@@ -913,35 +944,40 @@ export function ReliefPanel({ mode = "all" }: { mode?: "all" | "recommendation" 
             disabled={newAllocationStep !== "idle"}
             aria-label="Close"
           >
-            x
+            {mode === "recommendation" ? <img src="/images/cswdd/close-square.svg" alt="" /> : "x"}
           </button>
         </header>
         <div className={styles.confirmBody}>
           <div className={styles.currentCampaignSummary}>
             <div>
-              <span>Current Strategy</span>
+              <span>{mode === "recommendation" ? "Current strategy" : "Current Strategy"}</span>
               <strong>{currentEmergencyAllocation?.plan_name ?? "Active allocation"}</strong>
             </div>
             <div>
-              <span>Current Status</span>
+              <span>{mode === "recommendation" ? "Current status" : "Current Status"}</span>
               <strong>{formatWorkflowStatus(currentEmergencyAllocation?.status ?? "")}</strong>
             </div>
           </div>
-          <p>
-            Starting a new relief allocation will close the current relief campaign according to the existing workflow and begin a new AI recommendation cycle.
-            Existing distribution records, barangay allocations, notifications, historical records, and audit logs will not be deleted.
-          </p>
-          <p>
-            The new AI recommendation will remain a draft strategy selection. You must still choose and accept Severity First,
-            Vulnerability First, or Balanced before barangays can be notified.
-          </p>
+          {mode === "recommendation" ? <>
+            <p>Ending the current relief allocation will close the active campaign. Existing distribution records, barangay allocations, notifications, historical records, and audit logs will not be deleted.</p>
+            <p>After ending it, enter the available relief inventory before SmartFlood generates new allocation plans.</p>
+          </> : <>
+            <p>
+              Starting a new relief allocation will close the current relief campaign according to the existing workflow and begin a new AI recommendation cycle.
+              Existing distribution records, barangay allocations, notifications, historical records, and audit logs will not be deleted.
+            </p>
+            <p>
+              The new AI recommendation will remain a draft strategy selection. You must still choose and accept Severity First,
+              Vulnerability First, or Balanced before barangays can be notified.
+            </p>
+          </>}
           {newAllocationStep !== "idle" ? (
             <p className={styles.stateMessage}>
               {newAllocationStep === "closing" ? "Ending current allocation..." : "Generating new recommendation..."}
             </p>
           ) : null}
           <div className={styles.modalFooter}>
-            <Button className={styles.footerButton} tone="muted" onClick={cancelNewAllocation} disabled={newAllocationStep !== "idle"}>
+            <Button className={styles.footerButton} tone={mode === "recommendation" ? "primary" : "muted"} onClick={cancelNewAllocation} disabled={newAllocationStep !== "idle"}>
               Cancel
             </Button>
             <Button className={styles.footerButton} onClick={confirmNewAllocationAction} disabled={newAllocationStep !== "idle" || isGenerating}>
@@ -949,16 +985,19 @@ export function ReliefPanel({ mode = "all" }: { mode?: "all" | "recommendation" 
                 ? "Ending Allocation..."
                 : newAllocationStep === "generating"
                   ? "Generating..."
-                  : pendingGenerationPayload
-                    ? "End Current Allocation & Generate New"
-                    : "Continue to Inventory"}
+                  : mode === "recommendation"
+                    ? "End Current Allocation"
+                    : pendingGenerationPayload
+                      ? "End Current Allocation & Generate New"
+                      : "Continue to Inventory"}
             </Button>
           </div>
         </div>
       </Modal>
 
       <Modal
-        className={styles.reportDialog}
+        className={`${styles.reportDialog} ${mode === "recommendation" ? styles.cswddReportDialog : ""}`}
+        backdropClassName={mode === "recommendation" ? styles.cswddBackdrop : undefined}
         isOpen={Boolean(selectedReport)}
         labelledBy="barangay-report-title"
         onClose={() => setSelectedReport(null)}
@@ -971,7 +1010,7 @@ export function ReliefPanel({ mode = "all" }: { mode?: "all" | "recommendation" 
                 <p>{selectedReport.selectedPlanName ? `${selectedReport.selectedPlanName} strategy analysis` : "Comprehensive allocation analysis"}</p>
               </div>
               <button className={styles.closeButtonDark} type="button" onClick={() => setSelectedReport(null)} aria-label="Close">
-                x
+                {mode === "recommendation" ? <img src="/images/cswdd/close-square.svg" alt="" /> : "x"}
               </button>
             </header>
             <div className={styles.reportBody}>
@@ -1050,6 +1089,7 @@ export function ReliefPanel({ mode = "all" }: { mode?: "all" | "recommendation" 
         primaryLabel="OK"
         onPrimary={() => setResultModal((current) => ({ ...current, open: false }))}
         onClose={() => setResultModal((current) => ({ ...current, open: false }))}
+        variant={mode === "recommendation" ? "cswdd" : "default"}
       />
     </>
   );
@@ -1071,18 +1111,21 @@ function isActiveCampaignStatus(status: string | null | undefined) {
 function GenerationQuantityField({
   label,
   unit,
+  icon,
   value,
   onBlur,
   onChange,
 }: {
   label: string;
   unit: string;
+  icon?: string;
   value: string;
   onBlur: () => void;
   onChange: (value: string) => void;
 }) {
   return (
     <div className={styles.inventoryItem}>
+      {icon ? <span className={styles.inventoryIcon}><img src={icon} alt="" /></span> : null}
       <div>
         <strong>{label}</strong>
         <span>Unit: {unit}</span>

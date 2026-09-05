@@ -39,7 +39,7 @@ export function CswddReliefPanel({ onViewChange }: { onViewChange?: (isSubpage: 
   return (
     <section className={styles.subpage} aria-label={title}>
       <button className={styles.backButton} type="button" onClick={() => setView("main")}>← Back</button>
-      <h1>{title}</h1>
+      {view === "recommendation" ? null : <h1>{title}</h1>}
       <div className={styles.content}>
         {view === "recommendation" ? <ReliefPanel mode="recommendation" /> : null}
         {view === "history" ? <ReliefPanel mode="history" /> : null}
