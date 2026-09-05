@@ -932,7 +932,7 @@ export function ReliefPanel({ mode = "all" }: { mode?: "all" | "recommendation" 
                 <span className={styles.inventorySelectWrap}>
                   <select value={generationBarangay} onChange={(event) => setGenerationBarangay(event.target.value)}>
                     <option>Barangay Tañong</option>
-                    <option>Barangay Catmon</option>
+                    <option>Barangay Longos</option>
                     <option>Barangay Potrero</option>
                   </select>
                   <img src="/images/cswdd/arrow-down.svg" alt="" />
@@ -1341,7 +1341,7 @@ function recommendationBarangayKey(row: Record<string, unknown>) {
 
   const barangayName = normalizeBarangayForCompare(String(row.barangay_name ?? row.barangay ?? ""));
   if (barangayName === "barangay tanong") return "1";
-  if (barangayName === "barangay catmon") return "2";
+  if (barangayName === "barangay longos") return "2";
   if (barangayName === "barangay potrero") return "3";
   return "";
 }

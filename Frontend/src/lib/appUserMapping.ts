@@ -13,8 +13,8 @@ export const displayRoleNames: Record<number, string> = {
 };
 
 export const fallbackBarangays: Record<number, string> = {
-  1: "Barangay Tanong",
-  2: "Barangay Catmon",
+  1: "Barangay Tañong",
+  2: "Barangay Longos",
   3: "Barangay Potrero",
 };
 

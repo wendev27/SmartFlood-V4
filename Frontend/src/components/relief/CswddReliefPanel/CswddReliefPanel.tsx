@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { ReliefDistributionPanel } from "@/components/emergency/ReliefDistributionPanel/ReliefDistributionPanel";
+import { CswddDistributionModule } from "@/components/relief/CswddDistributionModule/CswddDistributionModule";
 import { ReliefPanel } from "@/components/relief/ReliefPanel/ReliefPanel";
 import { EmptyState } from "@/components/ui/EmptyState";
 import styles from "./CswddReliefPanel.module.css";
@@ -36,6 +36,7 @@ export function CswddReliefPanel({ onViewChange }: { onViewChange?: (isSubpage: 
   }
 
   const title = modules.find((module) => module.view === view)?.title ?? "Relief Management";
+  if (view === "distribution") return <CswddDistributionModule onBack={() => setView("main")} />;
   return (
     <section className={styles.subpage} aria-label={title}>
       <button className={styles.backButton} type="button" onClick={() => setView("main")}>← Back</button>
@@ -43,7 +44,6 @@ export function CswddReliefPanel({ onViewChange }: { onViewChange?: (isSubpage: 
       <div className={styles.content}>
         {view === "recommendation" ? <ReliefPanel mode="recommendation" /> : null}
         {view === "history" ? <ReliefPanel mode="history" /> : null}
-        {view === "distribution" ? <ReliefDistributionPanel /> : null}
         {view === "endorsement" ? <CswddEndorsement /> : null}
       </div>
     </section>

@@ -28,7 +28,7 @@ export const reliefRecommendationsMock: ReliefRecommendation[] = [
   },
   {
     id: "2",
-    barangay: "Barangay Catmon",
+    barangay: "Barangay Longos",
     riskLevel: "Flood Warning",
     affectedFamilies: 600,
     familyFoodPacks: 400,
@@ -38,7 +38,7 @@ export const reliefRecommendationsMock: ReliefRecommendation[] = [
     recommendedItems: "Family Food Packs (400), Medicine Kits (500), Relief Goods for Individual (300)",
     analysisReason: "Rising water levels, 600 affected families",
     report:
-      "Barangay Catmon is under close monitoring because rising water levels are affecting access roads and residential clusters near the creek line. Current estimates show 600 affected families, with priority support needed for elderly residents, children, and residents with active medical needs. The recommendation prioritizes medicine kits for continuity of care while maintaining food packs and individual relief goods for immediate distribution.",
+      "Barangay Longos is under close monitoring because rising water levels are affecting access roads and residential clusters near the creek line. Current estimates show 600 affected families, with priority support needed for elderly residents, children, and residents with active medical needs. The recommendation prioritizes medicine kits for continuity of care while maintaining food packs and individual relief goods for immediate distribution.",
   },
   {
     id: "3",
@@ -85,7 +85,7 @@ export const reliefAllocationHistoryMock: ReliefAllocationHistory[] = [
     id: "001",
     date: "2026-05-09",
     time: "03 : 04 PM",
-    barangay: "Barangay Catmon",
+    barangay: "Barangay Longos",
     familyFoodPacks: 400,
     medicineKits: 500,
     reliefForIndividual: 300,

@@ -80,8 +80,8 @@ type ResidentFormState = {
 };
 
 const barangays = [
-  { id: "1", name: "Barangay Tanong" },
-  { id: "2", name: "Barangay Catmon" },
+  { id: "1", name: "Barangay Tañong" },
+  { id: "2", name: "Barangay Longos" },
   { id: "3", name: "Barangay Potrero" },
 ];
 

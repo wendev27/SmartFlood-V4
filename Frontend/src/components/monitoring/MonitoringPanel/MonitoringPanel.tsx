@@ -909,10 +909,10 @@ const recentActivity = [
     barangayName: "Barangay Potrero",
   },
   {
-    title: "Flood Alert level at Barangay Catmon",
+    title: "Flood Alert level at Barangay Longos",
     meta: "Water level: 0.35m · 1 hour ago",
     badge: "Flood Alert",
     tone: "alert",
-    barangayName: "Barangay Catmon",
+    barangayName: "Barangay Longos",
   },
 ] as const;

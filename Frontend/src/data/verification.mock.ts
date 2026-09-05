@@ -54,11 +54,11 @@ export const verificationApplicationsMock: VerificationApplication[] = [
     name: "Angela Rivera",
     status: "rejected",
     type: "Resident Registration",
-    barangay: "Catmon",
+    barangay: "Longos",
     familyMembers: "2 members",
     submitted: "2026-05-08 11:05",
     phone: "+63-945-222-1190",
-    address: "12 Mabini Street, Barangay Catmon, Labusan",
+    address: "12 Mabini Street, Barangay Longos, Labusan",
   },
 ];
 

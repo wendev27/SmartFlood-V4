@@ -157,6 +157,7 @@
 .profileCard small { font-size: 12px; }
 .profileCard button { background: transparent; border: 0; color: #0088ff; display: grid; flex: 0 0 30px; padding: 5px; place-items: center; }
 .profileCard button svg { fill: none; height: 20px; stroke: currentColor; stroke-linecap: round; stroke-linejoin: round; stroke-width: 1.7; width: 20px; }
+.profileCard button .logoutIcon { fill: currentColor; height: 22px; stroke: none; width: 22px; }
 
 .open .navLinks {
   display: flex;

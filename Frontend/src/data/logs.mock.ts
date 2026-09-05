@@ -5,7 +5,7 @@ export const accountUsersMock: AccountUser[] = [
   { name: "barangaypotrero@malabon.gov.ph", department: "Barangay", role: "Dept Admin", status: "Active", lastLogin: "2026-05-10 12:15" },
   { name: "CSWDD@malabon.gov.ph", department: "CSWDD", role: "Dept Admin", status: "Active", lastLogin: "2026-05-09 16:45" },
   { name: "barangaytanong@malabon.gov.ph", department: "Barangay", role: "Dept User", status: "Inactive", lastLogin: "2026-05-08 10:20" },
-  { name: "barangaycatmon@malabon.gov.ph", department: "CDRRMO", role: "Dept User", status: "Active", lastLogin: "2026-05-10 08:30" },
+  { name: "barangaylongos@malabon.gov.ph", department: "CDRRMO", role: "Dept User", status: "Active", lastLogin: "2026-05-10 08:30" },
 ];
 
 export const auditLogsMock: AuditLog[] = [

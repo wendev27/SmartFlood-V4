@@ -6,7 +6,7 @@ import styles from "./SensorSimulator.module.css";
 
 const SENSOR_OPTIONS = [
   { sensorId: "SNS-002", barangay: "Barangay Tañong" },
-  { sensorId: "SNS-003", barangay: "Barangay Catmon" },
+  { sensorId: "SNS-003", barangay: "Barangay Longos" },
 ] as const;
 
 const READING_LEVELS = [

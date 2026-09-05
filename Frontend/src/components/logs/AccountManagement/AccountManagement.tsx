@@ -80,8 +80,8 @@ const roleOptions = [
 ];
 
 const barangayOptions = [
-  { id: "1", label: "Barangay Tanong" },
-  { id: "2", label: "Barangay Catmon" },
+  { id: "1", label: "Barangay Tañong" },
+  { id: "2", label: "Barangay Longos" },
   { id: "3", label: "Barangay Potrero" },
 ];
 
