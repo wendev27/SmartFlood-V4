@@ -33,25 +33,15 @@ export function navigationItemsForRole(role: DashboardRole): NavItem[] {
 
   if (role === 'cswdd') {
     return [
-      { key: 'dashboard', label: 'Dashboard', icon: 'home' },
+      { key: 'dashboard', label: 'Home', icon: 'home' },
       { key: 'monitoring', label: 'Flood Monitoring Module', icon: 'droplet' },
       {
         key: 'relief',
-        label: 'AI-Optimized Relief Recommendation',
+        label: 'Relief Management',
         icon: 'cube',
       },
-      {
-        key: 'reliefManagement',
-        label: 'Emergency Relief Management',
-        icon: 'document',
-      },
-      {
-        key: 'reliefDistribution',
-        label: 'Relief Audit Reports',
-        icon: 'check',
-      },
       { key: 'residents', label: 'Resident Information', icon: 'users' },
-      { key: 'systemLogs', label: logsLabel, icon: 'document' },
+      { key: 'systemLogs', label: 'CSWDD System Logs', icon: 'document' },
     ];
   }
 

@@ -19,8 +19,11 @@ interface SidebarProps {
 }
 
 export function Sidebar({ activePage, isOpen, items = navigationItems, userProfile, onNavigate, onToggleMobileNav }: SidebarProps) {
+  const isCswdd = /cswdd|city welfare/i.test(`${userProfile.roleLabel} ${userProfile.displayName}`);
   const barangayKey = String(userProfile.barangayName ?? "").toLowerCase().replace("ñ", "n");
-  const barangaySeal = barangayKey.includes("longos")
+  const barangaySeal = isCswdd
+    ? "/images/cswdd/cswdd-seal.png"
+    : barangayKey.includes("longos")
     ? "/images/dashboard/barangay-longos-seal.png"
     : barangayKey.includes("tanong")
       ? "/images/dashboard/barangay-tanong-seal.jpg"
@@ -67,7 +70,7 @@ export function Sidebar({ activePage, isOpen, items = navigationItems, userProfi
           {items.map((item) => (
             <NavLinkItem
               key={item.key}
-              item={item.key === "systemLogs" ? { ...item, label: systemLogLabel } : item}
+              item={item.key === "systemLogs" && !isCswdd ? { ...item, label: systemLogLabel } : item}
               isActive={item.key === activePage}
               onNavigate={onNavigate}
             />
@@ -78,7 +81,7 @@ export function Sidebar({ activePage, isOpen, items = navigationItems, userProfi
             ? <img className={styles.profileSeal} src={barangaySeal} alt="" />
             : <span className={styles.profileAvatar}>{userProfile.initials}</span>}
           <div>
-            <strong>{formatBarangayName(userProfile.displayName || userProfile.roleLabel)}</strong>
+            <strong>{isCswdd ? "CSWDD Official" : formatBarangayName(userProfile.displayName || userProfile.roleLabel)}</strong>
             <small>Disaster Response</small>
           </div>
           <button type="button" onClick={logout} aria-label="Log out">
