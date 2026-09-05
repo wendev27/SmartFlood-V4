@@ -342,7 +342,7 @@
   line-height: 24px;
 }
 
-.panel.panel { margin-left: auto; margin-right: auto; max-width: 1040px; width: 100%; }
+.panel.panel { margin-left: 0; margin-right: 0; max-width: none; width: 100%; }
 
 .panel .table td:nth-child(1) {
   color: #1e2939;
@@ -361,7 +361,7 @@
   color: #75777b;
 }
 
-.panel.panel { padding: 20px 0 1px; }
+.panel.panel { padding: 65px 0 1px; }
 
 .panel .table td {
   max-width: 0;
@@ -370,6 +370,32 @@
   white-space: nowrap;
 }
 
+.panel .table { min-width: 900px; width: 100%; }
+.panel .table th:nth-child(1) { width: 14%; }
+.panel .table th:nth-child(2) { width: 22%; }
+.panel .table th:nth-child(3) { width: 17%; }
+.panel .table th:nth-child(4) { width: 31%; }
+.panel .table th:nth-child(5) { width: 16%; }
+
+.panel .table th,
+.panel .table td {
+  box-sizing: border-box;
+  padding-left: 18px;
+  padding-right: 18px;
+}
+
+.panel .table th:first-child,
+.panel .table td:first-child { padding-left: 0; }
+
+.panel .table th:last-child,
+.panel .table td:last-child { padding-right: 0; }
+
+.panel .table th:nth-child(1) { width: 14%; }
+.panel .table th:nth-child(2) { width: 21%; }
+.panel .table th:nth-child(3) { width: 17%; }
+.panel .table th:nth-child(4) { width: 30%; }
+.panel .table th:nth-child(5) { width: 18%; }
+
 @media (max-width: 1120px) {
   .panel.panel { max-width: 100%; }
   .logCard { padding: 24px; }
@@ -377,7 +403,7 @@
 }
 
 @media (max-width: 720px) {
-  .panel.panel { padding-top: 16px; }
+  .panel.panel { padding-top: 32px; }
   .panel > h1 { font-size: 30px; }
   .logCard { padding: 18px; }
   .search { max-width: none; width: 100%; }

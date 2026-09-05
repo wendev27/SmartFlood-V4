@@ -11,9 +11,10 @@ import { filterLogsForViewer } from "@/lib/logVisibility";
 import { queryKeys, queryStaleTime } from "@/lib/queryKeys";
 import { getAuditLogs } from "@/services/logsService";
 import type { AuditLog } from "@/types/logs";
+import type { AdminViewContext } from "@/components/layout/AppShell/AppShell";
 import styles from "./SystemLogs.module.css";
 
-export function SystemLogs() {
+export function SystemLogs({ adminView }: { adminView?: AdminViewContext | null }) {
   const pageSize = 7;
   const [query, setQuery] = useState("");
   const [moduleFilter, setModuleFilter] = useState("");
@@ -22,7 +23,9 @@ export function SystemLogs() {
   const [page, setPage] = useState(1);
   const user = getCurrentUser();
   const role = normalizeUserRole(user) ?? "barangay";
-  const title = logLabelForRole(role, user);
+  const title = adminView
+    ? `${adminView.label} System Logs`
+    : logLabelForRole(role, user);
   const emptyMessage = role === "cswdd" ? "No CSWDD logs found." : "No logs available for your role or assigned barangay.";
   const logsQuery = useQuery({
     queryKey: queryKeys.logs.audit,

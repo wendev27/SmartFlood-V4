@@ -133,7 +133,7 @@ export default function DashboardPage() {
     >
       {activePage === "dashboard" ? <DashboardPanel /> : null}
       {activePage === "logs" ? <LogsPanel /> : null}
-      {activePage === "systemLogs" ? <SystemLogs /> : null}
+      {activePage === "systemLogs" ? <SystemLogs adminView={adminView} /> : null}
       {activePage === "monitoring" ? <MonitoringPanel resetSignal={monitoringResetVersion} onViewChange={setMonitoringView} userProfile={session.profile} /> : null}
       {activePage === "relief" ? (session.role === "cswdd" || adminView?.role === "cswdd" ? <CswddReliefPanel /> : <ReliefPanel />) : null}
       {activePage === "reliefManagement" ? <ReliefManagementPanel /> : null}
