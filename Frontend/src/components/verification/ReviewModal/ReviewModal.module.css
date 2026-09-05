@@ -170,3 +170,6 @@
     width: 48px;
   }
 }
+
+/* Polished registration review modal */
+.header{background:#fff;color:#1e1e1e;min-height:72px;padding:20px 24px}.identity{display:none}.close{background:transparent;border:0;border-radius:8px;color:#0088ff;height:44px;margin-left:auto;width:44px}.close::before,.close::after{background:#0088ff;content:"";height:2px;left:9px;position:absolute;top:21px;width:27px}.close::before{transform:rotate(45deg)}.close::after{transform:rotate(-45deg)}.close:hover{background:#eff6ff}.body{max-height:calc(100dvh - 120px);padding:0 24px 28px}.section{margin-bottom:20px}.section h3{color:#000;font-size:18px;font-weight:400;margin:0 0 16px;padding-left:26px}.section h3 span{display:none}.cols1,.cols2,.cols3{gap:8px}.cols1 div,.cols2 div,.cols3 div{background:#fff;border:0;border-radius:0;min-height:auto;padding:0}.section span{color:#364153;font-size:14px;font-weight:600;margin-bottom:4px}.section b{border:1px solid #d1d5dc;border-radius:10px;color:rgba(0,0,0,.5);font-size:16px;font-weight:400;min-height:42px;padding:10px 12px}.actions{gap:27px;margin-top:20px}.actions button{border-radius:16px;font-size:16px;font-weight:600;height:48px}.actions button:first-child{background:#fff;border:1px solid #0088ff;color:#0088ff}.actions button:last-child{background:#0088ff;border:1px solid #0088ff;color:#fff}

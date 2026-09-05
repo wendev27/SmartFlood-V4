@@ -32,16 +32,16 @@ export function ApplicationCard({ application, onReview, onEdit }: ApplicationCa
         <p className={styles.meta}>{application.phone}</p>
         <p className={styles.meta}>{formatBarangayName(application.address)}</p>
         {application.approvalNote ? (
-          <div className={styles.approvalNote}>
+          <div className={`${styles.approvalNote} ${application.status === "rejected" ? styles.rejectedNote : styles.approvedNote}`}>
             <p>{application.approvalNote.approvedBy}</p>
             <p>{formatBarangayName(application.approvalNote.details)}</p>
           </div>
         ) : null}
       </div>
-      <div className={styles.actions}>
-        <Button onClick={onReview}>⊙ {isPending ? "Review" : "View"}</Button>
+      {isPending || onEdit ? <div className={styles.actions}>
+        {isPending ? <Button onClick={onReview}>⊙ Review</Button> : null}
         {onEdit ? <Button tone="muted" onClick={onEdit}>✎ Edit</Button> : null}
-      </div>
+      </div> : null}
     </article>
   );
 }

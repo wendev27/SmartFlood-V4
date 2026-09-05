@@ -12,12 +12,13 @@ interface PaginationProps {
   onPageChange: (page: number) => void;
   label?: string;
   compact?: boolean;
+  alwaysVisible?: boolean;
 }
 
-export function Pagination({ pagination, onPageChange, label = "Records", compact = false }: PaginationProps) {
-  if (!pagination || pagination.totalPages <= 1 || pagination.total <= pagination.limit) return null;
+export function Pagination({ pagination, onPageChange, label = "Records", compact = false, alwaysVisible = false }: PaginationProps) {
+  if (!pagination || (!alwaysVisible && (pagination.totalPages <= 1 || pagination.total <= pagination.limit))) return null;
 
-  const start = (pagination.page - 1) * pagination.limit + 1;
+  const start = pagination.total === 0 ? 0 : (pagination.page - 1) * pagination.limit + 1;
   const end = Math.min(pagination.page * pagination.limit, pagination.total);
   const firstVisiblePage = Math.max(1, Math.min(pagination.page - 2, pagination.totalPages - 4));
   const lastVisiblePage = Math.min(pagination.totalPages, firstVisiblePage + 4);
