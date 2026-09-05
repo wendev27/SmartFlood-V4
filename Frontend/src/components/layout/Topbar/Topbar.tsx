@@ -10,13 +10,15 @@ interface TopbarProps {
 }
 
 export function Topbar({ activePage, userProfile }: TopbarProps) {
+  const isBarangayModuleLanding = activePage === "reliefDistribution" && /barangay/i.test(userProfile.roleLabel);
+  const isActionsOnly = activePage === "monitoring" || activePage === "emergencyNotifications" || isBarangayModuleLanding;
   const copy = activePage === "systemLogs"
     ? { ...pageCopy[activePage], title: userProfile.logLabel }
     : pageCopy[activePage];
 
   return (
-    <header className={activePage === "monitoring" || activePage === "emergencyNotifications" ? styles.actionsOnly : styles.topbar}>
-      {activePage === "monitoring" || activePage === "emergencyNotifications" ? null : <div>
+    <header className={isActionsOnly ? styles.actionsOnly : styles.topbar}>
+      {isActionsOnly ? null : <div>
         <h2>{copy.title}</h2>
         {copy.subtitle ? <p>{copy.subtitle}</p> : null}
       </div>}

@@ -10,6 +10,7 @@ import { ReliefPanel } from "@/components/relief/ReliefPanel/ReliefPanel";
 import { BarangayReliefPanel } from "@/components/relief/BarangayReliefPanel/BarangayReliefPanel";
 import { ReliefManagementPanel } from "@/components/emergency/ReliefManagementPanel/ReliefManagementPanel";
 import { ReliefDistributionPanel } from "@/components/emergency/ReliefDistributionPanel/ReliefDistributionPanel";
+import { EmergencyReportPanel } from "@/components/emergency/EmergencyReportPanel/EmergencyReportPanel";
 import { SensorsPanel } from "@/components/sensors/SensorsPanel/SensorsPanel";
 import { ResidentsPanel } from "@/components/residents/ResidentsPanel/ResidentsPanel";
 import { VerificationPanel } from "@/components/verification/VerificationPanel/VerificationPanel";
@@ -126,7 +127,7 @@ export default function DashboardPage() {
       {activePage === "relief" ? <ReliefPanel /> : null}
       {activePage === "reliefManagement" ? <ReliefManagementPanel /> : null}
       {activePage === "emergencyNotifications" ? <BarangayReliefPanel /> : null}
-      {activePage === "reliefDistribution" ? <ReliefDistributionPanel /> : null}
+      {activePage === "reliefDistribution" ? (session.role === "barangay" ? <EmergencyReportPanel /> : <ReliefDistributionPanel />) : null}
       {activePage === "sensors" ? <SensorsPanel /> : null}
       {activePage === "residents" ? <ResidentsPanel /> : null}
       {activePage === "accounts" ? <VerificationPanel /> : null}
