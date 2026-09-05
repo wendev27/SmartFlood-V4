@@ -168,6 +168,11 @@ export function ReliefPanel({ mode = "all" }: { mode?: "all" | "recommendation" 
       })
       .sort((a, b) => sortHistoryEntries(a, b, historySort));
   }, [activeHistoryDateFilter, history, historyBarangayFilter, historySearch, historySort]);
+  const historySummary = useMemo(() => filteredHistory.reduce((totals, entry) => ({
+    foodPacks: totals.foodPacks + entry.familyFoodPacks,
+    medicineKits: totals.medicineKits + entry.medicineKits,
+    reliefGoods: totals.reliefGoods + entry.reliefForIndividual,
+  }), { foodPacks: 0, medicineKits: 0, reliefGoods: 0 }), [filteredHistory]);
 
   const paginatedHistory = useMemo(() => {
     const totalPages = Math.max(1, Math.ceil(filteredHistory.length / pageSize));
@@ -208,6 +213,18 @@ export function ReliefPanel({ mode = "all" }: { mode?: "all" | "recommendation" 
     setHistorySort("newest");
     setHistorySearch("");
     setHistoryPage(1);
+  }
+
+  function downloadRecommendationHistory() {
+    const header = ["Recommendation ID", "Generated At", "Dispatched At", "Items Dispatched", "Approved By", "Status"];
+    const rows = filteredHistory.map((entry) => [entry.id, `${entry.date} ${entry.time}`, `${entry.dispatchedDate} ${entry.dispatchedTime}`, `${entry.familyFoodPacks} food packs; ${entry.medicineKits} medicine kits; ${entry.reliefForIndividual} relief goods`, entry.approvedBy, entry.status]);
+    const csv = [header, ...rows].map((row) => row.map((cell) => `"${String(cell).replaceAll('"', '""')}"`).join(",")).join("\n");
+    const url = URL.createObjectURL(new Blob([csv], { type: "text/csv;charset=utf-8" }));
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = "recommendation-history.csv";
+    link.click();
+    URL.revokeObjectURL(url);
   }
 
   async function openGenerationWorkflow() {
@@ -572,7 +589,7 @@ export function ReliefPanel({ mode = "all" }: { mode?: "all" | "recommendation" 
           </button>
         </div>
       ) : null}
-      <section className={`${styles.stack} ${mode === "recommendation" ? styles.recommendationMode : ""}`} aria-label="AI relief recommendations">
+      <section className={`${styles.stack} ${mode === "recommendation" ? styles.recommendationMode : mode === "history" ? styles.historyMode : ""}`} aria-label="AI relief recommendations">
         {mode !== "history" ? <div className={`${styles.panel} ${styles.historyPanel}`}>
           <div className={styles.panelHeader}>
             <div>
@@ -776,7 +793,11 @@ export function ReliefPanel({ mode = "all" }: { mode?: "all" | "recommendation" 
             <h3>Allocation History</h3>
             <p>View past and scheduled relief distributions</p>
           </div>
-          <div className={styles.historyFilters} aria-label="Allocation history filters">
+          {mode === "history" ? <div className={styles.referenceHistoryFilters} aria-label="Recommendation history filters">
+            <label><span>Barangay</span><select value={historyBarangayFilter} onChange={(event) => setHistoryBarangayFilter(event.target.value)}><option value="">All Barangays</option>{historyBarangays.map((barangay) => <option key={barangay} value={barangay}>{formatBarangayName(barangay)}</option>)}</select></label>
+            <label><span>Date Range</span><span className={styles.dateRangeDisplay}><b aria-hidden="true">▦</b>{history.length ? `${history[history.length - 1]?.date} • ${history[0]?.date}` : "All dates"}</span></label>
+            <button className={styles.historyDownload} type="button" onClick={downloadRecommendationHistory} aria-label="Download recommendation history">⇩</button>
+          </div> : <div className={styles.historyFilters} aria-label="Allocation history filters">
             <label>
               <span>Date</span>
               <select value={activeHistoryDateFilter} onChange={(event) => setHistoryDateFilter(event.target.value as HistoryDateFilter)}>
@@ -814,10 +835,33 @@ export function ReliefPanel({ mode = "all" }: { mode?: "all" | "recommendation" 
               />
             </label>
             <button type="button" onClick={resetHistoryFilters}>Reset</button>
-          </div>
+          </div>}
+          {mode === "history" ? (
+            <section className={styles.historySummary} aria-label="Recommendation history summary">
+              <div className={styles.completedSummary}>
+                <span className={styles.summaryCheck}>✓</span>
+                <div><strong>Completed Recommendations</strong><p><b>{filteredHistory.length}</b> total</p></div>
+              </div>
+              <div className={styles.itemsSummary}>
+                <div><strong>Total Items Dispatched</strong><p><b>{(historySummary.foodPacks + historySummary.medicineKits + historySummary.reliefGoods).toLocaleString()}</b> items</p></div>
+                <div className={styles.itemCounts}>
+                  <span><img src="/images/cswdd/food-pack.svg" alt="" />{historySummary.foodPacks.toLocaleString()}</span>
+                  <span><img src="/images/cswdd/medicine-kit.svg" alt="" />{historySummary.medicineKits.toLocaleString()}</span>
+                  <span><img src="/images/cswdd/relief-goods.svg" alt="" />{historySummary.reliefGoods.toLocaleString()}</span>
+                </div>
+              </div>
+            </section>
+          ) : null}
           <div className={styles.historyTableWrap}>
             <DataTable
-              headers={[
+              headers={mode === "history" ? [
+                "Recommendation ID",
+                "Generated At",
+                "Dispatched At",
+                "Items Dispatched",
+                "Approved By",
+                "Status",
+              ] : [
                 "Allocation ID",
                 "Date",
                 "Time",
@@ -828,7 +872,16 @@ export function ReliefPanel({ mode = "all" }: { mode?: "all" | "recommendation" 
               ]}
               minWidth={760}
             >
-              {paginatedHistory.rows.map((entry) => (
+              {mode === "history" ? paginatedHistory.rows.map((entry) => (
+                <tr key={entry.recommendation_id}>
+                  <td>{entry.id}</td>
+                  <td><span className={styles.dateTimeCell}>{entry.date}<small>{entry.time}</small></span></td>
+                  <td><span className={styles.dateTimeCell}>{entry.dispatchedDate}<small>{entry.dispatchedTime}</small></span></td>
+                  <td><span className={styles.dispatchedItems}><span><img src="/images/cswdd/food-pack.svg" alt="" />{entry.familyFoodPacks}</span><span><img src="/images/cswdd/medicine-kit.svg" alt="" />{entry.medicineKits}</span><span><img src="/images/cswdd/relief-goods.svg" alt="" />{entry.reliefForIndividual}</span></span></td>
+                  <td>{entry.approvedBy}</td>
+                  <td><span className={styles.dispatchedStatus}>{entry.status}</span></td>
+                </tr>
+              )) : paginatedHistory.rows.map((entry) => (
                 <tr key={entry.recommendation_id}>
                   <td title={entry.recommendation_id}>{entry.id}</td>
                   <td>{entry.date}</td>
@@ -841,7 +894,7 @@ export function ReliefPanel({ mode = "all" }: { mode?: "all" | "recommendation" 
               ))}
               {!isLoading && filteredHistory.length === 0 ? (
                 <tr>
-                  <td colSpan={7}>
+                  <td colSpan={mode === "history" ? 6 : 7}>
                     <EmptyState
                       title={history.length === 0 ? "No allocation history yet." : "No allocation history matches your filters."}
                       description={history.length === 0 ? "Generated allocation recommendations will appear here." : "Try changing the date, barangay, sort, or search filters."}
@@ -851,7 +904,7 @@ export function ReliefPanel({ mode = "all" }: { mode?: "all" | "recommendation" 
               ) : null}
             </DataTable>
           </div>
-          <SharedPagination pagination={paginatedHistory.pagination} onPageChange={setHistoryPage} label="Allocation history" />
+          <SharedPagination pagination={paginatedHistory.pagination} onPageChange={setHistoryPage} label="Allocation history" compact={mode === "history"} />
         </div> : null}
       </section>
 
@@ -1504,6 +1557,8 @@ function ensureSentence(value: string) {
 
 function mapHistory(row: Record<string, unknown>, index: number) {
   const createdAt = row.created_at ? new Date(String(row.created_at)) : new Date();
+  const dispatchedAtValue = row.dispatched_at ?? row.accepted_at ?? row.updated_at ?? row.created_at;
+  const dispatchedAt = dispatchedAtValue ? new Date(String(dispatchedAtValue)) : createdAt;
   const recommendationId = String(row.recommendation_id ?? index + 1);
 
   return {
@@ -1513,6 +1568,10 @@ function mapHistory(row: Record<string, unknown>, index: number) {
     barangay_name: String(row.barangay_name ?? row.barangay ?? "Unknown"),
     date: createdAt.toLocaleDateString(),
     time: createdAt.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" }),
+    dispatchedDate: dispatchedAt.toLocaleDateString(),
+    dispatchedTime: dispatchedAt.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" }),
+    approvedBy: String(row.approved_by_email ?? row.approved_by ?? row.created_by_email ?? "CSWDD Official"),
+    status: String(row.status ?? "Dispatched").replaceAll("_", " ").replace(/\b\w/g, (letter) => letter.toUpperCase()),
     barangay: String(row.barangay_name ?? row.barangay ?? "Unknown"),
     familyFoodPacks: Number(row.recommended_family_food_packs ?? 0),
     medicineKits: Number(row.recommended_medicine_kits ?? 0),
