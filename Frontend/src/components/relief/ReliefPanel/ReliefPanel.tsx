@@ -69,7 +69,7 @@ const planCopy: Record<ReliefPlanId, { focus: string; description: string; butto
   },
 };
 
-export function ReliefPanel() {
+export function ReliefPanel({ mode = "all" }: { mode?: "all" | "recommendation" | "history" }) {
   const pageSize = 5;
   const queryClient = useQueryClient();
   const [generationInventory, setGenerationInventory] = useState<Record<GenerationInventoryField, string>>(generationInventoryDefaults);
@@ -563,7 +563,7 @@ export function ReliefPanel() {
   return (
     <>
       <section className={styles.stack} aria-label="AI relief recommendations">
-        <div className={`${styles.panel} ${styles.historyPanel}`}>
+        {mode !== "history" ? <div className={`${styles.panel} ${styles.historyPanel}`}>
           <div className={styles.panelHeader}>
             <div>
               <h3>AI Allocation Suggestions</h3>
@@ -759,9 +759,9 @@ export function ReliefPanel() {
                 description="Generate a recommendation once flood data is available, then choose a strategy to review barangay allocations."
               />
           ) : null}
-        </div>
+        </div> : null}
 
-        <div className={styles.panel}>
+        {mode !== "recommendation" ? <div className={styles.panel}>
           <div className={styles.historyHeader}>
             <h3>Allocation History</h3>
             <p>View past and scheduled relief distributions</p>
@@ -842,7 +842,7 @@ export function ReliefPanel() {
             </DataTable>
           </div>
           <SharedPagination pagination={paginatedHistory.pagination} onPageChange={setHistoryPage} label="Allocation history" />
-        </div>
+        </div> : null}
       </section>
 
       <Modal

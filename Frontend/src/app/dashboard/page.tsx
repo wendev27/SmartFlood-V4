@@ -8,6 +8,7 @@ import { SystemLogs } from "@/components/logs/SystemLogs/SystemLogs";
 import { MonitoringPanel, type MonitoringView } from "@/components/monitoring/MonitoringPanel/MonitoringPanel";
 import { ReliefPanel } from "@/components/relief/ReliefPanel/ReliefPanel";
 import { BarangayReliefPanel } from "@/components/relief/BarangayReliefPanel/BarangayReliefPanel";
+import { CswddReliefPanel } from "@/components/relief/CswddReliefPanel/CswddReliefPanel";
 import { ReliefManagementPanel } from "@/components/emergency/ReliefManagementPanel/ReliefManagementPanel";
 import { ReliefDistributionPanel } from "@/components/emergency/ReliefDistributionPanel/ReliefDistributionPanel";
 import { EmergencyReportPanel } from "@/components/emergency/EmergencyReportPanel/EmergencyReportPanel";
@@ -48,6 +49,7 @@ export default function DashboardPage() {
   const [activePage, setActivePage] = useState<PageKey>("dashboard");
   const [monitoringView, setMonitoringView] = useState<MonitoringView>("main");
   const [monitoringResetVersion, setMonitoringResetVersion] = useState(0);
+  const [cswddReliefSubpage, setCswddReliefSubpage] = useState(false);
   const [isMobileNavOpen, setIsMobileNavOpen] = useState(false);
   const navigationItems = useMemo(() => session ? navigationItemsForRole(session.role) : [], [session]);
   const allowedPages = useMemo(() => navigationItems.map((item) => item.key), [navigationItems]);
@@ -113,7 +115,7 @@ export default function DashboardPage() {
   return (
     <AppShell
       activePage={activePage}
-      hideTopbar={activePage === "monitoring" && monitoringView !== "main"}
+      hideTopbar={(activePage === "monitoring" && monitoringView !== "main") || (activePage === "relief" && session.role === "cswdd" && cswddReliefSubpage)}
       isMobileNavOpen={isMobileNavOpen}
       navigationItems={navigationItems}
       onNavigate={handleNavigate}
@@ -124,7 +126,7 @@ export default function DashboardPage() {
       {activePage === "logs" ? <LogsPanel /> : null}
       {activePage === "systemLogs" ? <SystemLogs /> : null}
       {activePage === "monitoring" ? <MonitoringPanel resetSignal={monitoringResetVersion} onViewChange={setMonitoringView} userProfile={session.profile} /> : null}
-      {activePage === "relief" ? <ReliefPanel /> : null}
+      {activePage === "relief" ? (session.role === "cswdd" ? <CswddReliefPanel onViewChange={setCswddReliefSubpage} /> : <ReliefPanel />) : null}
       {activePage === "reliefManagement" ? <ReliefManagementPanel /> : null}
       {activePage === "emergencyNotifications" ? <BarangayReliefPanel /> : null}
       {activePage === "reliefDistribution" ? (session.role === "barangay" ? <EmergencyReportPanel /> : <ReliefDistributionPanel />) : null}
