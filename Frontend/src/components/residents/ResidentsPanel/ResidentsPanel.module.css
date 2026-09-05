@@ -830,3 +830,5 @@
   text-overflow: ellipsis;
   white-space: nowrap;
 }
+
+.panel.panel { margin-left: 0; margin-right: 0; max-width: none; width: 100%; }

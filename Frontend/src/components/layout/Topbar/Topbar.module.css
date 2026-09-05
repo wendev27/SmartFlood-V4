@@ -9,6 +9,8 @@
   z-index: 5000;
 }
 
+.topbar { width: 100%; }
+
 .actionsOnly {
   margin: 0;
   min-height: 0;

@@ -1520,13 +1520,15 @@
 /* Port 5173 Flood Heatmap and Flood History composition. */
 .heatmapPage {
   gap: 36px;
-  max-width: 1025px;
-  padding: 0 0 16px;
+  max-width: 100%;
+  padding: 18px 8px 16px 0;
+  width: 100%;
 }
 
 .historyPage {
-  max-width: 1000px;
-  padding: 0 0 16px;
+  max-width: 100%;
+  padding: 18px 8px 16px 0;
+  width: 100%;
 }
 
 .heatmapTop,

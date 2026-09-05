@@ -783,3 +783,5 @@
     width: min(var(--modal-width), calc(100dvw - 28px));
   }
 }
+
+.historyFilterRow,.historyTableBlock { margin-left: 0; margin-right: 0; max-width: none; width: 100%; }

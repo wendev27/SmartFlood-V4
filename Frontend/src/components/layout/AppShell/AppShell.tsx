@@ -58,7 +58,7 @@ export function AppShell({
       />
       <section className={styles.dashboard}>
         {hideTopbar ? null : <Topbar activePage={activePage} adminView={adminView} onNavigate={onNavigate} userProfile={userProfile} />}
-        {children}
+        <div className={styles.content}>{children}</div>
       </section>
     </main>
   );
