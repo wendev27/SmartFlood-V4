@@ -18,19 +18,26 @@ export interface DashboardUserProfile {
   barangayName?: string | null;
 }
 
+export type AdminViewContext = {
+  role: "cswdd" | "barangay";
+  label: string;
+};
+
 interface AppShellProps {
   activePage: PageKey;
+  adminView?: AdminViewContext | null;
   isMobileNavOpen: boolean;
   hideTopbar?: boolean;
   navigationItems?: NavItem[];
   userProfile: DashboardUserProfile;
-  onNavigate: (page: PageKey) => void;
+  onNavigate: (page: PageKey, adminView?: AdminViewContext) => void;
   onToggleMobileNav: () => void;
   children: ReactNode;
 }
 
 export function AppShell({
   activePage,
+  adminView,
   isMobileNavOpen,
   hideTopbar = false,
   navigationItems,
@@ -50,7 +57,7 @@ export function AppShell({
         onToggleMobileNav={onToggleMobileNav}
       />
       <section className={styles.dashboard}>
-        {hideTopbar ? null : <Topbar activePage={activePage} userProfile={userProfile} />}
+        {hideTopbar ? null : <Topbar activePage={activePage} adminView={adminView} userProfile={userProfile} />}
         {children}
       </section>
     </main>

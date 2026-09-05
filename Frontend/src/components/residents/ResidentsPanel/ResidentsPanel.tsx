@@ -118,7 +118,7 @@ const vulnerabilityCountFields = [
   "toddler_count",
 ] as const;
 
-export function ResidentsPanel() {
+export function ResidentsPanel({ title = "Registry of Barangay Inhabitants (RBI)" }: { title?: string }) {
   const pageSize = 3;
   const queryClient = useQueryClient();
   const [currentUser] = useState(() => getCurrentUser());
@@ -421,9 +421,9 @@ export function ResidentsPanel() {
   }
 
   return (
-    <section className={cn(styles.panel, isBarangayOfficial && styles.barangayPanel)} aria-label="Resident information">
+    <section className={cn(styles.panel, styles.barangayPanel)} aria-label="Resident information">
       <button className={styles.backButton} type="button" onClick={() => { window.location.hash = "dashboard"; }}>← Back</button>
-      <h1 className={styles.pageTitle}>Registry of Barangay Inhabitants (RBI)</h1>
+      <h1 className={styles.pageTitle}>{title}</h1>
       <section className={styles.summary} aria-label="RBI summary">
         <SummaryCard label="Total Residents" value={residents.length} icon="residents" />
         <SummaryCard label="Total Families" value={familyClusters.length} icon="families" />

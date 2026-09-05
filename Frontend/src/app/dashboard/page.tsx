@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { AppShell, type DashboardUserProfile } from "@/components/layout/AppShell/AppShell";
+import { AppShell, type AdminViewContext, type DashboardUserProfile } from "@/components/layout/AppShell/AppShell";
 import { DashboardPanel } from "@/components/dashboard/DashboardPanel/DashboardPanel";
 import { LogsPanel } from "@/components/logs/LogsPanel/LogsPanel";
 import { SystemLogs } from "@/components/logs/SystemLogs/SystemLogs";
@@ -50,8 +50,14 @@ export default function DashboardPage() {
   const [monitoringView, setMonitoringView] = useState<MonitoringView>("main");
   const [monitoringResetVersion, setMonitoringResetVersion] = useState(0);
   const [isMobileNavOpen, setIsMobileNavOpen] = useState(false);
+  const [adminView, setAdminView] = useState<AdminViewContext | null>(null);
   const navigationItems = useMemo(() => session ? navigationItemsForRole(session.role) : [], [session]);
-  const allowedPages = useMemo(() => navigationItems.map((item) => item.key), [navigationItems]);
+  const allowedPages = useMemo(
+    () => session && (session.role === "cdrrmo" || session.role === "super")
+      ? pageKeys
+      : navigationItems.map((item) => item.key),
+    [navigationItems, session],
+  );
 
   useEffect(() => {
     const user = getCurrentUser();
@@ -96,8 +102,9 @@ export default function DashboardPage() {
     window.history.replaceState(null, "", "#dashboard");
   }, [activePage, allowedPages, session]);
 
-  function handleNavigate(page: PageKey) {
+  function handleNavigate(page: PageKey, nextAdminView?: AdminViewContext) {
     const targetPage = allowedPages.includes(page) ? page : "dashboard";
+    setAdminView(nextAdminView ?? null);
     setActivePage(targetPage);
     setMonitoringView("main");
     if (targetPage === "monitoring") {
@@ -114,6 +121,7 @@ export default function DashboardPage() {
   return (
     <AppShell
       activePage={activePage}
+      adminView={adminView}
       hideTopbar={activePage === "monitoring" && monitoringView !== "main"}
       isMobileNavOpen={isMobileNavOpen}
       navigationItems={navigationItems}
@@ -125,12 +133,14 @@ export default function DashboardPage() {
       {activePage === "logs" ? <LogsPanel /> : null}
       {activePage === "systemLogs" ? <SystemLogs /> : null}
       {activePage === "monitoring" ? <MonitoringPanel resetSignal={monitoringResetVersion} onViewChange={setMonitoringView} userProfile={session.profile} /> : null}
-      {activePage === "relief" ? (session.role === "cswdd" ? <CswddReliefPanel /> : <ReliefPanel />) : null}
+      {activePage === "relief" ? (session.role === "cswdd" || adminView?.role === "cswdd" ? <CswddReliefPanel /> : <ReliefPanel />) : null}
       {activePage === "reliefManagement" ? <ReliefManagementPanel /> : null}
       {activePage === "emergencyNotifications" ? <BarangayReliefPanel /> : null}
-      {activePage === "reliefDistribution" ? (session.role === "barangay" ? <EmergencyReportPanel /> : <ReliefDistributionPanel />) : null}
+      {activePage === "reliefDistribution" ? (session.role === "barangay" || adminView?.role === "barangay" ? <EmergencyReportPanel /> : <ReliefDistributionPanel />) : null}
       {activePage === "sensors" ? <SensorsPanel /> : null}
-      {activePage === "residents" ? <ResidentsPanel /> : null}
+      {activePage === "residents" ? (
+        <ResidentsPanel title={adminView?.role === "cswdd" || session.role === "cswdd" ? "Resident Information" : undefined} />
+      ) : null}
       {activePage === "accounts" ? <VerificationPanel /> : null}
     </AppShell>
   );

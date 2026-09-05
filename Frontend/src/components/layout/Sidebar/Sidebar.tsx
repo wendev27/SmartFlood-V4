@@ -4,7 +4,7 @@ import { navigationItems } from "@/data/navigation";
 import { cn } from "@/lib/cn";
 import type { NavItem, PageKey } from "@/types/navigation";
 import { NavLinkItem, SidebarIcon } from "@/components/navigation/NavLinkItem/NavLinkItem";
-import type { DashboardUserProfile } from "@/components/layout/AppShell/AppShell";
+import type { AdminViewContext, DashboardUserProfile } from "@/components/layout/AppShell/AppShell";
 import { clearStoredSession } from "@/lib/authSession";
 import { formatBarangayName } from "@/lib/formatters";
 import styles from "./Sidebar.module.css";
@@ -12,10 +12,9 @@ import styles from "./Sidebar.module.css";
 const commandCenterAccess = [
   {
     label: "CSWDD",
+    role: "cswdd" as const,
     seal: "/images/cswdd/cswdd-seal.png",
     items: [
-      { key: "dashboard", label: "Home", icon: "home" },
-      { key: "monitoring", label: "Flood Monitoring Module", icon: "droplet" },
       { key: "relief", label: "Relief Management", icon: "cube" },
       { key: "residents", label: "Resident Information", icon: "users" },
       { key: "systemLogs", label: "CSWDD System Logs", icon: "document" },
@@ -27,10 +26,9 @@ const commandCenterAccess = [
     ["Barangay Potrero", "/images/dashboard/barangay-potrero-seal.png"],
   ].map(([label, seal]) => ({
     label,
+    role: "barangay" as const,
     seal,
     items: [
-      { key: "dashboard", label: "Home", icon: "home" },
-      { key: "monitoring", label: "Flood Monitoring Module", icon: "droplet" },
       { key: "emergencyNotifications", label: "Relief Management", icon: "cube" },
       { key: "reliefDistribution", label: "Emergency Report Management", icon: "document" },
       { key: "residents", label: "Registry of Barangay Inhabitants (RBI)", icon: "users" },
@@ -45,7 +43,7 @@ interface SidebarProps {
   isOpen: boolean;
   items?: NavItem[];
   userProfile: DashboardUserProfile;
-  onNavigate: (page: PageKey) => void;
+  onNavigate: (page: PageKey, adminView?: AdminViewContext) => void;
   onToggleMobileNav: () => void;
 }
 
@@ -119,7 +117,11 @@ export function Sidebar({ activePage, isOpen, items = navigationItems, userProfi
                   </summary>
                   <div className={styles.accessItems}>
                     {group.items.map((item) => (
-                      <button type="button" key={`${group.label}-${item.key}`} onClick={() => onNavigate(item.key)}>
+                      <button
+                        type="button"
+                        key={`${group.label}-${item.key}`}
+                        onClick={() => onNavigate(item.key, { role: group.role, label: group.label })}
+                      >
                         <span className={styles.accessIcon}><SidebarIcon item={item} /></span>
                         <span>{item.label}</span>
                       </button>
