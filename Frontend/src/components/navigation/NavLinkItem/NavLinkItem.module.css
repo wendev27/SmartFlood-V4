@@ -23,6 +23,9 @@
 }
 
 .active {
+  background: rgba(220, 235, 255, 0.65);
+  border-color: rgba(255, 255, 255, 0.7);
+  box-shadow: 0 6px 18px rgba(37, 99, 235, 0.12);
   color: #0088ff;
 }
 
@@ -57,6 +60,15 @@
 }
 
 .icon svg [stroke="none"] { stroke: none; }
+
+.label {
+  align-items: center;
+  display: flex;
+  flex: 1 1 auto;
+  line-height: 1.25;
+  min-height: 44px;
+  min-width: 0;
+}
 
 @media (min-width: 900px) {
   .link {

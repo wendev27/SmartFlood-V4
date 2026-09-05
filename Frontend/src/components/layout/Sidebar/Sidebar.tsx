@@ -40,6 +40,7 @@ const commandCenterAccess = [
 
 interface SidebarProps {
   activePage: PageKey;
+  adminView?: AdminViewContext | null;
   isOpen: boolean;
   items?: NavItem[];
   userProfile: DashboardUserProfile;
@@ -47,7 +48,7 @@ interface SidebarProps {
   onToggleMobileNav: () => void;
 }
 
-export function Sidebar({ activePage, isOpen, items = navigationItems, userProfile, onNavigate, onToggleMobileNav }: SidebarProps) {
+export function Sidebar({ activePage, adminView, isOpen, items = navigationItems, userProfile, onNavigate, onToggleMobileNav }: SidebarProps) {
   const isCswdd = /cswdd|city welfare/i.test(`${userProfile.roleLabel} ${userProfile.displayName}`);
   const isCdrrmo = /cdrrmo|command center|super admin/i.test(`${userProfile.roleLabel} ${userProfile.displayName}`);
   const isBarangay = !isCswdd && !isCdrrmo;
@@ -61,7 +62,6 @@ export function Sidebar({ activePage, isOpen, items = navigationItems, userProfi
       : barangayKey.includes("potrero")
         ? "/images/dashboard/barangay-potrero-seal.png"
         : "";
-  const activeItemIndex = items.findIndex((item) => item.key === activePage);
   const barangayLabel = formatBarangayName(String(userProfile.barangayName || userProfile.displayName || "Barangay"))
     .replace(/^barangay\s+/i, "")
     .trim();
@@ -91,13 +91,6 @@ export function Sidebar({ activePage, isOpen, items = navigationItems, userProfi
           <h1>SmartFlood</h1>
         </div>
         <div className={styles.navLinks} id="smartflood-nav-links">
-          {activeItemIndex >= 0 ? (
-            <span
-              className={styles.activeIndicator}
-              style={{ transform: `translateY(${activeItemIndex * 70}px)` }}
-              aria-hidden="true"
-            />
-          ) : null}
           {items.map((item) => (
             <NavLinkItem
               key={item.key}
@@ -119,6 +112,8 @@ export function Sidebar({ activePage, isOpen, items = navigationItems, userProfi
                     {group.items.map((item) => (
                       <button
                         type="button"
+                        className={adminView?.role === group.role && adminView.label === group.label && activePage === item.key ? styles.activeAccessItem : undefined}
+                        aria-current={adminView?.role === group.role && adminView.label === group.label && activePage === item.key ? "page" : undefined}
                         key={`${group.label}-${item.key}`}
                         onClick={() => onNavigate(item.key, { role: group.role, label: group.label })}
                       >

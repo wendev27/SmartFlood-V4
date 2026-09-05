@@ -50,6 +50,7 @@ export function AppShell({
     <main className={styles.shell}>
       <Sidebar
         activePage={activePage}
+        adminView={adminView}
         isOpen={isMobileNavOpen}
         items={navigationItems}
         userProfile={userProfile}

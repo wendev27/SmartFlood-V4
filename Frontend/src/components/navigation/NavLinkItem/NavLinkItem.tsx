@@ -25,7 +25,7 @@ export function NavLinkItem({ item, isActive, onNavigate }: NavLinkItemProps) {
       <span className={styles.icon}>
         <SidebarIcon item={item} />
       </span>
-      {item.label}
+      <span className={styles.label}>{item.label}</span>
     </a>
   );
 }
