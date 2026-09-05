@@ -6,6 +6,7 @@ import type { NavItem, PageKey } from "@/types/navigation";
 import { NavLinkItem } from "@/components/navigation/NavLinkItem/NavLinkItem";
 import type { DashboardUserProfile } from "@/components/layout/AppShell/AppShell";
 import { clearStoredSession } from "@/lib/authSession";
+import { formatBarangayName } from "@/lib/formatters";
 import styles from "./Sidebar.module.css";
 
 interface SidebarProps {
@@ -27,7 +28,7 @@ export function Sidebar({ activePage, isOpen, items = navigationItems, userProfi
         ? "/images/dashboard/barangay-potrero-seal.png"
         : "";
   const activeItemIndex = items.findIndex((item) => item.key === activePage);
-  const barangayLabel = String(userProfile.barangayName || userProfile.displayName || "Barangay")
+  const barangayLabel = formatBarangayName(String(userProfile.barangayName || userProfile.displayName || "Barangay"))
     .replace(/^barangay\s+/i, "")
     .trim();
   const systemLogLabel = barangayLabel ? `Barangay ${barangayLabel} System Logs` : "Barangay System Logs";
@@ -77,7 +78,7 @@ export function Sidebar({ activePage, isOpen, items = navigationItems, userProfi
             ? <img className={styles.profileSeal} src={barangaySeal} alt="" />
             : <span className={styles.profileAvatar}>{userProfile.initials}</span>}
           <div>
-            <strong>{userProfile.displayName || userProfile.roleLabel}</strong>
+            <strong>{formatBarangayName(userProfile.displayName || userProfile.roleLabel)}</strong>
             <small>Disaster Response</small>
           </div>
           <button type="button" onClick={logout} aria-label="Log out">

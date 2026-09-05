@@ -14,7 +14,7 @@ import type { AuditLog } from "@/types/logs";
 import styles from "./SystemLogs.module.css";
 
 export function SystemLogs() {
-  const pageSize = 5;
+  const pageSize = 7;
   const [query, setQuery] = useState("");
   const [moduleFilter, setModuleFilter] = useState("");
   const [actionFilter, setActionFilter] = useState("");
@@ -76,24 +76,18 @@ export function SystemLogs() {
 
   return (
     <section className={styles.panel} aria-label={title}>
+      <h1>{title}</h1>
+      <article className={cn(styles.logCard, !isLoading && paginatedLogs.rows.length === 0 && styles.emptyCard)}>
       <div className={styles.toolbar}>
         <label className={styles.search}>
           <span className={styles.searchIcon} />
           <input
             type="search"
-            placeholder="Search logs by actor, action, module, or barangay..."
+            placeholder="Search by name, email, or employee ID..."
             value={query}
             onChange={(event) => setQuery(event.target.value)}
           />
         </label>
-        <select value={moduleFilter} onChange={(event) => setModuleFilter(event.target.value)} aria-label="Module">
-          <option value="">All Modules</option>
-          {moduleOptions.map((module) => <option key={module} value={module}>{module}</option>)}
-        </select>
-        <select value={actionFilter} onChange={(event) => setActionFilter(event.target.value)} aria-label="Action">
-          <option value="">All Actions</option>
-          {actionOptions.map((action) => <option key={action} value={action}>{action}</option>)}
-        </select>
       </div>
 
       {error ? <p className={styles.error}>{error}</p> : null}
@@ -103,39 +97,38 @@ export function SystemLogs() {
         <table className={styles.table}>
           <thead>
             <tr>
-              <th>Date/Time</th>
-              <th>Actor</th>
-              <th>Role</th>
+              <th>Event</th>
+              <th>Email</th>
+              <th>Department</th>
               <th>Action</th>
-              <th>Module</th>
-              <th>Details</th>
+              <th>Timestamp</th>
             </tr>
           </thead>
           <tbody>
             {paginatedLogs.rows.map((log) => (
               <tr key={log.log_id ?? `${log.created_at}-${log.action}`}>
-                <td>{formatDateTime(log.created_at ?? "")}</td>
+                <td className={styles.event}>{log.action}</td>
                 <td>{formatBarangayName(log.actor_name || "-")}</td>
-                <td>{log.actor_role || "-"}</td>
-                <td><span className={cn(styles.action, styles[getActionTone(log.action)])}>{log.action}</span></td>
-                <td>{log.module ?? "-"}</td>
-                <td><button className={styles.previewButton} type="button" onClick={() => setPreviewLog(log)}>Preview</button></td>
+                <td>{formatBarangayName(log.barangay_name || log.actor_role || "-")}</td>
+                <td>{formatBarangayName(log.description || log.module || "-")}</td>
+                <td>{formatDateTime(log.created_at ?? "")}</td>
               </tr>
             ))}
             {isLoading ? (
               <tr>
-                <td className={styles.empty} colSpan={6}>Loading logs...</td>
+                <td className={styles.empty} colSpan={5}>Loading logs...</td>
               </tr>
             ) : null}
             {!isLoading && logs.length === 0 ? (
               <tr>
-                <td className={styles.empty} colSpan={6}>{emptyMessage}</td>
+                <td className={styles.empty} colSpan={5}>{emptyMessage}</td>
               </tr>
             ) : null}
           </tbody>
         </table>
       </div>
-      <Pagination pagination={paginatedLogs.pagination} onPageChange={setPage} label="Audit logs" />
+      </article>
+      <Pagination compact pagination={paginatedLogs.pagination} onPageChange={setPage} label="System logs" />
 
       <Modal isOpen={Boolean(previewLog)} onClose={() => setPreviewLog(null)} labelledBy="log-preview-title" size="md">
         {previewLog ? (

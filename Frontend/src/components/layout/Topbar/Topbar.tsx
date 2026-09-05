@@ -13,7 +13,8 @@ export function Topbar({ activePage, userProfile }: TopbarProps) {
   const isBarangayModuleLanding = activePage === "reliefDistribution" && /barangay/i.test(userProfile.roleLabel);
   const isBarangayRbi = activePage === "residents" && /barangay/i.test(userProfile.roleLabel);
   const isBarangayRegistration = activePage === "accounts" && /barangay/i.test(userProfile.roleLabel);
-  const isActionsOnly = activePage === "monitoring" || activePage === "emergencyNotifications" || isBarangayModuleLanding || isBarangayRbi || isBarangayRegistration;
+  const isSystemLogsPage = activePage === "systemLogs";
+  const isActionsOnly = activePage === "monitoring" || activePage === "emergencyNotifications" || isBarangayModuleLanding || isBarangayRbi || isBarangayRegistration || isSystemLogsPage;
   const copy = activePage === "systemLogs"
     ? { ...pageCopy[activePage], title: userProfile.logLabel }
     : pageCopy[activePage];

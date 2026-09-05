@@ -131,5 +131,5 @@ export function logLabelForRole(role: NormalizedRole, user?: StoredSessionUser |
   if (role === "cdrrmo") return "CDRRMO System Logs";
 
   const barangay = formatBarangayName(user?.barangay_name ?? user?.barangay ?? user?.department ?? "").replace(/^Barangay\s+/i, "").trim();
-  return barangay ? `${barangay} System Logs` : "Barangay System Logs";
+  return barangay ? `Barangay ${barangay} System Logs` : "Barangay System Logs";
 }
