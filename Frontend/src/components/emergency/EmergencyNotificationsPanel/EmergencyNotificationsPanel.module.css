@@ -367,7 +367,7 @@
 .lineItems dd { color: #0088ff; margin: 0; }
 
 .modalHeader { padding: 40px 40px 0; }
-.allocationDialog { border-radius: 16px; min-height: min(638px, calc(100dvh - 32px)); }
+.allocationDialog { border-radius: 16px; height: auto; max-height: calc(100dvh - 48px); min-height: 0; overflow-x: hidden; overflow-y: auto; }
 .modalBody { padding: 30px 40px; }
 .modalActions { padding: 0 40px 32px; }
 .modalHeader button { background: #a8d5ff; border-radius: 10px; color: #0088ff; height: 40px; width: 40px; }
@@ -386,4 +386,7 @@
 @media (max-width: 680px) {
   .grid { grid-template-columns: 1fr; }
   .card { min-height: 0; }
+  .modalHeader { padding: 24px 24px 0; }
+  .modalBody { padding: 24px; }
+  .modalActions { padding: 0 24px 24px; }
 }
