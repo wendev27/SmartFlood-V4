@@ -57,7 +57,12 @@ export function SensorsPanel() {
     setSelectedSensorId(explicitSensorId);
   }, []);
 
-  const barangays = useMemo(() => Array.from(new Set(sensors.map((sensor) => sensor.barangay))).sort(), [sensors]);
+  const barangays = useMemo(() => Array.from(new Set([
+    "Barangay Longos",
+    "Barangay Potrero",
+    "Barangay Tañong",
+    ...sensors.map((sensor) => sensor.barangay),
+  ])).sort(), [sensors]);
   const displayedSensors = useMemo(() => sensors.filter((sensor) => {
     const normalizedSearch = search.trim().toLowerCase();
     return (!normalizedSearch || sensor.sensor_id.toLowerCase().includes(normalizedSearch))

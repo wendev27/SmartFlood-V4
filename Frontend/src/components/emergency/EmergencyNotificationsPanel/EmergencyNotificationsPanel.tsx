@@ -43,14 +43,20 @@ export function EmergencyNotificationsPanel() {
     [notifications, selectedId],
   );
   const unreadCount = notifications.filter((notification) => notification.status === "pending" || notification.status === "sent").length;
+  const filteredNotifications = useMemo(() => notifications.filter((notification) => {
+    if (allocationFilter === "Family / Individual") return true;
+    const allocation = notification.allocation_item;
+    if (allocationFilter === "Family") return Number(allocation?.family_food_packs ?? 0) > 0 || Number(allocation?.emergency_kits ?? 0) > 0;
+    return Number(allocation?.individual_relief_goods ?? 0) > 0;
+  }), [allocationFilter, notifications]);
   const paginatedNotifications = useMemo(() => {
-    const totalPages = Math.max(1, Math.ceil(notifications.length / pageSize));
+    const totalPages = Math.max(1, Math.ceil(filteredNotifications.length / pageSize));
     const safePage = Math.min(page, totalPages);
     return {
-      rows: notifications.slice((safePage - 1) * pageSize, safePage * pageSize),
-      pagination: { page: safePage, limit: pageSize, total: notifications.length, totalPages } satisfies PaginationState,
+      rows: filteredNotifications.slice((safePage - 1) * pageSize, safePage * pageSize),
+      pagination: { page: safePage, limit: pageSize, total: filteredNotifications.length, totalPages } satisfies PaginationState,
     };
-  }, [notifications, page]);
+  }, [filteredNotifications, page]);
 
   useEffect(() => {
     if (page !== paginatedNotifications.pagination.page) setPage(paginatedNotifications.pagination.page);
@@ -189,7 +195,7 @@ export function EmergencyNotificationsPanel() {
 
       <label className={styles.allocationFilter}>
         <span>Filter</span>
-        <select value={allocationFilter} onChange={(event) => setAllocationFilter(event.target.value)}>
+        <select value={allocationFilter} onChange={(event) => { setAllocationFilter(event.target.value); setPage(1); }}>
           <option>Family / Individual</option>
           <option>Family</option>
           <option>Individual</option>
@@ -198,8 +204,8 @@ export function EmergencyNotificationsPanel() {
 
       {isInitialLoading ? (
         <div className={styles.emptyState}>Loading emergency notifications...</div>
-      ) : notifications.length === 0 ? (
-        <div className={styles.emptyState}>No emergency relief notifications for your barangay yet.</div>
+      ) : filteredNotifications.length === 0 ? (
+        <div className={styles.emptyState}>{notifications.length === 0 ? "No emergency relief notifications for your barangay yet." : `No ${allocationFilter.toLowerCase()} allocations match this filter.`}</div>
       ) : (
         <div className={styles.grid}>
           {paginatedNotifications.rows.map((notification, index) => (

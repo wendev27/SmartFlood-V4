@@ -162,7 +162,12 @@ function FloodHistory({ onBack, userProfile }: MonitoringSubpageProps) {
     };
   }, [refreshVersion]);
 
-  const barangays = useMemo(() => Array.from(new Set(history.map((reading) => reading.barangayName))).sort(), [history]);
+  const barangays = useMemo(() => Array.from(new Set([
+    "Barangay Longos",
+    "Barangay Potrero",
+    "Barangay Tañong",
+    ...history.map((reading) => reading.barangayName),
+  ])).sort(), [history]);
   const filteredHistory = useMemo(() => history.filter((reading) => {
     const date = reading.createdAt ? new Date(reading.createdAt) : null;
     const matchesDate = !historyDate || (date != null && !Number.isNaN(date.getTime()) && localDateKey(date) === historyDate);

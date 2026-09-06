@@ -3,7 +3,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { useEffect, useMemo, useState } from "react";
 import { Pagination } from "@/components/ui/Pagination/Pagination";
-import { formatBarangayName } from "@/lib/formatters";
+import { formatBarangayName, normalizeBarangayForCompare } from "@/lib/formatters";
 import { queryKeys, queryStaleTime } from "@/lib/queryKeys";
 import { getReliefCampaignHistory, getReliefDistributionHistory } from "@/services/emergencyService";
 import type { ReliefDistributionRecord } from "@/types/emergency";
@@ -45,8 +45,19 @@ function DistributionLanding({ onBack, onSelect }: { onBack: () => void; onSelec
 function DistributionRecords({ view, records, campaignName, page, loading, refreshing, onRefresh, onBack, onPage }: { view:"list"|"history"; records:ReliefDistributionRecord[]; campaignName:string; page:number; loading:boolean; refreshing:boolean; onRefresh:()=>void; onBack:()=>void; onPage:(page:number)=>void }) {
   const [barangay, setBarangay] = useState("");
   const [recommendation, setRecommendation] = useState("");
-  const barangays = useMemo(() => Array.from(new Set(records.map((row) => row.barangay_name).filter(Boolean) as string[])).sort(), [records]);
-  const filtered = useMemo(() => records.filter((row) => (!barangay || row.barangay_name === barangay) && (!recommendation || campaignName.toLowerCase().includes(recommendation))), [barangay, campaignName, recommendation, records]);
+  const [distributionDate, setDistributionDate] = useState("");
+  const barangays = useMemo(() => Array.from(new Set([
+    "Barangay Longos",
+    "Barangay Potrero",
+    "Barangay Tañong",
+    ...(records.map((row) => row.barangay_name).filter(Boolean) as string[]),
+  ])).sort(), [records]);
+  const filtered = useMemo(() => records.filter((row) => {
+    const recordDate = row.verified_at ? new Date(row.verified_at).toLocaleDateString("en-CA") : "";
+    return (!barangay || normalizeBarangayForCompare(row.barangay_name ?? "") === normalizeBarangayForCompare(barangay))
+      && (!recommendation || campaignName.toLowerCase().includes(recommendation))
+      && (!distributionDate || recordDate === distributionDate);
+  }), [barangay, campaignName, distributionDate, recommendation, records]);
   const totalPages = Math.max(1, Math.ceil(filtered.length / pageSize));
   const safePage = Math.min(page, totalPages);
   const visibleRows = filtered.slice((safePage - 1) * pageSize, safePage * pageSize);
@@ -56,7 +67,7 @@ function DistributionRecords({ view, records, campaignName, page, loading, refre
     <button className={styles.back} type="button" onClick={onBack}>← Back</button>
     <div className={styles.titleRow}><h1>{view === "list" ? "Distribution List" : "Distribution History"}</h1>{view === "list" ? <button type="button" onClick={onRefresh} aria-label="Refresh distribution list"><RefreshCw className={refreshing ? styles.spinning : ""} /></button> : null}</div>
     {loading ? <p className={styles.message}>Loading distribution records...</p> : null}
-    {view === "history" ? <div className={styles.filters}><label>Barangay<select value={barangay} onChange={(event)=>{setBarangay(event.target.value);onPage(1)}}><option value="">All Barangays</option>{barangays.map((name)=><option key={name}>{name}</option>)}</select></label><label>Type of recommendation<select value={recommendation} onChange={(event)=>{setRecommendation(event.target.value);onPage(1)}}><option value="">Severity first, Vulnerability first, Balanced</option><option value="severity">Severity first</option><option value="vulnerability">Vulnerability first</option><option value="balanced">Balanced</option></select></label><label>Date Range<span className={styles.dateField}>▦ <span>All distribution dates</span></span></label></div> : null}
+    {view === "history" ? <div className={styles.filters}><label>Barangay<select value={barangay} onChange={(event)=>{setBarangay(event.target.value);onPage(1)}}><option value="">All Barangays</option>{barangays.map((name)=><option key={name}>{name}</option>)}</select></label><label>Type of recommendation<select value={recommendation} onChange={(event)=>{setRecommendation(event.target.value);onPage(1)}}><option value="">All recommendation types</option><option value="severity">Severity first</option><option value="vulnerability">Vulnerability first</option><option value="balanced">Balanced</option></select></label><label>Distribution Date<input type="date" value={distributionDate} onChange={(event)=>{setDistributionDate(event.target.value);onPage(1)}} /></label></div> : null}
     {view === "history" ? <><HistoryTable title="Individual" rows={[]} campaignName={campaignName} /><HistoryTable title="Family" rows={familyRows} campaignName={campaignName} /></> : <ListTable rows={visibleRows} start={(safePage - 1) * pageSize} />}
     {!loading && filtered.length === 0 ? <p className={styles.empty}>No confirmed relief distributions are available.</p> : null}
     <Pagination pagination={pagination} onPageChange={onPage} label="Distribution records" compact />

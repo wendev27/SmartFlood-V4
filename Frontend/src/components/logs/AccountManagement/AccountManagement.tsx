@@ -124,7 +124,12 @@ export function AccountManagement() {
     queryClient.invalidateQueries({ queryKey: queryKeys.logs.audit }),
   ]);
 
-  const departmentOptions = useMemo(() => uniqueSorted(users.map((user) => user.department)), [users]);
+  const departmentOptions = useMemo(() => uniqueSorted([
+    "Barangay Longos",
+    "Barangay Potrero",
+    "Barangay Tañong",
+    ...users.map((user) => user.department),
+  ]), [users]);
   const roleFilterOptions = useMemo(() => {
     const labels = new Set(roleOptions);
     users.forEach((user) => labels.add(user.role_label || "Unassigned"));

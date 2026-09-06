@@ -144,7 +144,12 @@ export function ReliefPanel({ mode = "all" }: { mode?: "all" | "recommendation" 
   const paginatedCurrentAllocationRecommendations = useMemo(() => paginateRecommendations(currentAllocationRecommendations, currentAllocationPage, pageSize), [currentAllocationPage, currentAllocationRecommendations]);
   const paginatedSelectedRecommendations = useMemo(() => paginateRecommendations(selectedRecommendations, selectedRecommendationPage, pageSize), [selectedRecommendationPage, selectedRecommendations]);
   const hasActiveCampaign = Boolean(currentEmergencyAllocation && isActiveCampaignStatus(currentEmergencyAllocation.status));
-  const historyBarangays = useMemo(() => Array.from(new Set(history.map((entry) => entry.barangay).filter(Boolean))).sort(), [history]);
+  const historyBarangays = useMemo(() => Array.from(new Set([
+    "Barangay Longos",
+    "Barangay Potrero",
+    "Barangay Tañong",
+    ...history.map((entry) => entry.barangay).filter(Boolean),
+  ])).sort(), [history]);
   const filteredHistory = useMemo(() => {
     const normalizedSearch = normalizeBarangayForCompare(historySearch);
 

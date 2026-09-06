@@ -350,7 +350,7 @@ export function ReliefDistributionPanel({ mode = "distribution" }: { mode?: "dis
         <p className={styles.uuidHint}>Enter the UUID (Universal Unique Identifier) if the QR cannot be scanned.</p>
 
         <section className={styles.distributionFilters}>
-          <button className={styles.allFilter} type="button">All</button>
+          <button className={styles.allFilter} type="button" onClick={() => { setBeneficiaryFilter("all"); setBeneficiarySearch(""); setBeneficiaryPage(1); }}>All</button>
           <label><SearchIcon /><input value={beneficiarySearch} onChange={(event) => { setBeneficiarySearch(event.target.value); setBeneficiaryPage(1); }} placeholder="Search family name or full name" /></label>
           <button className={styles.zoneFilter} type="button"><PinIcon />Barangay Zone</button>
         </section>
