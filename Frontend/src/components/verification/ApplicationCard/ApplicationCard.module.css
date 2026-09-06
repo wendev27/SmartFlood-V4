@@ -131,3 +131,13 @@
   min-height: 86px;
   padding: 16px 20px;
 }
+
+/* Registration cards follow the supplied desktop reference. */
+.card.card{border:0;border-radius:14px;box-shadow:0 1px 3px rgba(0,0,0,.10),0 1px 2px -1px rgba(0,0,0,.10);color:#1e1e1e;font-family:"Source Sans Pro",ui-sans-serif,system-ui,sans-serif;gap:16px;grid-template-columns:64px minmax(0,1fr) auto;min-height:200px;padding:24px}.card .avatar{background:#0088ff;font-family:"Source Sans Pro",ui-sans-serif,system-ui,sans-serif;font-size:20px;height:64px;width:64px}.card .nameRow{gap:12px;margin-bottom:8px}.card .nameRow h3{color:#1e1e1e;font-family:"Source Sans Pro",ui-sans-serif,system-ui,sans-serif;font-size:18px;font-weight:400;line-height:28px}.card .statusBadge{background:transparent;display:inline-flex;min-width:0;padding:0}.card .statusBadge>span{font-size:12px;font-weight:400;min-width:65px;padding:4px 12px}.card .statusBadge.pending>span{background:#0088ff;color:#fff}.card .statusBadge.approved>span{background:rgba(16,185,129,.1);color:#10b981}.card .statusBadge.rejected>span{background:rgba(255,56,48,.1);color:#ff3830}.card .details{gap:16px;grid-template-columns:repeat(4,114px);margin-bottom:8px;max-width:none}.card .details p,.card .meta{color:#1e1e1e;font-family:"Source Sans Pro",ui-sans-serif,system-ui,sans-serif;font-size:14px;line-height:20px}.card .details small{color:#1e1e1e;font-size:12px;line-height:16px;margin-bottom:0}.card .meta{display:flex;margin:0 24px 8px 0}.card .actions button{background:#0088ff;border-radius:10px;font-family:"Source Sans Pro",ui-sans-serif,system-ui,sans-serif;font-size:16px;font-weight:400;height:40px;min-height:40px;min-width:100px;padding:0 14px}
+
+@media (max-width: 760px) {
+  .card.card{grid-template-columns:52px minmax(0,1fr);padding:20px}.card .avatar{font-size:17px;height:52px;width:52px}.card .actions{grid-column:1/-1;width:100%}.card .actions button{width:100%}.card .details{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+
+/* Reviewed feedback stays compact and only uses the space its content needs. */
+.card .approvalNote{margin-top:10px;max-width:none;min-height:0;padding:8px 16px;width:100%}.card .approvalNote p{font-size:12px;line-height:16px;margin:0 0 3px}.card .approvalNote p:last-child{margin-bottom:0}

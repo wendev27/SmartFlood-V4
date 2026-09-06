@@ -15,7 +15,7 @@ export function Topbar({ activePage, adminView, onNavigate, userProfile }: Topba
   const effectiveRole = adminView?.role ?? (/barangay/i.test(userProfile.roleLabel) ? "barangay" : /cswdd/i.test(userProfile.roleLabel) ? "cswdd" : "cdrrmo");
   const isBarangayModuleLanding = activePage === "reliefDistribution" && effectiveRole === "barangay";
   const isResidentPage = activePage === "residents";
-  const isBarangayRegistration = activePage === "accounts" && effectiveRole === "barangay";
+  const isBarangayRegistration = activePage === "accounts";
   const isSystemLogsPage = activePage === "systemLogs";
   const isCswddRelief = activePage === "relief" && effectiveRole === "cswdd";
   const isCdrrmoAccount = activePage === "logs" && /cdrrmo|command center|super admin/i.test(`${userProfile.roleLabel} ${userProfile.displayName}`);

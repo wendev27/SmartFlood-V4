@@ -105,7 +105,7 @@ export function VerificationPanel() {
     rejected: String(applications.filter((application) => application.status === "rejected").length),
   }), [applications]);
 
-  async function reviewApplication(action: "approved" | "rejected") {
+  async function reviewApplication(action: "approved" | "rejected", notes?: string) {
     if (!selectedApplication) return;
     if (selectedApplication.status !== "pending") {
       setResultModal({
@@ -121,7 +121,7 @@ export function VerificationPanel() {
     const selectedFamilyId = selectedApplication.raw?.selected_family_id ?? selectedApplication.raw?.family_id;
     const body: Record<string, unknown> = {
       action,
-      admin_review_notes: action === "approved" ? "Approved from SmartFlood admin dashboard" : "Rejected from SmartFlood admin dashboard",
+      admin_review_notes: notes || (action === "approved" ? "Approved from SmartFlood admin dashboard" : "Rejected from SmartFlood admin dashboard"),
     };
 
     if (action === "approved" && !selectedApplication.raw?.is_family_head) {
@@ -231,8 +231,8 @@ export function VerificationPanel() {
       <ReviewModal
         isOpen={isReviewOpen}
         application={selectedApplication}
-        onApprove={() => reviewApplication("approved")}
-        onReject={() => reviewApplication("rejected")}
+        onApprove={(notes) => reviewApplication("approved", notes)}
+        onReject={(notes) => reviewApplication("rejected", notes)}
         onClose={() => setIsReviewOpen(false)}
       />
       <ApplicationFormModal
