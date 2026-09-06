@@ -1,0 +1,29 @@
+.screen {
+  align-items: center;
+  background: #f8fbff;
+  color: #0088ff;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  justify-content: center;
+  min-height: 100vh;
+}
+
+.ripple {
+  filter: drop-shadow(0 8px 18px rgba(0, 136, 255, 0.22));
+  height: 128px;
+  width: 128px;
+}
+
+.screen p {
+  color: #64748b;
+  font-size: 16px;
+  font-weight: 600;
+  margin: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ripple {
+    opacity: 0.65;
+  }
+}
