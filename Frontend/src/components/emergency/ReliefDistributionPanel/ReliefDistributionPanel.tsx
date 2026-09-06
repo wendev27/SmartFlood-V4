@@ -3,6 +3,7 @@
 import { FormEvent, useEffect, useMemo, useState } from "react";
 import QRCode from "qrcode";
 import { Modal } from "@/components/ui/Modal/Modal";
+import { EmptyState } from "@/components/ui/EmptyState";
 import { Pagination as SharedPagination, type PaginationState } from "@/components/ui/Pagination/Pagination";
 import { AdminReliefAuditPanel } from "@/components/emergency/ReliefDistributionPanel/AdminReliefAuditPanel";
 import { cn } from "@/lib/cn";
@@ -405,7 +406,7 @@ export function ReliefDistributionPanel({
             <table className={styles.reportTable}>
               <thead><tr><th>Family</th><th>Assigned Relief</th><th>Status</th><th>Scheduled Date</th><th>Received At</th></tr></thead>
               <tbody>
-                {beneficiaryStatusRows.length === 0 ? <tr><td colSpan={5}>No beneficiaries match this relief program.</td></tr> : beneficiaryStatusRows.map((row) => (
+                {beneficiaryStatusRows.length === 0 ? <tr><td colSpan={5}><EmptyState searchResult={Boolean(beneficiarySearch || beneficiaryFilter !== "all")} title="No beneficiaries match" description="We couldn’t find any beneficiaries matching your search or active filters." /></td></tr> : beneficiaryStatusRows.map((row) => (
                   <tr key={row.family_id}>
                     <td>{row.family_name}</td><td>Relief allocation</td><td className={styles.statusCell}>{row.status_label}</td>
                     <td>{formatDate(selectedCampaign?.started_at ?? selectedCampaign?.accepted_at ?? selectedCampaign?.created_at)}</td>
@@ -591,7 +592,7 @@ export function ReliefDistributionPanel({
               </thead>
               <tbody>
                 {beneficiaryStatusRows.length === 0 ? (
-                  <tr><td colSpan={5}>No beneficiaries match this campaign status view.</td></tr>
+                  <tr><td colSpan={5}><EmptyState searchResult={Boolean(beneficiarySearch || beneficiaryFilter !== "all")} title="No beneficiaries match" description="We couldn’t find any beneficiaries matching your search or active filters." /></td></tr>
                 ) : beneficiaryStatusRows.map((row) => (
                   <tr key={row.family_id}>
                     <td>{row.family_name}</td>

@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { EmptyState } from "@/components/ui/EmptyState";
 import styles from "./NotificationPanel.module.css";
 
 type Category = "Alert" | "Relief" | "System";
@@ -36,7 +37,7 @@ export function NotificationPanel({ onBack }: { onBack: () => void }) {
     </div>
     <div className={styles.list}>
       {visible.map((item) => <article key={item.id}>{item.unread ? <i className={styles.unread} /> : null}<Icon category={item.category} /><div><h2>{item.title}</h2><p>{item.message}</p></div></article>)}
-      {visible.length === 0 ? <p className={styles.empty}>We couldn’t find any notifications matching your search or active filter.</p> : null}
+      {visible.length === 0 ? <EmptyState searchResult title="No notifications match" description="We couldn’t find any notifications matching your search or active filter." /> : null}
     </div>
   </section>;
 }

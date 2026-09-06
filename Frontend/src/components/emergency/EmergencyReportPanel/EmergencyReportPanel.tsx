@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react";
 import { createPortal } from "react-dom";
 import { Pagination, type PaginationState } from "@/components/ui/Pagination/Pagination";
+import { EmptyState } from "@/components/ui/EmptyState";
 import styles from "./EmergencyReportPanel.module.css";
 
 type View = "main" | "reports" | "history";
@@ -61,7 +62,13 @@ export function EmergencyReportPanel() {
         <table><thead><tr><th>Name</th><th>Location</th><th>Phone Number</th><th>Status</th><th /></tr></thead>
           <tbody>{visibleRows.map((report) => <tr key={report.id}><td>{report.name}</td><td>{report.location}</td><td>{report.phone}</td><td><span className={styles[statusClass(report.status)]}>{report.status}</span></td><td><button className={styles.details} type="button" onClick={() => setSelected(report)}><EyeIcon />Details</button></td></tr>)}</tbody>
         </table>
-        {!visibleRows.length ? <div className={styles.empty}>No emergency {isHistory ? "history records" : "reports"} available.</div> : null}
+        {!visibleRows.length ? (
+          <EmptyState
+            searchResult={Boolean(query)}
+            title={query ? "No emergency reports match your search" : `No emergency ${isHistory ? "history records" : "reports"} available`}
+            description={query ? "We couldn’t find any emergency reports matching your search." : "Emergency reports will appear here when they become available."}
+          />
+        ) : null}
       </div>
       <Pagination compact pagination={pagination} onPageChange={setPage} label="Emergency reports" />
       {selected ? createPortal(<div className={styles.overlay} onMouseDown={(event) => event.target === event.currentTarget && setSelected(null)}>

@@ -107,7 +107,6 @@ export function LoginPage() {
               </span>
             </label>
 
-            <button className={styles.forgotLink} type="button">Forgot password?</button>
             <button className={styles.loginButton} type="submit" disabled={isSubmitting}>{isSubmitting ? "Logging in..." : "Login"}</button>
           </form>
         </div>

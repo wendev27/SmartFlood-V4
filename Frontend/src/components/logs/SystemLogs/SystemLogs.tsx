@@ -3,6 +3,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { useEffect, useMemo, useState } from "react";
 import { Modal } from "@/components/ui/Modal/Modal";
+import { EmptyState } from "@/components/ui/EmptyState";
 import { Pagination, type PaginationState } from "@/components/ui/Pagination/Pagination";
 import { getCurrentUser, logLabelForRole, normalizeUserRole } from "@/lib/authSession";
 import { cn } from "@/lib/cn";
@@ -142,7 +143,13 @@ export function SystemLogs({ adminView }: { adminView?: AdminViewContext | null 
             ) : null}
             {!isLoading && logs.length === 0 ? (
               <tr>
-                <td className={styles.empty} colSpan={5}>{emptyMessage}</td>
+                <td className={styles.empty} colSpan={5}>
+                  <EmptyState
+                    searchResult={Boolean(query || departmentFilter || moduleFilter || actionFilter)}
+                    title="No logs match your filters"
+                    description={query || departmentFilter || moduleFilter || actionFilter ? "We couldn’t find any system logs matching your search or active filters." : emptyMessage}
+                  />
+                </td>
               </tr>
             ) : null}
           </tbody>
