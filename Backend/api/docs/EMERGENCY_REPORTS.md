@@ -1,19 +1,19 @@
 # Emergency reports: existing-schema integration
 
-The dashboard now reads existing resident reports and performs barangay status updates against the supplied eight-column table. No migration, table, bucket, user, resident, barangay, or live sample record was created. No live report was advanced during testing.
+The dashboard now reads existing resident reports and performs barangay status updates against the supplied eight-column table. A status-label migration is now provided; no table, bucket, user, resident, barangay, or live sample record was created. The migration has not been applied to live Supabase. No live report was advanced during testing.
 
 ## Source of truth and compatibility
 
-The supplied schema confirms UUID `id`, UUID `user_id` referencing `residents_v3.resident_id`, location (3–300 characters), optional description (1–2000 characters), 1–5 stored image paths, status and created/updated timestamps. Accepted database statuses are `Pending`, `En Route`, `On Scene`, `Resolved`, `Rejected`, and `Cancelled`.
+The supplied schema confirms UUID `id`, UUID `user_id` referencing `residents_v3.resident_id`, location (3–300 characters), optional description (1–2000 characters), 1–5 stored image paths, status and created/updated timestamps. The original constraint accepts `On Scene`. The new migration replaces it with `Arrived`, retaining `Pending`, `En Route`, `Resolved`, `Rejected`, and `Cancelled`.
 
 | Database | API | REY presentation |
 | --- | --- | --- |
 | Pending | pending | Pending |
 | En Route | en_route | En Route |
-| On Scene | arrived | Arrived |
+| Arrived (legacy On Scene is also readable) | arrived | Arrived |
 | Resolved | resolved | Resolved / Emergency History |
 
-Rejected/Cancelled rows remain unchanged and are excluded from this active/resolved UI. No lowercase values or `Arrived` value are written into the database. The archived `emergency-lifecycle-draft.DO-NOT-APPLY.sql` is an obsolete proposal, moved OUT of `supabase/migrations` to prevent accidental application. It is not required by this integration and must not be executed.
+Rejected/Cancelled rows remain unchanged and are excluded from this active/resolved UI. New arrival writes use `Arrived`; the API continues to use lowercase `arrived`. The archived `emergency-lifecycle-draft.DO-NOT-APPLY.sql` is an obsolete proposal, moved OUT of `supabase/migrations` to prevent accidental application. It is not required by this integration and must not be executed.
 
 The existing private `emergency-report-images` bucket retains its current configuration and policies. Policy/trigger/index definitions were not supplied or fully exposed by PostgREST; this implementation makes no claim to have changed or audited direct mobile Supabase access.
 
@@ -25,7 +25,7 @@ Dashboard authentication continues to verify the existing signed HttpOnly cookie
 
 Scope follows the resident's current registry assignment because there is no report-level barangay column. This preserves the existing model. Concurrent administrative reassignment between the scope read and status write is not transactionally locked; historical report assignment or atomic reassignment handling would require a separately reviewed DB operation/schema change.
 
-Allowed dashboard changes are Pending → En Route → On Scene. Responses are mapped from persisted database rows, not optimistic React updates. `updated_at` is persisted; dedicated transition timestamp columns do not exist. Arrived stays active. Existing Resolved records appear in history without asserting that resident confirmation/feedback was recorded.
+Allowed dashboard changes are Pending → En Route → Arrived. Responses are mapped from persisted database rows, not optimistic React updates. `updated_at` is persisted; dedicated transition timestamp columns do not exist. Arrived stays active. Existing Resolved records appear in history without asserting that resident confirmation/feedback was recorded.
 
 ## API contracts
 
@@ -35,7 +35,7 @@ All JSON responses use `{ success: true, data: T }` or `{ success: false, error:
 | --- | --- | --- |
 | GET `/api/emergency-reports` | `status?`, `search?`, `page?`, `limit?`, `barangay_id?` | `{ reports, counts, pagination }` |
 | GET `/api/emergency-reports/:id` | UUID | One report |
-| PATCH `/api/emergency-reports/:id/status` | `{ status: "en_route" \| "arrived" }` | Persisted report; DB writes En Route / On Scene |
+| PATCH `/api/emergency-reports/:id/status` | `{ status: "en_route" \| "arrived" }` | Persisted report; DB writes En Route / Arrived |
 | GET `/api/emergency-reports/:id/photos/:index` | UUID and zero-based index 0–4 | Authorized image bytes |
 | POST `/api/emergency-reports` | Multipart location, optional description, repeated photos | Reserved foundation; resident authentication still unavailable |
 | POST `/api/emergency-reports/:id/feedback` | `{ confirmed: true, feedback?: string \| null, rating?: number }` | Unavailable until existing mobile identity and feedback schema are integrated |
@@ -68,8 +68,8 @@ Before extending the resident lifecycle, supply the current mobile authenticatio
 
 ## Verification
 
-- 21 backend service/HTTP/repository tests, including production-repository eight-column updates, On Scene mapping, foreign-scope rejection and explicit feedback unavailability. Some earlier domain tests use test-only repository doubles to verify prospective resident rules; they are not proof that resident authentication/feedback is live.
-- 4 isolated PostgreSQL tests against the supplied eight-column constraints: existing rows, stored status transitions, scoped access, and preservation of legacy Resolved records. No migration applied. Local fixtures only; temporary database dropped afterward.
+- 22 backend service/HTTP/repository tests, including production-repository eight-column updates, Arrived writes and legacy On Scene reads, foreign-scope rejection and explicit feedback unavailability. Some earlier domain tests use test-only repository doubles to verify prospective resident rules; they are not proof that resident authentication/feedback is live.
+- 5 isolated PostgreSQL tests against the supplied eight-column schema and new status migration: existing rows, stored status transitions, scoped access, preservation of Resolved records, conversion of legacy arrivals, and repeat migration execution. Migration applied only to an isolated test database. Local fixtures only; temporary database dropped afterward.
 - 19 frontend presentation tests, including adapter/unknown-confirmation handling.
 - Live read-only repository checks: Tañong 0 reports; Catmon 5; Potrero 2 (one resolved). Correct scoping, foreign-scope 404s, and actual photo byte retrieval verified. Counts are a point-in-time snapshot, not application constants.
 - Browser connection unavailable; rendered screenshot parity and interactive browser verification are not claimed. Existing REY CSS/layout retained.
@@ -108,3 +108,22 @@ Frontend integration:
 - `Frontend/tests/presentation.test.cjs`
 
 No existing auth/RBAC helper, relief API/service, AI module, environment file, or live database/storage policy changed. No dependencies installed and no commit/push performed. The user's staged root lockfile remains untouched. New authorization behavior still requires human review before deployment.
+
+## Applying the Arrived status rename
+
+Run `supabase/migrations/20260907010000_rename_emergency_on_scene_to_arrived.sql` in the Supabase SQL Editor before using the updated arrival button. The available REST service credentials cannot alter SQL constraints, so this live step remains pending.
+
+The transaction locates the existing status-only check, aborts for unexpected constraint layouts/statuses, changes existing `On Scene` rows to `Arrived`, and installs the revised allowed values. Existing report IDs, ownership, photos and terminal statuses are retained. It does not explicitly update other columns; existing database triggers still run normally. No new table or column is added. It can be run again safely.
+
+Update any other arrival writer still sending `On Scene` to send `Arrived` after this migration. The dashboard already sends API `arrived` and the backend now persists `Arrived`. Reading legacy `On Scene` rows remains supported during rollout. If the old database check rejects the new label, the API returns an explicit migration-required error rather than pretending the update succeeded.
+
+Files changed for this rename:
+
+- `Backend/api/src/lib/emergencyIncidentRepository.ts`
+- `Backend/api/tests/emergency-incidents.test.cjs`
+- `Backend/api/tests/emergency-incidents.postgres.test.cjs`
+- `Backend/api/docs/EMERGENCY_REPORTS.md`
+- `Frontend/src/types/emergencyIncident.ts` (comment only)
+- `supabase/migrations/20260907010000_rename_emergency_on_scene_to_arrived.sql`
+
+Validation for the rename: 22 backend tests, 5 isolated PostgreSQL tests and backend TypeScript checking passed. No live migration, commit or push was performed.

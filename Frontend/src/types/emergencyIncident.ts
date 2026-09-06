@@ -1,4 +1,4 @@
-/** API incident model; database On Scene is normalized to arrived by the backend. */
+/** API incident model; database Arrived (and legacy On Scene) maps to arrived. */
 export type IncidentStatus = "pending" | "en_route" | "arrived" | "resolved";
 export interface EmergencyIncident {
   id: string; user_id: string; barangay_id: number;

@@ -15,8 +15,12 @@ export interface IncidentRepository {
   download(path: string): Promise<Blob>;
 }
 const columns = "id,user_id,location,description,image_paths,status,created_at,updated_at,resident:residents_v3!inner(resident_id,barangay_id,first_name,middle_name,last_name,suffix,contact_number)";
-const storedStatus: Record<IncidentStatus, string> = { pending: "Pending", en_route: "En Route", arrived: "On Scene", resolved: "Resolved" };
-const apiStatus = Object.fromEntries(Object.entries(storedStatus).map(([key, value]) => [value, key])) as Record<string, IncidentStatus>;
+const storedStatus: Record<IncidentStatus, string> = { pending: "Pending", en_route: "En Route", arrived: "Arrived", resolved: "Resolved" };
+// Continue reading legacy rows during migration; all new arrival writes use Arrived.
+const apiStatus: Record<string, IncidentStatus> = {
+  ...Object.fromEntries(Object.entries(storedStatus).map(([key, value]) => [value, key])) as Record<string, IncidentStatus>,
+  "On Scene": "arrived",
+};
 function failure(error: unknown) {
   if (error) throw new IncidentError(503, "Emergency report data is temporarily unavailable.");
 }
@@ -39,7 +43,7 @@ export function mapIncident(row: any): EmergencyIncident {
 }
 export function createIncidentRepository(client: typeof supabaseServer): IncidentRepository {
   const scoped = (actor: IncidentActor) => scope(client.from("emergency_reports").select(columns)
-    .in("status", Object.values(storedStatus)), actor);
+    .in("status", Object.keys(apiStatus)), actor);
   return {
     async resident(id) {
       const { data, error } = await client.from("residents_v3").select("resident_id,barangay_id,status").eq("resident_id", id).maybeSingle();
@@ -66,6 +70,9 @@ export function createIncidentRepository(client: typeof supabaseServer): Inciden
         .update({ status: storedStatus[change.status!], updated_at: new Date().toISOString() })
         .eq("id", id).eq("user_id", current.user_id).eq("status", storedStatus[expected])
         .select(columns).maybeSingle();
+      if (error?.code === "23514" && change.status === "arrived") {
+        throw new IncidentError(503, "The database rejected Arrived. Apply the emergency status migration before retrying.");
+      }
       failure(error); return data ? mapIncident(data) : null;
     },
     async list(actor, query) {

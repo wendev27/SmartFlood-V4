@@ -28,7 +28,7 @@ const scope = actor => actor.kind === 'resident' ? `user_id=${sql(actor.resident
 const files = new Map();
 // Service uses actual PostgreSQL persistence/CAS and the production list RPC.
 // Storage bytes are local fixtures; Supabase Storage itself is not simulated as a live test.
-const stored = { pending: 'Pending', en_route: 'En Route', arrived: 'On Scene', resolved: 'Resolved' };
+const stored = { pending: 'Pending', en_route: 'En Route', arrived: 'Arrived', resolved: 'Resolved' };
 const { mapIncident } = require('@/lib/emergencyIncidentRepository');
 const mapped = r => r ? mapIncident({ ...r, resident: json(`select to_jsonb(p) from residents_v3 p where resident_id=${sql(r.user_id)}`) }) : null;
 const scoped = actor => actor.kind === 'resident' ? `user_id=${sql(actor.residentId)}` : `user_id in (select resident_id from residents_v3 where barangay_id=${sql(actor.barangayId)})`;
@@ -77,12 +77,16 @@ before(() => {
     insert into emergency_reports(user_id,location,image_paths,status) values
       (${sql(resident.residentId)},'Legacy pending',array['fixture.jpg'],'Pending'),(${sql(resident.residentId)},'Legacy route',array['fixture.jpg'],'En Route');
   `);
+  query(`insert into emergency_reports(user_id,location,image_paths,status) values (${sql(resident.residentId)},'Legacy arrival',array['fixture.jpg'],'On Scene')`);
+  const migration = path.resolve(__dirname, '../../../supabase/migrations/20260907010000_rename_emergency_on_scene_to_arrived.sql');
+  execFileSync('psql', [...args, '-f', migration], { encoding: 'utf8', stdio: ['pipe','pipe','pipe'] });
+
 });
 after(() => { execFileSync('dropdb', ['-h', socket, database]); });
 
-test('existing eight-column schema is used without a migration', () => {
+test('arrival migration preserves the eight-column schema and existing rows', () => {
   assert.equal(Number(query("select count(*) from information_schema.columns where table_name='emergency_reports'")), 8);
-  assert.equal(Number(query('select count(*) from emergency_reports')), 2);
+  assert.equal(Number(query('select count(*) from emergency_reports')), 3);
 });
 test('pending → en_route → arrived persists the existing title-case values', async () => {
   const r = await service.create(resident, form('Lifecycle fixture'));
@@ -91,10 +95,10 @@ test('pending → en_route → arrived persists the existing title-case values',
   await service.changeStatus(barangay,r.id,{status:'en_route'});
   assert.equal(query(`select status from emergency_reports where id=${sql(r.id)}`), 'En Route');
   const arrived=await service.changeStatus(barangay,r.id,{status:'arrived'});
-  assert.equal(query(`select status from emergency_reports where id=${sql(r.id)}`), 'On Scene');
+  assert.equal(query(`select status from emergency_reports where id=${sql(r.id)}`), 'Arrived');
   assert.equal(arrived.status,'arrived'); assert.equal(arrived.arrived_at,null);
   assert.equal(arrived.resident_confirmed,null);
-  assert.throws(()=>query(`update emergency_reports set status='Arrived' where id=${sql(r.id)}`));
+  assert.throws(()=>query(`update emergency_reports set status='On Scene' where id=${sql(r.id)}`));
   assert.equal(await repo.update(r.id,barangay,'pending',{status:'en_route'}),null);
 });
 test('foreign barangay/resident cannot read, advance, or download another report',async()=>{
@@ -110,4 +114,12 @@ test('existing Resolved record remains resolved without manufacturing confirmati
   const row=await service.detail(barangay,r.id);
   assert.equal(row.status,'resolved'); assert.equal(row.resident_confirmed,null); assert.equal(row.resolved_at,null);
   await assert.rejects(service.changeStatus(barangay,r.id,{status:'en_route'}),e=>e.status===409);
+});
+
+test('legacy arrivals are renamed and migration can safely run again',()=>{
+  assert.equal(query("select status from emergency_reports where location='Legacy arrival'"),'Arrived');
+  const before=query("select jsonb_agg(to_jsonb(r) order by id) from emergency_reports r");
+  const migration=path.resolve(__dirname,'../../../supabase/migrations/20260907010000_rename_emergency_on_scene_to_arrived.sql');
+  execFileSync('psql',[...args,'-f',migration],{stdio:['pipe','pipe','pipe']});
+  assert.equal(query("select jsonb_agg(to_jsonb(r) order by id) from emergency_reports r"),before);
 });

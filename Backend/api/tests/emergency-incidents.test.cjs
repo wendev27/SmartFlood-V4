@@ -189,7 +189,7 @@ function existingSchemaClient() {
       eq(key,value) { predicates.push(row => key.split('.').reduce((v,k)=>v?.[k],row)===value); return builder; },
       in(key,values) { predicates.push(row=>values.includes(row[key])); return builder; },
       order() { return builder; }, range(a,b) { start=a; end=b; return builder; },
-      update(values) { assert.deepEqual(Object.keys(values).sort(),['status','updated_at']); assert.ok(['Pending','En Route','On Scene','Resolved'].includes(values.status)); change=values; return builder; },
+      update(values) { assert.deepEqual(Object.keys(values).sort(),['status','updated_at']); assert.ok(['Pending','En Route','Arrived','Resolved'].includes(values.status)); change=values; return builder; },
       async maybeSingle() { const result=run(); return { data:result[0]||null,error:null }; },
       then(resolve,reject) { return Promise.resolve({data:run(),error:null}).then(resolve,reject); },
     };
@@ -198,13 +198,13 @@ function existingSchemaClient() {
   } };
   return { client, rows };
 }
-test('production repository uses On Scene and only existing columns for barangay updates', async()=>{
+test('production repository writes Arrived and only existing columns for barangay updates', async()=>{
   const f=existingSchemaClient(), repo=createIncidentRepository(f.client), service=createIncidentService(repo,async()=>{}), id=f.rows[0].id;
   await service.changeStatus(barangay,id,{status:'en_route'}); assert.equal(f.rows[0].status,'En Route');
-  const result=await service.changeStatus(barangay,id,{status:'arrived'}); assert.equal(f.rows[0].status,'On Scene');
+  const result=await service.changeStatus(barangay,id,{status:'arrived'}); assert.equal(f.rows[0].status,'Arrived');
   assert.equal(result.status,'arrived'); assert.equal(result.arrived_at,null); assert.equal(result.resident_confirmed,null);
   await rejectsStatus(service.resolve(resident,id,{confirmed:true,feedback:'No storage column exists'}),503);
-  assert.equal(f.rows[0].status,'On Scene');
+  assert.equal(f.rows[0].status,'Arrived');
 });
 test('production repository scopes counts/search/history and rejects foreign updates before writing',async()=>{
   const f=existingSchemaClient(), repo=createIncidentRepository(f.client), service=createIncidentService(repo,async()=>{});
@@ -213,4 +213,12 @@ test('production repository scopes counts/search/history and rejects foreign upd
   const history=await repo.list(otherBarangay,{status:'resolved',search:'',page:1,limit:7}); assert.equal(history.reports.length,1);
   assert.equal(history.reports[0].resident_confirmed,null);
   await rejectsStatus(service.changeStatus(otherBarangay,f.rows[0].id,{status:'en_route'}),404); assert.equal(f.rows[0].status,'Pending');
+});
+
+test('legacy On Scene rows remain readable during the Arrived migration', async()=>{
+  const f=existingSchemaClient(); f.rows[0].status='On Scene';
+  const repo=createIncidentRepository(f.client);
+  const list=await repo.list(barangay,{search:'',status:'arrived',page:1,limit:7});
+  assert.equal(list.reports.length,1); assert.equal(list.counts.arrived,1);
+  assert.equal(list.reports[0].status,'arrived');
 });
