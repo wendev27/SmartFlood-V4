@@ -7,6 +7,7 @@ import styles from "./EmergencyReportPanel.module.css";
 
 type View = "main" | "reports" | "history";
 type Status = "Pending" | "En Route" | "Arrived" | "Resolved";
+type ActiveStatus = Exclude<Status, "Resolved">;
 type Report = { id: number; name: string; location: string; phone: string; status: Status; date: string; message: string };
 
 const seedReports: Report[] = [
@@ -20,6 +21,7 @@ export function EmergencyReportPanel() {
   const [view, setView] = useState<View>("main");
   const [reports, setReports] = useState(seedReports);
   const [query, setQuery] = useState("");
+  const [statusFilter, setStatusFilter] = useState<ActiveStatus>("Pending");
   const [page, setPage] = useState(1);
   const [selected, setSelected] = useState<Report | null>(null);
   const [evidenceIndex, setEvidenceIndex] = useState(0);
@@ -28,7 +30,7 @@ export function EmergencyReportPanel() {
   if (view === "main") return <Landing onOpen={setView} />;
 
   const isHistory = view === "history";
-  const rows = reports.filter((report) => isHistory ? report.status === "Resolved" : report.status !== "Resolved");
+  const rows = reports.filter((report) => isHistory ? report.status === "Resolved" : report.status === statusFilter);
   const filtered = rows.filter((report) => `${report.name} ${report.location} ${report.phone} ${report.status}`.toLowerCase().includes(query.toLowerCase()));
   const pagination: PaginationState = { page, limit: 7, total: filtered.length, totalPages: Math.max(1, Math.ceil(filtered.length / 7)) };
   const visibleRows = filtered.slice((page - 1) * 7, page * 7);
@@ -43,8 +45,17 @@ export function EmergencyReportPanel() {
 
   return (
     <section className={styles.page} aria-label={isHistory ? "Emergency history" : "Emergency reports"}>
-      <button className={styles.back} type="button" onClick={() => { setView("main"); setQuery(""); setPage(1); }}>← Back</button>
+      <button className={styles.back} type="button" onClick={() => { setView("main"); setQuery(""); setStatusFilter("Pending"); setPage(1); }}>← Back</button>
       <h1>{isHistory ? "Emergency History" : "Emergency Report"}</h1>
+      {!isHistory ? <div className={styles.statusTabs} role="tablist" aria-label="Emergency report status">
+        {(["Pending", "En Route", "Arrived"] as ActiveStatus[]).map((status) => {
+          const count = reports.filter((report) => report.status === status).length;
+          return <button key={status} type="button" role="tab" aria-selected={statusFilter === status} onClick={() => { setStatusFilter(status); setPage(1); }}>
+            <span className={styles.statusTabIcon} aria-hidden="true">{status === "Pending" ? "◷" : status === "En Route" ? "→" : "✓"}</span>
+            {status}<small>{count}</small>
+          </button>;
+        })}
+      </div> : null}
       <div className={styles.searchBar}><label><SearchIcon /><input value={query} onChange={(event) => { setQuery(event.target.value); setPage(1); }} placeholder="Search" aria-label="Search emergency reports" /></label></div>
       <div className={styles.tableWrap}>
         <table><thead><tr><th>Name</th><th>Location</th><th>Phone Number</th><th>Status</th><th /></tr></thead>
