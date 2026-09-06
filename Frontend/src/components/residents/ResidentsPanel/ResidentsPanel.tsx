@@ -133,6 +133,7 @@ export function ResidentsPanel({ title = "Registry of Barangay Inhabitants (RBI)
   const [residentPage, setResidentPage] = useState(1);
   const [familyPage, setFamilyPage] = useState(1);
   const [connectedResidentPage, setConnectedResidentPage] = useState(1);
+  const [selectedResident, setSelectedResident] = useState<ResidentRow | null>(null);
   const [selectedFamily, setSelectedFamily] = useState<FamilyRow | null>(null);
   const [isResidentModalOpen, setIsResidentModalOpen] = useState(false);
   const [residentModalMode, setResidentModalMode] = useState<"add" | "edit">("add");
@@ -477,7 +478,7 @@ export function ResidentsPanel({ title = "Registry of Barangay Inhabitants (RBI)
                       className={cn(resident.selected && styles.selected)}
                     >
                       <td>{String((residentPage - 1) * pageSize + index + 1).padStart(3, "0")}</td>
-                      <td>{isBarangayOfficial && canManageResidentRecords ? <button className={styles.linkButton} title={resident.name} type="button" onClick={() => openEditResident(resident)}>{resident.name}</button> : <span className={styles.linkText} title={resident.name}>{resident.name}</span>}</td>
+                      <td><button className={styles.linkButton} title={`View ${resident.name}`} type="button" onClick={() => setSelectedResident(resident)}>{resident.name}</button></td>
                       <td>{resident.age}</td>
                       <td>{resident.sex}</td>
                       <td>{formatBarangayName(resident.address)}</td>
@@ -775,6 +776,41 @@ export function ResidentsPanel({ title = "Registry of Barangay Inhabitants (RBI)
         </form>
       </Modal>
       <Modal
+        isOpen={Boolean(selectedResident)}
+        onClose={() => setSelectedResident(null)}
+        labelledBy="resident-details-title"
+        className={styles.familyDetailsDialog}
+      >
+        {selectedResident ? (
+          <>
+            <header className={styles.modalHeader}>
+              <div>
+                <h2 id="resident-details-title">{selectedResident.name}</h2>
+                <p>Resident Information</p>
+              </div>
+              <button className={styles.closeButton} type="button" aria-label="Close resident details" onClick={() => setSelectedResident(null)}>x</button>
+            </header>
+            <div className={styles.familyDetailsBody}>
+              <section className={styles.detailsSection}>
+                <h3>Resident Details</h3>
+                <dl className={styles.detailsGrid}>
+                  <Detail label="Resident ID" value={selectedResident.resident_id || "Not recorded"} />
+                  <Detail label="Full Name" value={selectedResident.name} />
+                  <Detail label="Age" value={selectedResident.age || "Not recorded"} />
+                  <Detail label="Sex" value={selectedResident.sex || "Not recorded"} />
+                  <Detail label="Contact Number" value={selectedResident.contact || "Not recorded"} />
+                  <Detail label="Barangay" value={selectedResident.barangay || "Not recorded"} />
+                  <Detail label="Street" value={selectedResident.street || "Not recorded"} />
+                  <Detail label="Complete Address" value={selectedResident.address || "Not recorded"} />
+                  <Detail label="Family ID" value={selectedResident.family_id || "Not assigned"} />
+                  <Detail label="Family Role" value={selectedResident.is_family_head ? "Family Head" : "Family Member"} />
+                </dl>
+              </section>
+            </div>
+          </>
+        ) : null}
+      </Modal>
+      <Modal
         isOpen={Boolean(selectedFamily)}
         onClose={() => setSelectedFamily(null)}
         labelledBy="family-details-title"
@@ -827,7 +863,7 @@ export function ResidentsPanel({ title = "Registry of Barangay Inhabitants (RBI)
                     <tbody>
                       {paginatedConnectedResidents.rows.map((resident, index) => (
                         <tr key={resident.resident_id || `${resident.first_name}-${resident.last_name}-${index}`}>
-                          <td><span className={styles.memberName} title={resident.name}>{resident.name}</span></td>
+                          <td><button className={styles.linkButton} title={`View ${resident.name}`} type="button" onClick={() => { setSelectedFamily(null); setSelectedResident(resident); }}>{resident.name}</button></td>
                           <td>{resident.age}</td>
                           <td>{resident.sex}</td>
                           <td>{resident.contact}</td>

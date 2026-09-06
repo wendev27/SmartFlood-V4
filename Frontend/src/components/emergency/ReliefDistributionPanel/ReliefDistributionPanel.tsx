@@ -1,6 +1,7 @@
 "use client";
 
 import { FormEvent, useEffect, useMemo, useState } from "react";
+import QRCode from "qrcode";
 import { Modal } from "@/components/ui/Modal/Modal";
 import { Pagination as SharedPagination, type PaginationState } from "@/components/ui/Pagination/Pagination";
 import { AdminReliefAuditPanel } from "@/components/emergency/ReliefDistributionPanel/AdminReliefAuditPanel";
@@ -13,7 +14,6 @@ import {
   getReliefBeneficiaryStatus,
   getReliefCampaignHistory,
   getReliefDistributionHistory,
-  reliefDistributionScannerUrl,
   verifyReliefDistribution,
 } from "@/services/emergencyService";
 import type {
@@ -48,6 +48,9 @@ export function ReliefDistributionPanel({
   const [campaigns, setCampaigns] = useState<ReliefCampaign[]>([]);
   const [selectedCampaign, setSelectedCampaign] = useState<ReliefCampaign | null>(null);
   const [isSwitcherOpen, setIsSwitcherOpen] = useState(false);
+  const [isQrOpen, setIsQrOpen] = useState(false);
+  const [qrDataUrl, setQrDataUrl] = useState("");
+  const [qrError, setQrError] = useState("");
   const [identifier, setIdentifier] = useState("");
   const [result, setResult] = useState<ReliefDistributionVerifyResponse | null>(null);
   const [verificationError, setVerificationError] = useState("");
@@ -226,9 +229,20 @@ export function ReliefDistributionPanel({
     setError(null);
   }
 
-  function openScannerWindow() {
+  async function openQrCode() {
     if (!selectedCampaign) return;
-    window.open(reliefDistributionScannerUrl(selectedCampaign.batch_id), "_blank", "noopener,noreferrer");
+    setIsQrOpen(true);
+    setQrError("");
+    try {
+      setQrDataUrl(await QRCode.toDataURL(JSON.stringify({
+        type: "SMARTFLOOD_RELIEF_CAMPAIGN",
+        batchId: selectedCampaign.batch_id,
+        campaign: selectedCampaign.plan_name,
+        barangay: selectedScope,
+      }), { width: 360, margin: 2, errorCorrectionLevel: "M" }));
+    } catch {
+      setQrError("Unable to generate the campaign QR code.");
+    }
   }
 
   async function exportCampaignRecords() {
@@ -347,7 +361,7 @@ export function ReliefDistributionPanel({
               <Detail label="Barangay Scope" value={selectedScope} />
             </dl>
             <div className={styles.polishedActions}>
-              <button type="button" disabled={!selectedCampaign} onClick={openScannerWindow}><ScanIcon />Open QR Code</button>
+              <button type="button" disabled={!selectedCampaign} onClick={openQrCode}><ScanIcon />Open QR Code</button>
               <button type="button" onClick={exportCampaignRecords}><DownloadIcon />Export Excel</button>
             </div>
           </> : <div className={styles.polishedEmpty}>Select an active relief program to begin distribution.</div>}
@@ -411,6 +425,19 @@ export function ReliefDistributionPanel({
             <CampaignGroup actionLabel="View Status" campaigns={notReadyCampaigns} emptyText="No accepted or notified campaigns are waiting for distribution." label="Not Ready" onSelect={selectCampaign} selectedBatchId={selectedCampaign?.batch_id ?? null} />
           </div>
         </Modal>
+        <Modal className={styles.qrDialog} isOpen={isQrOpen} labelledBy="relief-qr-title" onClose={() => setIsQrOpen(false)} size="sm">
+          <header className={styles.qrHeader}>
+            <div><span>Resident Relief Distribution</span><h3 id="relief-qr-title">Scan Relief QR Code</h3><p>Residents can scan this code for the selected relief campaign.</p></div>
+            <button type="button" onClick={() => setIsQrOpen(false)} aria-label="Close QR code">×</button>
+          </header>
+          <div className={styles.qrBody}>
+            {qrDataUrl ? <img src={qrDataUrl} alt={`QR code for ${selectedCampaign?.plan_name ?? "relief campaign"}`} /> : null}
+            {!qrDataUrl && !qrError ? <p>Generating QR code...</p> : null}
+            {qrError ? <p className={styles.qrError}>{qrError}</p> : null}
+            <div className={styles.qrCampaign}><span>{selectedScope}</span></div>
+            {qrDataUrl ? <a href={qrDataUrl} download={`smartflood-${selectedCampaign?.batch_id ?? "relief"}-qr.png`}>Download QR Code</a> : null}
+          </div>
+        </Modal>
       </section>
     );
   }
@@ -451,7 +478,7 @@ export function ReliefDistributionPanel({
             <Detail label="Barangay Scope" value={selectedScope} />
           </dl>
           <div className={styles.actionRow}>
-            <button className={styles.primaryButton} type="button" disabled={!selectedCampaign} onClick={openScannerWindow}>
+            <button className={styles.primaryButton} type="button" disabled={!selectedCampaign} onClick={openQrCode}>
               Open QR Code
             </button>
             <button className={styles.secondaryButton} type="button" onClick={exportCampaignRecords}>
