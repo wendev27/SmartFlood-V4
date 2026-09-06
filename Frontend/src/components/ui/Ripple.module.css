@@ -1,0 +1,6 @@
+.still { display: none; }
+.animated { display: block; }
+@media (prefers-reduced-motion: reduce) {
+  .animated { display: none; }
+  .still { display: block; }
+}

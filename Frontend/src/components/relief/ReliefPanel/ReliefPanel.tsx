@@ -8,6 +8,8 @@ import { DataTable } from "@/components/ui/DataTable/DataTable";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { ErrorState } from "@/components/ui/ErrorState";
 import { LoadingState } from "@/components/ui/LoadingState";
+import { ReliefEndorsement } from "@/components/relief/ReliefEndorsement/ReliefEndorsement";
+import type { PageKey } from "@/types/navigation";
 import { Modal } from "@/components/ui/Modal/Modal";
 import { Pagination as SharedPagination, type PaginationState } from "@/components/ui/Pagination/Pagination";
 import { formatBarangayName, normalizeBarangayForCompare } from "@/lib/formatters";
@@ -69,7 +71,8 @@ const planCopy: Record<ReliefPlanId, { focus: string; description: string; butto
   },
 };
 
-export function ReliefPanel() {
+export function ReliefPanel({ onNavigate }: { onNavigate?: (page: PageKey) => void } = {}) {
+  const [view, setView] = useState<"main" | "recommendation" | "history" | "endorsement">("main");
   const pageSize = 5;
   const queryClient = useQueryClient();
   const [generationInventory, setGenerationInventory] = useState<Record<GenerationInventoryField, string>>(generationInventoryDefaults);
@@ -562,8 +565,29 @@ export function ReliefPanel() {
 
   return (
     <>
-      <section className={styles.stack} aria-label="AI relief recommendations">
-        <div className={`${styles.panel} ${styles.historyPanel}`}>
+      {view === "main" ? (
+        <nav className={styles.moduleGrid} aria-label="Relief recommendation views">
+          <button className={styles.moduleCard} type="button" onClick={() => setView("recommendation")}>
+            <span className={styles.moduleIcon}><img src="/images/cswdd/relief-recommendation.svg" alt="" /></span>
+            <h2>AI-Optimized Relief Recommendation</h2>
+          </button>
+          <button className={styles.moduleCard} type="button" onClick={() => setView("history")}>
+            <span className={styles.moduleIcon}><img src="/images/cswdd/recommendation-history.svg" alt="" /></span>
+            <h2>Recommendation History</h2>
+          </button>
+          <button className={styles.moduleCard} type="button" disabled={!onNavigate} onClick={() => onNavigate?.("reliefDistribution")}>
+            <span className={styles.moduleIcon}><img src="/images/cswdd/distribution-list.svg" alt="" /></span>
+            <h2>Relief Distribution List</h2>
+          </button>
+          <button className={styles.moduleCard} type="button" onClick={() => setView("endorsement")}>
+            <span className={styles.moduleIcon}><img src="/images/cswdd/request-endorsement.svg" alt="" /></span>
+            <h2>Resident Relief Request Endorsement</h2>
+          </button>
+        </nav>
+      ) : <button className={styles.backButton} type="button" onClick={() => setView("main")}>← Back</button>}
+      {view === "endorsement" ? <section className={styles.endorsementPage}><h1>Resident Relief Request Endorsement</h1><ReliefEndorsement /></section> : null}
+      <section hidden={view === "main" || view === "endorsement"} className={`${styles.stack} ${view === "history" ? styles.historyMode : styles.recommendationMode}`} aria-label="AI relief recommendations">
+        <div hidden={view !== "recommendation"} className={`${styles.panel} ${styles.historyPanel}`}>
           <div className={styles.panelHeader}>
             <div>
               <h3>AI Allocation Suggestions</h3>
@@ -754,17 +778,23 @@ export function ReliefPanel() {
           ) : null}
 
           {!isLoading && !isGenerating && generatedPlans.length === 0 && !currentEmergencyAllocation ? (
-              <EmptyState
-                title="No allocation plans generated yet"
-                description="Generate a recommendation once flood data is available, then choose a strategy to review barangay allocations."
-              />
+              <section className={styles.noStrategyPage} aria-label="No ongoing relief strategy">
+                <div className={styles.noStrategyIcon} aria-hidden="true"><img src="/images/cswdd/relief-recommendation.svg" alt="" /></div>
+                <span>No ongoing strategy</span>
+                <h2>Create an AI-Optimized Relief Strategy</h2>
+                <p>Enter the available relief inventory, then review the generated strategies and barangay allocations.</p>
+                <button type="button" onClick={openGenerationWorkflow} disabled={isCheckingActiveAllocation}><img src="/images/cswdd/input-relief.svg" alt="" />Input Available Relief</button>
+                <div className={styles.noStrategySteps}><div><strong>1</strong><span>Enter available inventory</span></div><div><strong>2</strong><span>Review generated strategies</span></div><div><strong>3</strong><span>Accept and notify barangays</span></div></div>
+              </section>
           ) : null}
         </div>
 
-        <div className={styles.panel}>
+        <div hidden={view !== "history"} className={styles.panel}>
+          {error ? <ErrorState title="Unable to Load Relief Data" message={error} /> : null}
+          {isLoading ? <LoadingState message="Loading recommendation history..." /> : null}
           <div className={styles.historyHeader}>
             <h3>Allocation History</h3>
-            <p>View past and scheduled relief distributions</p>
+            <p>View generated relief allocation recommendations</p>
           </div>
           <div className={styles.historyFilters} aria-label="Allocation history filters">
             <label>
@@ -846,24 +876,26 @@ export function ReliefPanel() {
       </section>
 
       <Modal
-        className={styles.inventoryDialog}
+        className={`${styles.inventoryDialog} ${styles.cswddInventoryDialog}`}
+        backdropClassName={styles.cswddBackdrop}
         isOpen={isGenerationOpen}
         labelledBy="generate-relief-title"
         onClose={closeGenerationModal}
       >
         <header className={styles.modalHeader}>
           <div>
-            <h3 id="generate-relief-title">Generate Relief Recommendation</h3>
+            <h3 id="generate-relief-title">Input Available Relief</h3>
             <p>Input current available relief inventory to calculate recommended allocation.</p>
           </div>
           <button className={styles.closeButtonLight} type="button" onClick={closeGenerationModal} aria-label="Close">
-            x
+            <img src="/images/cswdd/close-square.svg" alt="" />
           </button>
         </header>
         <div className={styles.inventoryBody}>
           <div className={styles.inventoryList}>
             <GenerationQuantityField
               label="Family Food Packs"
+              icon="/images/cswdd/food-pack.svg"
               unit="packs"
               value={generationInventory.family_food_packs}
               onBlur={() => normalizeGenerationQuantity("family_food_packs")}
@@ -871,6 +903,7 @@ export function ReliefPanel() {
             />
             <GenerationQuantityField
               label="Medicine Kits"
+              icon="/images/cswdd/medicine-kit.svg"
               unit="kits"
               value={generationInventory.medicine_kits}
               onBlur={() => normalizeGenerationQuantity("medicine_kits")}
@@ -878,6 +911,7 @@ export function ReliefPanel() {
             />
             <GenerationQuantityField
               label="Relief Goods for Individual"
+              icon="/images/cswdd/relief-goods.svg"
               unit="pcs"
               value={generationInventory.relief_goods_individual}
               onBlur={() => normalizeGenerationQuantity("relief_goods_individual")}
@@ -896,7 +930,8 @@ export function ReliefPanel() {
       </Modal>
 
       <Modal
-        className={styles.confirmDialog}
+        className={`${styles.confirmDialog} ${styles.cswddConfirmDialog}`}
+        backdropClassName={styles.cswddBackdrop}
         isOpen={isNewAllocationConfirmOpen}
         labelledBy="new-relief-allocation-title"
         onClose={cancelNewAllocation}
@@ -913,7 +948,7 @@ export function ReliefPanel() {
             disabled={newAllocationStep !== "idle"}
             aria-label="Close"
           >
-            x
+            <img src="/images/cswdd/close-square.svg" alt="" />
           </button>
         </header>
         <div className={styles.confirmBody}>
@@ -958,7 +993,8 @@ export function ReliefPanel() {
       </Modal>
 
       <Modal
-        className={styles.reportDialog}
+        className={`${styles.reportDialog} ${styles.cswddReportDialog}`}
+        backdropClassName={styles.cswddBackdrop}
         isOpen={Boolean(selectedReport)}
         labelledBy="barangay-report-title"
         onClose={() => setSelectedReport(null)}
@@ -971,7 +1007,7 @@ export function ReliefPanel() {
                 <p>{selectedReport.selectedPlanName ? `${selectedReport.selectedPlanName} strategy analysis` : "Comprehensive allocation analysis"}</p>
               </div>
               <button className={styles.closeButtonDark} type="button" onClick={() => setSelectedReport(null)} aria-label="Close">
-                x
+                <img src="/images/cswdd/close-square.svg" alt="" />
               </button>
             </header>
             <div className={styles.reportBody}>
@@ -1042,6 +1078,7 @@ export function ReliefPanel() {
       </Modal>
 
       <ActionResultModal
+        variant="cswdd"
         open={resultModal.open}
         type={resultModal.type}
         title={resultModal.title}
@@ -1071,18 +1108,21 @@ function isActiveCampaignStatus(status: string | null | undefined) {
 function GenerationQuantityField({
   label,
   unit,
+  icon,
   value,
   onBlur,
   onChange,
 }: {
   label: string;
   unit: string;
+  icon?: string;
   value: string;
   onBlur: () => void;
   onChange: (value: string) => void;
 }) {
   return (
     <div className={styles.inventoryItem}>
+      {icon ? <span className={styles.inventoryIcon}><img src={icon} alt="" /></span> : null}
       <div>
         <strong>{label}</strong>
         <span>Unit: {unit}</span>
@@ -1460,16 +1500,16 @@ function ensureSentence(value: string) {
 }
 
 function mapHistory(row: Record<string, unknown>, index: number) {
-  const createdAt = row.created_at ? new Date(String(row.created_at)) : new Date();
-  const recommendationId = String(row.recommendation_id ?? index + 1);
+  const createdAt = row.created_at ? new Date(String(row.created_at)) : new Date(Number.NaN);
+  const recommendationId = String(row.recommendation_id ?? "");
 
   return {
     recommendation_id: recommendationId,
-    id: shortenId(recommendationId),
+    id: recommendationId ? shortenId(recommendationId) : "Not recorded",
     createdAt,
     barangay_name: String(row.barangay_name ?? row.barangay ?? "Unknown"),
-    date: createdAt.toLocaleDateString(),
-    time: createdAt.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" }),
+    date: Number.isNaN(createdAt.getTime()) ? "Not recorded" : createdAt.toLocaleDateString(),
+    time: Number.isNaN(createdAt.getTime()) ? "Not recorded" : createdAt.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" }),
     barangay: String(row.barangay_name ?? row.barangay ?? "Unknown"),
     familyFoodPacks: Number(row.recommended_family_food_packs ?? 0),
     medicineKits: Number(row.recommended_medicine_kits ?? 0),

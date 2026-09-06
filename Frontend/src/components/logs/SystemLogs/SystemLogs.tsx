@@ -76,6 +76,8 @@ export function SystemLogs() {
 
   return (
     <section className={styles.panel} aria-label={title}>
+      <h1>{title}</h1>
+      <article className={styles.logCard}>
       <div className={styles.toolbar}>
         <label className={styles.search}>
           <span className={styles.searchIcon} />
@@ -103,22 +105,22 @@ export function SystemLogs() {
         <table className={styles.table}>
           <thead>
             <tr>
-              <th>Date/Time</th>
               <th>Actor</th>
               <th>Role</th>
-              <th>Action</th>
               <th>Module</th>
+              <th>Action</th>
+              <th>Date/Time</th>
               <th>Details</th>
             </tr>
           </thead>
           <tbody>
             {paginatedLogs.rows.map((log) => (
               <tr key={log.log_id ?? `${log.created_at}-${log.action}`}>
-                <td>{formatDateTime(log.created_at ?? "")}</td>
                 <td>{formatBarangayName(log.actor_name || "-")}</td>
                 <td>{log.actor_role || "-"}</td>
-                <td><span className={cn(styles.action, styles[getActionTone(log.action)])}>{log.action}</span></td>
                 <td>{log.module ?? "-"}</td>
+                <td><span className={cn(styles.action, styles[getActionTone(log.action)])}>{log.action}</span></td>
+                <td>{formatDateTime(log.created_at ?? "")}</td>
                 <td><button className={styles.previewButton} type="button" onClick={() => setPreviewLog(log)}>Preview</button></td>
               </tr>
             ))}
@@ -135,6 +137,7 @@ export function SystemLogs() {
           </tbody>
         </table>
       </div>
+      </article>
       <Pagination pagination={paginatedLogs.pagination} onPageChange={setPage} label="Audit logs" />
 
       <Modal isOpen={Boolean(previewLog)} onClose={() => setPreviewLog(null)} labelledBy="log-preview-title" size="md">

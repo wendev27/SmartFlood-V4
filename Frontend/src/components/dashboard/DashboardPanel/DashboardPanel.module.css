@@ -1,14 +1,53 @@
-.dashboard {
-  width: 100%;
-}
+.dashboard { max-width: 100%; width: 100%; }
 
 .statsGrid {
   display: grid;
   gap: 20px;
   grid-template-columns: 1fr;
-  margin-bottom: 22px;
+  margin-bottom: 27px;
+  max-width: 731px;
 }
 
+.mapSection {
+  border-radius: 26px;
+  box-shadow: 0 6px 18px rgba(37, 99, 235, 0.08);
+  overflow: hidden;
+  width: 100%;
+}
+
+.weatherRow { display:grid; gap:20px; grid-template-columns:repeat(2,minmax(0,1fr)); margin-bottom:27px; width:100%; }
+.weatherOverview,.hourlyPreview { background:#fff; border:1px solid rgba(255,255,255,.7); border-radius:22px; box-shadow:0 6px 18px rgba(37,99,235,.12); color:#1e1e1e; display:grid; font:inherit; margin:0; min-height:230px; min-width:0; padding:24px 28px; text-align:left; transition:transform .2s,box-shadow .2s; width:100%; }
+.weatherOverview { align-items:center; gap:24px; grid-template-columns:minmax(210px,.85fr) 1.15fr; }
+.weatherOverview:hover,.weatherOverview:focus-visible,.hourlyPreview:hover,.hourlyPreview:focus-visible { box-shadow:0 12px 26px rgba(37,99,235,.18); outline:2px solid rgba(0,136,255,.22); outline-offset:3px; transform:translateY(-1px); }
+.weatherCurrent { align-items:center; display:flex; gap:16px; }
+.weatherCurrent img { height:72px; object-fit:contain; width:72px; }
+.weatherCurrent span { display:block; font-size:14px; font-weight:700; }
+.weatherCurrent strong { color:#0088ff; display:block; font-size:36px; line-height:1; margin:6px 0; }
+.weatherCurrent p { color:rgba(30,30,30,.55); font-weight:600; margin:0; }
+.weatherDetails { display:grid; gap:14px 10px; grid-template-columns:repeat(2,minmax(0,1fr)); }
+.weatherDetails div { border-left:3px solid #0088ff; padding-left:12px; }
+.weatherDetails span,.weatherDetails strong { display:block; }
+.weatherDetails span { font-size:12px; }
+.weatherDetails strong { font-size:18px; font-weight:400; margin-top:2px; }
+.hourlyPreview { display:block; }
+.hourlyPreview h2 { font-size:14px; margin:0 0 14px; }
+.hourlyPreview>div { display:grid; gap:12px; grid-template-columns:repeat(4,minmax(0,1fr)); padding:2px 0; }
+.hourlyPreview article { align-items:center; border-radius:18px; box-shadow:0 4px 12px rgba(37,99,235,.1); display:flex; flex-direction:column; min-width:0; padding:10px 6px; }
+.hourlyPreview article span,.hourlyPreview article strong { font-size:13px; }
+.hourlyPreview article span { color:rgba(30,30,30,.55); font-weight:600; }
+.hourlyPreview article img { height:40px; margin:5px 0; object-fit:contain; width:40px; }
+
+@media (min-width: 680px) {
+  .statsGrid { grid-template-columns: repeat(2, minmax(250px, 350px)); gap: 31px; }
+}
+
+@media(max-width:1100px){.weatherRow{grid-template-columns:1fr}.weatherOverview{grid-template-columns:minmax(250px,.8fr) 1.5fr}.hourlyPreview>div{grid-template-columns:repeat(8,minmax(76px,1fr));overflow-x:auto}}
+@media(max-width:760px){.weatherOverview{gap:24px;grid-template-columns:1fr;padding:24px}.weatherDetails{grid-template-columns:repeat(2,1fr)}.hourlyPreview{padding:24px}}
+@media (min-width: 1120px) {
+  .statsGrid { grid-template-columns: repeat(3, minmax(250px, 350px)); }
+}
+
+/* Existing V3.2 sensor selection and pagination remain below the reference dashboard. */
 .errorMessage {
   background: #fef3f2;
   border-radius: 8px;
@@ -186,20 +225,12 @@
   color: #64748b;
 }
 
-@media (min-width: 680px) {
-  .statsGrid {
-    grid-template-columns: repeat(2, minmax(210px, 300px));
-  }
-}
 
-@media (min-width: 900px) {
-  .dashboard {
-    padding-top: 10px;
-  }
+.sensorSection { background: #fff; border: 1px solid rgba(255,255,255,.7); border-radius: 26px; box-shadow: 0 6px 18px rgba(37,99,235,.12); margin-top: 27px; padding: 24px; }
+.sensorHeader h3 { color: #1e1e1e; font-size: 20px; }
+.sensorCard { border-radius: 18px; box-shadow: 0 4px 12px rgba(37,99,235,.08); }
+.unavailable { color: #64748b; font-size: 12px; line-height: 1.5; margin: 12px 0 0; }
+.forecastIconPlaceholder { background: #edf2f7; border-radius: 50%; height: 40px; margin: 5px 0; width: 40px; }
+.weatherOverview,.hourlyPreview { cursor: pointer; }
 
-  .statsGrid {
-    gap: clamp(24px, 2.2vw, 34px);
-    margin-bottom: 22px;
-  }
-
-}
+@media(max-width:520px) { .sensorSection { padding: 18px; } }

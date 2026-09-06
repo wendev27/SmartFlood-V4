@@ -340,3 +340,62 @@
     width: 100%;
   }
 }
+
+/* Port 5173 barangay allocation composition. */
+
+
+.stack { display: flex; flex-direction: column; gap: 0; min-height: calc(100dvh - 190px); }
+
+.allocationFilter { color: #1e1e1e; display: grid; font-size: 16px; gap: 8px; margin-bottom: 28px; max-width: 268px; }
+.allocationFilter select { appearance: none; background-color: transparent; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 24 24' fill='none' stroke='%230088ff' stroke-width='2'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E"); background-position: right 14px center; background-repeat: no-repeat; border: .8px solid rgba(30,30,30,.25); border-radius: 16px; color: #1e1e1e; font-size: 16px; height: 42px; padding: 0 44px 0 20px; }
+
+.grid { align-items: stretch; display: grid; gap: 24px; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); }
+.card { border: 1px solid rgba(255,255,255,.7); border-radius: 26px; box-shadow: 0 6px 18px rgba(37,99,235,.12); display: flex; flex-direction: column; gap: 0; height: auto; min-height: 320px; min-width: 0; overflow: hidden; padding: 15px 24px 19px; }
+.cardHeader time { color: rgba(30,30,30,.5); font-size: 12px; font-weight: 400; }
+.status { background: transparent; color: #0088ff; font-size: 12px; font-weight: 600; padding: 0; }
+.card h3 { color: #1e1e1e; font-size: 26px; font-weight: 400; line-height: 1.2; margin: 8px 0 0; }
+.card p { color: #1e1e1e; font-size: 12px; line-height: 1.45; margin-top: 12px; overflow-wrap: anywhere; }
+.card .metrics { display: grid; gap: 2px; grid-template-columns: 1fr; margin-top: 10px; }
+.card .metrics div { align-items: center; background: transparent; border: 0; display: flex; gap: 5px; min-height: 0; padding: 0; }
+.card .metrics strong { color: #0088ff; font-size: 12px; order: 2; }
+.card .metrics span { color: #1e1e1e; font-size: 12px; order: 1; }
+.card .primaryButton { background: rgba(220,235,255,.42); border: 1px solid rgba(255,255,255,.7); border-radius: 16px; box-shadow: 0 6px 18px rgba(37,99,235,.12); color: #0088ff; flex: 0 0 42px; font-size: 12px; height: 42px; margin-top: auto; width: 100%; }
+.card .lineItems { margin-bottom: 16px; }
+.lineItems { display: grid; gap: 2px; margin: 10px 0 0; }
+.lineItems div { display: flex; font-size: 12px; font-weight: 600; gap: 4px; }
+.lineItems dt { color: #1e1e1e; }
+.lineItems dd { color: #0088ff; margin: 0; }
+
+.modalHeader { padding: 40px 40px 0; }
+.allocationDialog { border-radius: 16px; height: auto; max-height: calc(100dvh - 48px); min-height: 0; overflow-x: hidden; overflow-y: auto; }
+.modalBody { padding: 30px 40px; }
+.modalActions { padding: 0 40px 32px; }
+.modalHeader button { background: #a8d5ff; border-radius: 10px; color: #0088ff; height: 40px; width: 40px; }
+.modalHeader span { color: #0088ff; font-size: 16px; font-weight: 400; text-transform: none; }
+.modalHeader h2 { color: #1e1e1e; font-size: 20px; }
+.modalHeader p { color: #1e1e1e; font-size: 16px; }
+.modalBody .details { gap: 20px 32px; }
+.modalBody .details div { background: #fff; border: .8px solid rgba(30,30,30,.24); border-radius: 16px; min-height: 85px; padding: 20px 22px; }
+.modalBody .details dt { color: #1e1e1e; font-size: 16px; font-weight: 400; text-transform: none; }
+.modalBody .details dd { color: rgba(30,30,30,.58); font-size: 12px; font-weight: 400; }
+.explanation { background: transparent; border: 0; color: #1e1e1e; font-size: 16px; padding: 0; }
+.modalActions .primaryButton { background: #0088ff; border-radius: 16px; font-size: 16px; min-height: 50px; }
+
+.modalActions .primaryButton { margin: 0 auto; max-width: 500px; width: 100%; }
+
+@media (max-width: 680px) {
+  .grid { grid-template-columns: 1fr; }
+  .card { min-height: 0; }
+  .modalHeader { padding: 24px 24px 0; }
+  .modalBody { padding: 24px; }
+  .modalActions { padding: 0 24px 24px; }
+}
+
+.summary { margin-bottom: 28px; }
+.modalActions { display: flex; flex-wrap: wrap; gap: 16px; }
+.modalActions .secondaryButton { border: 1px solid #ef4444; border-radius: 16px; color: #dc2626; font-size: 16px; min-height: 50px; padding: 12px 20px; }
+.modalActions .primaryButton { margin: 0; flex: 1; width: auto; }
+.card .metrics { margin-bottom: 20px; }
+
+.unavailableReports { border-top: 1px solid #dbe5f0; color: #64748b; margin-top: 36px; padding-top: 20px; }
+.unavailableReports > summary { color: #0088ff; cursor: pointer; font-size: 16px; font-weight: 600; }

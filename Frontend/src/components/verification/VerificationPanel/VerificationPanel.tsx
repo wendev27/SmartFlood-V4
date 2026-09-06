@@ -182,6 +182,8 @@ export function VerificationPanel() {
 
   return (
     <section className={styles.panel} aria-label="Resident account verification">
+      <button className={styles.backButton} type="button" onClick={() => { window.location.hash = "dashboard"; }}>← Back</button>
+      <h1>Resident Account Registration Management</h1>
       <Tabs
         ariaLabel="Verification status"
         activeKey={activeTab}

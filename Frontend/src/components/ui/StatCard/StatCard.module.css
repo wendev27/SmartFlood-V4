@@ -1,23 +1,25 @@
 .card {
   background: #ffffff;
-  border-left: 3px solid var(--color-cyan);
-  border-radius: 10px;
-  box-shadow: 0 12px 20px rgba(15, 23, 42, 0.12);
-  min-height: 84px;
+  border: 1px solid rgba(255, 255, 255, 0.7);
+  border-radius: 26px;
+  box-shadow: 0 6px 18px rgba(37, 99, 235, 0.12);
+  min-height: 150px;
   overflow: hidden;
-  padding: 18px 22px;
+  padding: 30px 32px 24px 96px;
   position: relative;
 }
 
 .card::after {
-  background: #f0f3f6;
-  border-radius: 0 0 0 78px;
+  background: rgba(0, 136, 255, 0.12);
+  border: 1px solid rgba(255, 255, 255, 0.75);
+  border-radius: 14px;
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.12);
   content: "";
-  height: 62px;
+  height: 44px;
+  left: 32px;
   position: absolute;
-  right: 0;
-  top: 0;
-  width: 62px;
+  top: 32px;
+  width: 44px;
 }
 
 .interactive {
@@ -46,34 +48,29 @@
 }
 
 .card span {
-  color: #21364c;
-  font-size: 9px;
-  margin-bottom: 9px;
+  color: #1e1e1e;
+  font-size: 12px;
+  font-weight: 600;
+  margin-bottom: 6px;
 }
 
 .card strong {
   color: #0050a2;
-  font-size: 27px;
+  font-size: 36px;
   line-height: 1;
   margin-bottom: 8px;
 }
 
 .card p {
-  color: #00a74f;
-  font-size: 9px;
+  color: #0088ff;
+  font-size: 12px;
+  font-weight: 600;
   line-height: 1.6;
   margin: 0;
 }
 
-.blue {
-  border-left-color: var(--color-blue);
-}
-
-.cyan,
-.sky,
-.teal {
-  border-left-color: var(--color-cyan);
-}
+.cyan strong { color: #ff3830; }
+.cyan::after { background: rgba(255, 56, 48, 0.12); }
 
 .danger {
   color: #ff2f1f !important;
@@ -85,7 +82,31 @@
 
 @media (min-width: 900px) {
   .card {
-    min-height: 96px;
-    padding: 20px 26px;
+    min-height: 150px;
   }
 }
+
+.card .statIcon {
+  align-items: center;
+  color: #0088ff;
+  display: flex;
+  height: 44px;
+  justify-content: center;
+  left: 32px;
+  margin: 0;
+  position: absolute;
+  top: 32px;
+  width: 44px;
+  z-index: 2;
+}
+
+.card .statIcon svg {
+  height: 22px;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 1.7;
+  width: 22px;
+}
+
+.cyan .statIcon { color: #ff3830; }

@@ -2,13 +2,17 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { AppShell, type DashboardUserProfile } from "@/components/layout/AppShell/AppShell";
+import type { DashboardPresentationView } from "@/components/layout/DashboardPresentationContext";
+import { WeatherForecastPanel } from "@/components/weather/WeatherForecastPanel/WeatherForecastPanel";
+import { NotificationPanel } from "@/components/notifications/NotificationPanel/NotificationPanel";
+import { EmergencyReportPanel } from "@/components/emergency/EmergencyReportPanel/EmergencyReportPanel";
 import { DashboardPanel } from "@/components/dashboard/DashboardPanel/DashboardPanel";
 import { LogsPanel } from "@/components/logs/LogsPanel/LogsPanel";
 import { SystemLogs } from "@/components/logs/SystemLogs/SystemLogs";
 import { MonitoringPanel, type MonitoringView } from "@/components/monitoring/MonitoringPanel/MonitoringPanel";
 import { ReliefPanel } from "@/components/relief/ReliefPanel/ReliefPanel";
 import { ReliefManagementPanel } from "@/components/emergency/ReliefManagementPanel/ReliefManagementPanel";
-import { EmergencyNotificationsPanel } from "@/components/emergency/EmergencyNotificationsPanel/EmergencyNotificationsPanel";
+import { BarangayReliefPanel } from "@/components/relief/BarangayReliefPanel/BarangayReliefPanel";
 import { ReliefDistributionPanel } from "@/components/emergency/ReliefDistributionPanel/ReliefDistributionPanel";
 import { SensorsPanel } from "@/components/sensors/SensorsPanel/SensorsPanel";
 import { ResidentsPanel } from "@/components/residents/ResidentsPanel/ResidentsPanel";
@@ -45,11 +49,19 @@ type DashboardSession = {
 export default function DashboardPage() {
   const [session, setSession] = useState<DashboardSession | null>(null);
   const [activePage, setActivePage] = useState<PageKey>("dashboard");
+  const [presentationView, setPresentationView] = useState<DashboardPresentationView | null>(null);
+  const [notificationRequest, setNotificationRequest] = useState<{ id: string; version: number } | null>(null);
+  const [notificationVersion, setNotificationVersion] = useState(0);
+  const [distributionView, setDistributionView] = useState<"distribution" | "history" | undefined>(undefined);
   const [monitoringView, setMonitoringView] = useState<MonitoringView>("main");
   const [monitoringResetVersion, setMonitoringResetVersion] = useState(0);
   const [isMobileNavOpen, setIsMobileNavOpen] = useState(false);
   const navigationItems = useMemo(() => session ? navigationItemsForRole(session.role) : [], [session]);
   const allowedPages = useMemo(() => navigationItems.map((item) => item.key), [navigationItems]);
+  useEffect(() => {
+    setPresentationView(null);
+    if (activePage !== "emergencyNotifications") setNotificationRequest(null);
+  }, [activePage]);
 
   useEffect(() => {
     const user = getCurrentUser();
@@ -105,31 +117,61 @@ export default function DashboardPage() {
     window.history.replaceState(null, "", `#${targetPage}`);
   }
 
+  function navigateFromPresentation(page: PageKey) {
+    setPresentationView(null);
+    setDistributionView(undefined);
+    handleNavigate(page);
+  }
+
+  function openAllocationNotification(id: string) {
+    if (session?.role !== "barangay") return;
+    const version = notificationVersion + 1;
+    setNotificationVersion(version);
+    setNotificationRequest({ id, version });
+    navigateFromPresentation("emergencyNotifications");
+  }
+
+  function acknowledgeNotification(version: number) {
+    setNotificationRequest((current) => current?.version === version ? null : current);
+  }
+
+  function openDistribution(view: "distribution" | "history") {
+    navigateFromPresentation("reliefDistribution");
+    setDistributionView(view);
+  }
+
   if (!session) {
     return null;
   }
 
   return (
     <AppShell
+      presentation={{ view: presentationView, open: (view) => { setPresentationView(view); setIsMobileNavOpen(false); } }}
       activePage={activePage}
       hideTopbar={activePage === "monitoring" && monitoringView !== "main"}
       isMobileNavOpen={isMobileNavOpen}
       navigationItems={navigationItems}
-      onNavigate={handleNavigate}
+      onNavigate={navigateFromPresentation}
       onToggleMobileNav={() => setIsMobileNavOpen((isOpen) => !isOpen)}
       userProfile={session.profile}
+      userRole={session.role}
     >
+      <div hidden={presentationView !== null}>
       {activePage === "dashboard" ? <DashboardPanel /> : null}
       {activePage === "logs" ? <LogsPanel /> : null}
       {activePage === "systemLogs" ? <SystemLogs /> : null}
       {activePage === "monitoring" ? <MonitoringPanel resetSignal={monitoringResetVersion} onViewChange={setMonitoringView} userProfile={session.profile} /> : null}
-      {activePage === "relief" ? <ReliefPanel /> : null}
+      {activePage === "relief" ? <ReliefPanel onNavigate={navigateFromPresentation} /> : null}
       {activePage === "reliefManagement" ? <ReliefManagementPanel /> : null}
-      {activePage === "emergencyNotifications" ? <EmergencyNotificationsPanel /> : null}
-      {activePage === "reliefDistribution" ? <ReliefDistributionPanel /> : null}
+      {activePage === "emergencyNotifications" ? <BarangayReliefPanel onNavigate={navigateFromPresentation} onOpenDistribution={openDistribution} notificationRequest={notificationRequest} onNotificationHandled={acknowledgeNotification} /> : null}
+      {activePage === "reliefDistribution" ? <ReliefDistributionPanel initialView={distributionView} onBack={() => navigateFromPresentation(session.role === "barangay" ? "emergencyNotifications" : "relief")} /> : null}
       {activePage === "sensors" ? <SensorsPanel /> : null}
       {activePage === "residents" ? <ResidentsPanel /> : null}
       {activePage === "accounts" ? <VerificationPanel /> : null}
+      </div>
+      {presentationView === "weatherForecast" ? <WeatherForecastPanel onBack={() => setPresentationView(null)} /> : null}
+      {presentationView === "notifications" ? <NotificationPanel role={session.role} onBack={() => setPresentationView(null)} onNavigate={navigateFromPresentation} onOpenAllocation={openAllocationNotification} /> : null}
+      {presentationView === "emergencyReports" ? <EmergencyReportPanel /> : null}
     </AppShell>
   );
 }

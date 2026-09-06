@@ -281,3 +281,15 @@
     grid-template-columns: 1fr;
   }
 }
+
+.summary,.card { border: 1px solid rgba(255,255,255,.7); border-radius: 16px; box-shadow: 0 6px 18px rgba(37,99,235,.12); padding: 24px; }
+.summary h3,.cardHeader h3 { color: #1e1e1e; font-size: 24px; font-weight: 600; }
+.summary p,.cardHeader p { font-size: 14px; }
+.metric,.closeStats div { background: rgba(220,235,255,.35); border-color: rgba(255,255,255,.75); border-radius: 12px; }
+.primaryButton,.dangerButton,.secondaryButton { border-radius: 12px; font-size: 14px; font-weight: 600; min-height: 48px; }
+.primaryButton { background: #0088ff; }
+.startForm label,.reasonField { font-size: 14px; font-weight: 600; text-transform: none; }
+.startForm input,.reasonField textarea { border-radius: 12px; font-size: 16px; }
+.tableWrap th,.tableWrap td { font-size: 14px; padding: 16px 12px; }
+.tableWrap th { background: #f9fafb; text-transform: none; }
+@media(max-width:760px) { .summary { display: flex; align-items: stretch; flex-direction: column; } .actionRow { grid-template-columns: 1fr; } }

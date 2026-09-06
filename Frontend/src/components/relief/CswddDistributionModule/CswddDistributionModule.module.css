@@ -1,0 +1,44 @@
+.page,.recordsPage{color:#1e1e1e;padding:6px 0 24px}
+.back{align-self:flex-start;background:none;border:0;color:#0088ff;font-size:16px;font-weight:600;padding:0;text-align:left;width:max-content}
+.page h1,.recordsPage h1{font-size:36px;line-height:1.2;margin:28px 0 0}
+.optionGrid{display:grid;gap:20px;grid-template-columns:repeat(2,320px);margin-top:12px;max-width:660px}
+.optionGrid>button{align-items:center;background:#fff;border:1px solid rgba(255,255,255,.7);border-radius:26px;box-shadow:0 6px 18px rgba(37,99,235,.12);display:flex;flex-direction:column;height:250px;justify-content:center;padding:0 20px;text-align:center}
+.optionGrid>button:hover{transform:translateY(-4px)}
+.optionGrid>button>span{align-items:center;background:rgba(0,136,255,.12);border:1px solid rgba(255,255,255,.75);border-radius:26px;box-shadow:0 4px 12px rgba(37,99,235,.12);color:#0088ff;display:flex;height:82px;justify-content:center;width:82px}
+.optionGrid svg{fill:none;height:44px;stroke:currentColor;stroke-linecap:round;stroke-linejoin:round;stroke-width:1.6;width:44px}
+.optionGrid strong{font-size:26px;font-weight:600;line-height:1.02;margin-top:19px;max-width:240px}
+.recordsPage{display:flex;flex-direction:column;min-height:calc(100vh - 144px)}
+.listPage{padding-bottom:1px}
+.titleRow{align-items:center;display:flex;gap:16px;justify-content:space-between;margin-top:37px}.titleRow h1{margin:0}
+.titleRow>button{align-items:center;background:#a8d5ff;border:0;border-radius:10px;color:#0088ff;display:flex;height:44px;justify-content:center;width:44px}.titleRow>button svg{fill:none;height:26px;stroke:#0088ff;stroke-linecap:round;stroke-linejoin:round;stroke-width:2;width:26px}
+.spinning{animation:spin .7s linear infinite}@keyframes spin{to{transform:rotate(360deg)}}
+.filters{background:#fff;border:1px solid rgba(255,255,255,.7);border-radius:16px;box-shadow:0 6px 18px rgba(37,99,235,.12);display:grid;gap:20px;grid-template-columns:268px 1fr 268px;margin-top:12px;padding:12px 32px}
+.filters label{display:grid;font-size:16px;gap:8px}.filters select,.filters input{background:#fff;border:1px solid rgba(30,30,30,.25);border-radius:16px;height:42px;padding:0 16px}
+.dateField{align-items:center;border:1px solid rgba(30,30,30,.25);border-radius:16px;color:#0088ff;display:flex;font-size:18px;gap:12px;height:42px;padding:0 16px}.dateField span{color:#1e1e1e;font-size:12px}
+.tableWrap,.historyTable{margin-top:28px;overflow-x:auto}.historyTable{margin-top:24px}.historyTable+.historyTable{margin-top:64px}
+.listPage .tableWrap{margin-top:28px}
+.tableWrap table,.historyTable table{border-collapse:collapse;min-width:760px;table-layout:fixed;text-align:left;width:100%}
+.tableWrap th,.historyTable th{background:#f9fafb;border-bottom:1px solid #e5e7eb;font-size:16px;height:64px;padding:0 16px}
+.tableWrap th:nth-child(1){width:19%}.tableWrap th:nth-child(2){width:22%}.tableWrap th:nth-child(3){width:24%}.tableWrap th:nth-child(4){width:25%}
+.historyTable th{font-size:12px}.historyTable th:nth-child(1){width:15%}.historyTable th:nth-child(2){width:17%}.historyTable th:nth-child(3){width:18%}.historyTable th:nth-child(4){width:21%}
+.tableWrap td,.historyTable td{border-bottom:1px solid #f3f4f6;font-size:12px;height:64px;padding:0 16px}
+.listPage .tableWrap th{color:#0a0a0a;font-weight:700}.listPage .tableWrap td{color:#1e1e1e}.listPage .tableWrap td strong{font-weight:700;line-height:20px}
+.tableWrap td small,.historyTable td small{display:block;font-size:12px;line-height:20px}.tableWrap td strong,.historyTable td strong{display:block}
+.recommendationType{font-weight:600}.received{color:#10b981;font-weight:600}.message,.empty{color:#64748b;padding:24px;text-align:center}.recordsPage>nav{margin-top:auto;padding:40px 16px 0}
+@media(max-width:760px){.optionGrid{grid-template-columns:1fr}.filters{grid-template-columns:1fr;padding:16px}.page h1,.recordsPage h1{font-size:30px}}
+
+.distributionHistoryPage { min-width: 0; }
+.auditLink { align-self: flex-start; background: transparent; border: 0; color: #0088ff; cursor: pointer; font-size: 16px; font-weight: 600; margin-top: 24px; padding: 0; text-align: left; }
+.auditContent { margin-top: 24px; }
+.filters { grid-template-columns: repeat(3,minmax(0,1fr)); }
+.filters select,.filters input { min-width: 0; width: 100%; }
+.filters :disabled { background: #f8fafc; color: #64748b; cursor: not-allowed; }
+.filterNote { color: #64748b; font-size: 12px; margin: 12px 0 0; }
+.historyTable h2 { color: #1e1e1e; font-size: 20px; font-weight: 600; margin: 0 0 12px; }
+.recordId { overflow-wrap: anywhere; }
+.error { background: #fff5f5; border: 1px solid #fecaca; border-radius: 12px; color: #b42318; padding: 16px; }
+.unavailable { color: #64748b; }
+.titleRow>button:disabled { cursor: wait; opacity: .6; }
+.recordsPage>nav { margin-top: 24px; }
+@media(max-width:760px) { .filters { grid-template-columns: 1fr; } }
+@media(prefers-reduced-motion:reduce) { .spinning { animation: none; } .optionGrid>button:hover { transform: none; } }

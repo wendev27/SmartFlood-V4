@@ -1,7 +1,7 @@
 "use client";
 
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Modal } from "@/components/ui/Modal/Modal";
 import { Pagination as SharedPagination, type PaginationState } from "@/components/ui/Pagination/Pagination";
 import { cn } from "@/lib/cn";
@@ -19,7 +19,8 @@ import styles from "./EmergencyNotificationsPanel.module.css";
 
 type ActionState = "idle" | "loading" | "accepting" | "rejecting" | "confirming" | "notifying";
 
-export function EmergencyNotificationsPanel() {
+export function EmergencyNotificationsPanel({ openRequest, onOpenRequestHandled }: { openRequest?: { id: string; version: number } | null; onOpenRequestHandled?: (version: number) => void } = {}) {
+  const handledOpenRequest = useRef<number | null>(null);
   const pageSize = 5;
   const queryClient = useQueryClient();
   const [selectedId, setSelectedId] = useState<string | null>(null);
@@ -33,6 +34,14 @@ export function EmergencyNotificationsPanel() {
     staleTime: queryStaleTime.operational,
   });
   const notifications = notificationsQuery.data ?? [];
+  useEffect(() => {
+    if (!openRequest || handledOpenRequest.current === openRequest.version || !notificationsQuery.data) return;
+    const notification = notificationsQuery.data.find((row) => row.notification_id === openRequest.id);
+    if (!notification) return;
+    handledOpenRequest.current = openRequest.version;
+    void openNotification(notification);
+    onOpenRequestHandled?.(openRequest.version);
+  }, [openRequest, notificationsQuery.data, onOpenRequestHandled]);
   const error = actionError || (notificationsQuery.error instanceof Error ? notificationsQuery.error.message : notificationsQuery.error ? "Unable to load emergency notifications." : null);
   const isInitialLoading = notificationsQuery.isPending;
   const isBackgroundRefreshing = notificationsQuery.isFetching && !notificationsQuery.isPending;
@@ -211,7 +220,7 @@ export function EmergencyNotificationsPanel() {
 
       <SharedPagination pagination={paginatedNotifications.pagination} onPageChange={setPage} label="Emergency notifications" />
 
-      <Modal isOpen={Boolean(selected)} onClose={() => setSelectedId(null)} labelledBy="emergency-allocation-title" size="md">
+      <Modal className={styles.allocationDialog} isOpen={Boolean(selected)} onClose={() => setSelectedId(null)} labelledBy="emergency-allocation-title" size="xl">
         {selected ? (
           <>
             <header className={styles.modalHeader}>

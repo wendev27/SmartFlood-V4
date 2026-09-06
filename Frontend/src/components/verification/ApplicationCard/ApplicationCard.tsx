@@ -19,9 +19,11 @@ export function ApplicationCard({ application, onReview, onEdit }: ApplicationCa
       <div className={styles.main}>
         <div className={styles.nameRow}>
           <h3>{application.name}</h3>
-          <Badge tone={application.status === "approved" ? "green" : application.status === "rejected" ? "red" : "blue"}>
-            {capitalize(application.status)}
-          </Badge>
+          <span className={`${styles.statusBadge} ${styles[application.status]}`}>
+            <Badge tone={application.status === "approved" ? "green" : application.status === "rejected" ? "red" : "blue"}>
+              {capitalize(application.status)}
+            </Badge>
+          </span>
         </div>
         <div className={styles.details}>
           <p><small>Type</small>{application.type.replace(" ", "\n")}</p>
@@ -32,7 +34,7 @@ export function ApplicationCard({ application, onReview, onEdit }: ApplicationCa
         <p className={styles.meta}>{application.phone}</p>
         <p className={styles.meta}>{formatBarangayName(application.address)}</p>
         {application.approvalNote ? (
-          <div className={styles.approvalNote}>
+          <div className={`${styles.approvalNote} ${application.status === "rejected" ? styles.rejectedNote : styles.approvedNote}`}>
             <p>{application.approvalNote.approvedBy}</p>
             <p>{formatBarangayName(application.approvalNote.details)}</p>
           </div>

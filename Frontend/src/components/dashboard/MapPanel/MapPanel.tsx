@@ -8,7 +8,7 @@ import { LoadingState } from "@/components/ui/LoadingState";
 import styles from "./MapPanel.module.css";
 
 interface MapPanelProps {
-  variant?: "dashboard" | "wide";
+  variant?: "dashboard" | "wide" | "embedded";
   sensors?: Record<string, unknown>[];
   isLoading?: boolean;
   error?: string;

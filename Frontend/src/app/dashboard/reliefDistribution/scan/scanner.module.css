@@ -287,3 +287,8 @@
     min-height: 300px;
   }
 }
+
+.page { background: #e8f4ff url("/images/main-background.png") center / cover fixed no-repeat; }
+.header,.campaignBar,.manualCard,.resultCard { border: 1px solid rgba(255,255,255,.7); border-radius: 16px; box-shadow: 0 6px 18px rgba(37,99,235,.12); }
+.header { background: rgba(255,255,255,.65); backdrop-filter: blur(11px); }
+.header h1,.manualCard h2,.resultCard h2 { color: #1e1e1e; font-weight: 600; }

@@ -1,0 +1,26 @@
+.forecast { color: #1e1e1e; margin: 0; padding: 6px 0 24px; width: 100%; }
+.backButton { background: transparent; border: 0; color: #0088ff; font: inherit; font-size: 16px; font-weight: 600; justify-self: start; padding: 0; }
+.backButton:hover,.backButton:focus-visible { text-decoration: underline; }
+.forecast > h1 { font-size: 36px; line-height: 1.2; margin: 38px 0 28px; }
+.current, .card { background: #fff; border: 1px solid rgba(255,255,255,.7); border-radius: 26px; box-shadow: 0 6px 18px rgba(37,99,235,.12); }
+.current { align-items: center; display: grid; gap: 28px; grid-template-columns: minmax(310px,1fr) 1.55fr; padding: 30px 34px; }
+.currentSummary { align-items: center; display: flex; gap: 20px; }
+.currentSummary img { height: 132px; object-fit: contain; width: 132px; }
+.currentSummary span { color: rgba(30,30,30,.58); font-weight: 600; }
+.temperature { color: #0088ff; font-size: 56px; font-weight: 600; line-height: 1.05; margin: 6px 0; }
+.details { display: grid; gap: 24px 18px; grid-template-columns: repeat(3,minmax(0,1fr)); }
+.detail { border-left: 3px solid #0088ff; display: flex; flex-direction: column; padding-left: 12px; }
+.detail span { font-size: 14px; } .detail strong { font-size: 23px; font-weight: 400; }
+.card { margin-top: 20px; padding: 26px 34px; } .card h2 { font-size: 16px; margin: 0 0 22px; }
+.hourly { display: grid; gap: 18px; grid-template-columns: repeat(8,minmax(86px,1fr)); overflow-x: auto; padding-bottom: 2px; }
+.hourly article { align-items: center; border: 1px solid rgba(255,255,255,.7); border-radius: 26px; box-shadow: 0 4px 12px rgba(37,99,235,.12); display: flex; flex-direction: column; min-width: 86px; padding: 15px 8px; }
+.hourly article span { color: rgba(30,30,30,.58); font-weight: 600; } .hourly img { height: 60px; margin: 8px 0; object-fit: contain; width: 60px; }
+.week { overflow: hidden; padding: 22px 0 0; } .week h2 { padding: 0 34px; }
+.week article { align-items: center; border-top: 1px solid rgba(30,30,30,.1); display: grid; gap: 16px; grid-template-columns: 1.1fr 1fr 1fr .8fr; min-height: 73px; padding: 8px 48px; }
+.week article > div:first-child { display: flex; flex-direction: column; } .week article span { color: rgba(30,30,30,.58); font-size: 14px; font-weight: 600; }
+.condition { align-items: center; color: #0088ff; display: flex; gap: 12px; } .condition img { height: 50px; object-fit: contain; width: 50px; }
+@media (max-width:760px) { .current { grid-template-columns: 1fr; padding: 24px; } .details { grid-template-columns: repeat(2,1fr); } .card { padding: 24px; } .week { padding: 20px 0 0; } .week article { grid-template-columns: 1fr auto; padding: 10px 24px; } .condition,.week article > span { display:none; } }
+@media (max-width:430px) { .currentSummary img { height:100px; width:100px; } .temperature { font-size:44px; } .details { gap:18px 12px; } .detail strong { font-size:19px; } }
+
+.unavailable { color: #64748b; font-size: 14px; margin: -8px 0 24px; }
+.placeholderIcon { filter: grayscale(1); opacity: .45; }

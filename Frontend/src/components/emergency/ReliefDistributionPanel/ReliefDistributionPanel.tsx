@@ -2,8 +2,9 @@
 
 import { FormEvent, useEffect, useMemo, useState } from "react";
 import { Modal } from "@/components/ui/Modal/Modal";
+import { EmptyState } from "@/components/ui/EmptyState";
 import { Pagination as SharedPagination, type PaginationState } from "@/components/ui/Pagination/Pagination";
-import { AdminReliefAuditPanel } from "@/components/emergency/ReliefDistributionPanel/AdminReliefAuditPanel";
+import { CswddDistributionModule } from "@/components/relief/CswddDistributionModule/CswddDistributionModule";
 import { cn } from "@/lib/cn";
 import { getCurrentUser, normalizeUserRole, userDisplayName } from "@/lib/authSession";
 import { downloadReliefHistoryReport } from "@/lib/reliefHistoryReport";
@@ -31,14 +32,18 @@ import styles from "./ReliefDistributionPanel.module.css";
 type LoadState = "idle" | "loading" | "verifying" | "confirming";
 const pageSize = 5;
 
-export function ReliefDistributionPanel() {
+export function ReliefDistributionPanel({ onBack, initialView }: { onBack?: () => void; initialView?: "distribution" | "history" } = {}) {
   const currentUser = getCurrentUser();
   const role = normalizeUserRole(currentUser);
-  if (role === "super" || role === "cswdd") return <AdminReliefAuditPanel />;
+  if (role === "super" || role === "cswdd") return <CswddDistributionModule onBack={onBack} initialView={initialView} />;
 
   const [campaigns, setCampaigns] = useState<ReliefCampaign[]>([]);
   const [selectedCampaign, setSelectedCampaign] = useState<ReliefCampaign | null>(null);
   const [isSwitcherOpen, setIsSwitcherOpen] = useState(false);
+  const [isQrOpen, setIsQrOpen] = useState(false);
+  const [isHistoryDateOpen, setIsHistoryDateOpen] = useState(false);
+  const [view, setView] = useState<"distribution" | "history">(initialView ?? "distribution");
+  useEffect(() => { setView(initialView ?? "distribution"); }, [initialView]);
   const [identifier, setIdentifier] = useState("");
   const [result, setResult] = useState<ReliefDistributionVerifyResponse | null>(null);
   const [history, setHistory] = useState<ReliefDistributionRecord[]>([]);
@@ -269,193 +274,131 @@ export function ReliefDistributionPanel() {
   }
 
   return (
-    <section className={styles.stack} aria-label="QR relief distribution">
-      <div className={styles.summary}>
-        <div>
-          <span>Selected Relief Program</span>
-          <h3>{selectedCampaign?.plan_name ?? "No Relief Program Selected"}</h3>
-          <p>{selectedCampaign ? selectedStatusCopy(selectedCampaign) : "Choose a campaign to view records or start beneficiary verification."}</p>
-        </div>
-        <div className={styles.summaryAside}>
-          <div className={styles.summaryStats}>
-            <Metric label="Status" value={selectedCampaign ? formatStatus(selectedCampaign.status) : "-"} compact />
-            <Metric label="Received" value={selectedCampaign ? receivedCount : "-"} compact />
-          </div>
-          <button className={styles.switchButton} type="button" onClick={() => setIsSwitcherOpen(true)}>
-            Switch Relief Program
-          </button>
-        </div>
+    <section className={styles.polishedDistribution} aria-label="QR relief distribution">
+      <div className={styles.distributionNavigation} role="tablist" aria-label="Relief distribution views">
+        <button type="button" role="tab" id="relief-distribution-tab" aria-selected={view === "distribution"} aria-controls="relief-distribution-view" onClick={() => setView("distribution")}>Relief Distribution</button>
+        <button type="button" role="tab" id="relief-history-tab" aria-selected={view === "history"} aria-controls="relief-history-view" onClick={() => setView("history")}>Distribution History</button>
       </div>
+      {message ? <p className={styles.stateMessage} role="status">{message}</p> : null}
+      {error ? <p className={styles.errorMessage} role="alert">{error}</p> : null}
+      {state === "loading" ? <p className={styles.loadingMessage} role="status">Loading distribution data...</p> : null}
 
-      {message ? <p className={styles.stateMessage}>{message}</p> : null}
-      {error ? <p className={styles.errorMessage}>{error}</p> : null}
-
-      {selectedCampaign ? (
-        <section className={cn(styles.card, styles.selectedCampaignCard)}>
-          <header className={styles.cardHeader}>
-            <span>Campaign Summary</span>
-            <h3>{selectedCampaign.plan_name}</h3>
-            <p>{selectedIsActive ? "This campaign is open for barangay beneficiary verification." : "This campaign is read-only."}</p>
-          </header>
-          <dl className={styles.details}>
+      <section className={styles.allocationSummaryCard}>
+        <div className={styles.allocationTitleRow}>
+          <div>
+            <h2>{selectedCampaign ? `${selectedScope} Allocation` : "No Relief Program Selected"}</h2>
+            <p className={styles.campaignDescription}>{selectedCampaign ? `${selectedCampaign.plan_name} · ${selectedStatusCopy(selectedCampaign)}` : "Choose a campaign to view records or start beneficiary verification."}</p>
+          </div>
+          <button className={styles.switchButton} type="button" onClick={() => setIsSwitcherOpen(true)}>Switch Relief Program</button>
+        </div>
+        {selectedCampaign ? <>
+          <dl className={styles.polishedDetails}>
             <Detail label="Strategy" value={selectedCampaign.plan_id.replace(/_/g, " ")} />
             <Detail label="Status" value={formatStatus(selectedCampaign.status)} />
             <Detail label="Started" value={formatDate(selectedCampaign.started_at ?? selectedCampaign.accepted_at ?? selectedCampaign.created_at)} />
             <Detail label="Barangays" value={String(barangayCount)} />
-            <Detail label="Received" value={String(receivedCount)} />
+            <Detail label="Received" value={historyPagination ? String(receivedCount) : state === "loading" ? "Loading..." : "Unavailable"} />
             <Detail label="Barangay Scope" value={selectedScope} />
           </dl>
-          <div className={styles.actionRow}>
-            <button className={styles.primaryButton} type="button" disabled={!selectedIsDistributable} onClick={openScannerWindow}>
-              Open QR Scanner
-            </button>
-            <button className={styles.secondaryButton} type="button" onClick={exportCampaignRecords}>
-              Download History Report
-            </button>
+          {!selectedIsDistributable && selectedCampaign.status === "in_distribution" ? <p className={styles.warningMessage}>Your barangay allocation is not ready for beneficiary QR distribution yet.</p> : null}
+        </> : <div className={styles.polishedEmpty}>Select a relief program to view distribution tools and records.</div>}
+        <div className={styles.polishedActions}>
+          <button type="button" onClick={() => setIsQrOpen(true)}><ScanIcon />Open QR Code</button>
+          <button type="button" disabled={!selectedCampaign} onClick={exportCampaignRecords}><DownloadIcon />Download History Report</button>
+          <button type="button" disabled={!selectedIsDistributable} onClick={openScannerWindow}><ScanIcon />Open QR Scanner</button>
+        </div>
+      </section>
+
+      <div id="relief-distribution-view" role="tabpanel" aria-labelledby="relief-distribution-tab" hidden={view !== "distribution"}>
+        {selectedCampaign ? <>
+          <div className={styles.verificationGrid}>
+            <section>
+              {selectedIsDistributable ? <form onSubmit={handleVerify}>
+                <label htmlFor="beneficiary-identifier">Enter Family / Resident Identifier*</label>
+                <div className={styles.identifierRow}>
+                  <input id="beneficiary-identifier" autoComplete="off" placeholder="family:uuid or resident:uuid" value={identifier} onChange={(event) => setIdentifier(event.target.value)} />
+                  <button type="submit" disabled={state === "verifying" || state === "confirming"}>{state === "verifying" ? "Verifying..." : "Verify"}</button>
+                </div>
+                <p className={styles.campaignDescription}>Verifying for {selectedCampaign.plan_name}. Verification does not mark relief as received.</p>
+              </form> : <>
+                <h2>Enter / Scan Beneficiary QR</h2>
+                <div className={styles.emptyState}>{distributionUnavailableCopy(selectedCampaign)}</div>
+              </>}
+            </section>
+            <DistributionResultCard
+              allocation={result?.data?.allocation ?? null}
+              beneficiary={result?.data?.beneficiary ?? null}
+              distribution={result?.data?.distribution ?? result?.data?.existing_distribution ?? null}
+              campaign={selectedCampaign}
+              onConfirm={handleConfirm}
+              onScanNext={scanNextBeneficiary}
+              result={result}
+              state={state}
+            />
           </div>
-          {!selectedIsDistributable && selectedCampaign.status === "in_distribution" ? (
-            <p className={styles.warningMessage}>Your barangay allocation is not ready for beneficiary QR distribution yet.</p>
-          ) : null}
-        </section>
-      ) : null}
-
-      {selectedCampaign ? <div className={styles.layout}>
-        <section className={styles.card}>
-          <header className={styles.cardHeader}>
-            <span>Step 2</span>
-            <h3>Enter / Scan Beneficiary QR</h3>
-            <p>
-              {selectedIsActive
-                ? `Verifying beneficiary for: ${selectedCampaign.plan_name}. Verification does not mark relief as received.`
-                : `${selectedCampaign.plan_name} is ${formatStatus(selectedCampaign.status)} and cannot accept new distributions.`}
-            </p>
-          </header>
-          {selectedIsDistributable ? <form className={styles.verifyForm} onSubmit={handleVerify}>
-            <label>
-              Beneficiary QR / Identifier
-              <input
-                autoComplete="off"
-                placeholder="family:uuid or resident:uuid"
-                value={identifier}
-                onChange={(event) => setIdentifier(event.target.value)}
-              />
-            </label>
-            <button className={styles.primaryButton} type="submit" disabled={state === "verifying" || state === "confirming"}>
-              {state === "verifying" ? "Verifying..." : "Verify Beneficiary"}
-            </button>
-          </form> : <div className={styles.emptyState}>{distributionUnavailableCopy(selectedCampaign)}</div>}
-        </section>
-
-        <DistributionResultCard
-          allocation={result?.data?.allocation ?? null}
-          beneficiary={result?.data?.beneficiary ?? null}
-          distribution={result?.data?.distribution ?? result?.data?.existing_distribution ?? null}
-          campaign={selectedCampaign}
-          onConfirm={handleConfirm}
-          onScanNext={scanNextBeneficiary}
-          result={result}
-          state={state}
-        />
-      </div> : (
-        <section className={styles.card}>
-          <div className={styles.emptyState}>Select a relief program to view distribution tools and records.</div>
-        </section>
-      )}
-
-      {selectedCampaign ? (
-        <section className={styles.card}>
-          <header className={styles.cardHeader}>
-            <span>Beneficiary Distribution Status</span>
-            <h3>Campaign Beneficiary Status</h3>
-            <p>Campaign-scoped eligibility and receipt status for your barangay.</p>
-          </header>
-          <div className={styles.summaryStats}>
-            <Metric label="Eligible" value={beneficiarySummary?.eligible ?? 0} compact />
-            <Metric label="Received" value={beneficiarySummary?.received ?? 0} compact />
-            <Metric label="Not Received" value={beneficiarySummary?.not_received ?? 0} compact />
-            <Metric label="Coverage" value={beneficiarySummary ? `${beneficiarySummary.coverage}%` : "0%"} compact />
-          </div>
-          <div className={styles.filterBar}>
-            <div className={styles.segmented} aria-label="Beneficiary status filter">
-              {(["all", "received", "not_received"] as ReliefBeneficiaryStatusFilter[]).map((filter) => (
-                <button
-                  className={beneficiaryFilter === filter ? styles.activeSegment : undefined}
-                  key={filter}
-                  type="button"
-                  onClick={() => {
-                    setBeneficiaryFilter(filter);
-                    setBeneficiaryPage(1);
-                  }}
-                >
-                  {beneficiaryFilterLabel(filter)}
-                </button>
-              ))}
+          <p className={styles.uuidHint}>Enter the beneficiary QR value, family ID, or resident ID if the QR cannot be scanned.</p>
+          <section className={styles.beneficiarySection} aria-label="Campaign beneficiary status">
+            <div className={styles.summaryStats}>
+              <Metric label="Eligible" value={beneficiarySummary?.eligible ?? "Unavailable"} compact />
+              <Metric label="Received" value={beneficiarySummary?.received ?? "Unavailable"} compact />
+              <Metric label="Not Received" value={beneficiarySummary?.not_received ?? "Unavailable"} compact />
+              <Metric label="Coverage" value={beneficiarySummary ? `${beneficiarySummary.coverage}%` : "Unavailable"} compact />
             </div>
-            <label className={styles.searchField}>
-              <span>Search</span>
-              <input
-                placeholder="Search family or family head..."
-                value={beneficiarySearch}
-                onChange={(event) => {
-                  setBeneficiarySearch(event.target.value);
-                  setBeneficiaryPage(1);
-                }}
-              />
-            </label>
-          </div>
-          <div className={styles.tableWrap}>
-            <table className={styles.reportTable}>
-              <thead>
-                <tr>
-                  <th>Family</th>
-                  <th>Family Head</th>
-                  <th>Status</th>
-                  <th>Received At</th>
-                </tr>
-              </thead>
-              <tbody>
-                {beneficiaryStatusRows.length === 0 ? (
-                  <tr><td colSpan={4}>No beneficiaries match this campaign status view.</td></tr>
-                ) : beneficiaryStatusRows.map((row) => (
-                  <tr key={row.family_id}>
-                    <td>{row.family_name}</td>
-                    <td>{row.family_head_name ?? "Not recorded"}</td>
-                    <td>{row.status_label}</td>
-                    <td>{row.received_at ? formatDate(row.received_at) : "-"}</td>
-                  </tr>
+            <div className={styles.distributionFilters}>
+              <div className={styles.statusFilters} aria-label="Beneficiary status filter">
+                {(["all", "received", "not_received"] as ReliefBeneficiaryStatusFilter[]).map((filter) => (
+                  <button type="button" className={beneficiaryFilter === filter ? styles.activeStatusFilter : undefined} aria-pressed={beneficiaryFilter === filter} key={filter} onClick={() => { setBeneficiaryFilter(filter); setBeneficiaryPage(1); }}>{beneficiaryFilterLabel(filter)}</button>
                 ))}
-              </tbody>
+              </div>
+              <label><SearchIcon /><input aria-label="Search beneficiaries" placeholder="Search family or family head..." value={beneficiarySearch} onChange={(event) => { setBeneficiarySearch(event.target.value); setBeneficiaryPage(1); }} /></label>
+            </div>
+            <div className={styles.distributionTableCard}>
+              <div className={styles.tableWrap}>
+                <table className={styles.reportTable}>
+                  <thead><tr><th>Family</th><th>Family Head</th><th>Status</th><th>Received At</th></tr></thead>
+                  <tbody>
+                    {beneficiaryStatusRows.length === 0 ? <tr><td colSpan={4}><EmptyState title="No beneficiaries match" description="No beneficiaries match this campaign status view." searchResult={Boolean(beneficiarySearch || beneficiaryFilter !== "all")} /></td></tr> : beneficiaryStatusRows.map((row) => (
+                      <tr key={row.family_id}><td>{row.family_name}</td><td>{row.family_head_name ?? "Not recorded"}</td><td className={row.status === "received" ? styles.receivedStatus : styles.pendingStatus}>{row.status_label}</td><td>{row.received_at ? formatDate(row.received_at) : "Not recorded"}</td></tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+            <SharedPagination pagination={beneficiaryPagination} onPageChange={setBeneficiaryPage} label="Beneficiary status" />
+          </section>
+        </> : null}
+      </div>
+
+      <section id="relief-history-view" role="tabpanel" aria-labelledby="relief-history-tab" hidden={view !== "history"} className={styles.polishedHistory}>
+        <header className={styles.historyHeading}><h2>Distribution History</h2><p>Confirmed relief records for {selectedCampaign?.plan_name ?? "the selected campaign"}.</p></header>
+        <div className={styles.historyFilterRow}>
+          <label><span>Relief Campaign</span><select value={selectedCampaign?.batch_id ?? ""} disabled={campaigns.length === 0} onChange={(event) => { const campaign = campaigns.find((item) => item.batch_id === event.target.value); if (campaign) selectCampaign(campaign); }}>
+            {campaigns.length === 0 ? <option value="">No relief campaigns</option> : campaigns.map((campaign) => <option value={campaign.batch_id} key={campaign.batch_id}>{campaign.plan_name}</option>)}
+          </select></label>
+          <label><span>Type of</span><select disabled aria-label="Distribution recipient type"><option>Family</option><option>Individual — unavailable</option></select></label>
+          <div className={styles.dateRangeControl} onKeyDown={(event) => { if (event.key === "Escape") setIsHistoryDateOpen(false); }}>
+            <span>Date Range</span>
+            <button type="button" aria-expanded={isHistoryDateOpen} aria-controls="distribution-history-date-popover" onClick={() => setIsHistoryDateOpen((open) => !open)}><CalendarIcon />Select Date Range<ChevronIcon /></button>
+            {isHistoryDateOpen ? <div className={styles.datePopover} id="distribution-history-date-popover">
+              <label>Start date<input type="date" disabled aria-describedby="distribution-date-unavailable" /></label>
+              <label>End date<input type="date" disabled aria-describedby="distribution-date-unavailable" /></label>
+              <p className={styles.dateUnavailable} id="distribution-date-unavailable">Date filtering is unavailable for distribution history.</p>
+              <button type="button" disabled>Apply Date Range</button>
+            </div> : null}
+          </div>
+        </div>
+        {selectedCampaign ? <>
+          <div className={styles.historyTableBlock}>
+            <table className={styles.polishedHistoryTable}>
+              <thead><tr><th>Distribution ID</th><th>Family Name</th><th>Family Head</th><th>Barangay</th><th>Status</th><th>Received At</th></tr></thead>
+              <tbody>{state === "loading" ? <tr><td colSpan={6}>Loading distribution history...</td></tr> : history.length === 0 ? <tr><td colSpan={6}><EmptyState title="No distribution records" description="No confirmed relief distributions for this campaign yet." /></td></tr> : history.map((record) => (
+                <tr key={record.distribution_id}><td className={styles.recordId}>{record.distribution_id}</td><td>{record.family_name ?? "Not recorded"}</td><td>{record.family_head_name ?? "Not recorded"}</td><td>{record.barangay_name ?? `Barangay ${record.barangay_id}`}</td><td className={record.status === "received" ? styles.receivedStatus : undefined}>{formatStatus(record.status)}</td><td>{formatDate(record.verified_at)}</td></tr>
+              ))}</tbody>
             </table>
           </div>
-          <SharedPagination pagination={beneficiaryPagination} onPageChange={setBeneficiaryPage} label="Beneficiary status" />
-        </section>
-      ) : null}
-
-      {selectedCampaign ? <section className={styles.card}>
-        <header className={styles.cardHeader}>
-          <span>Campaign Records</span>
-          <h3>Distribution History</h3>
-          <p>Confirmed relief records for {selectedCampaign.plan_name}.</p>
-        </header>
-        {state === "loading" ? (
-          <div className={styles.emptyState}>Loading distribution history...</div>
-        ) : history.length === 0 ? (
-          <div className={styles.emptyState}>No confirmed relief distributions for this campaign yet.</div>
-        ) : (
-          <div className={styles.historyList}>
-            {history.map((record) => (
-              <article key={record.distribution_id}>
-                <div>
-                  <strong>{record.family_name ?? "Family"}</strong>
-                  <span>{record.family_head_name ?? "Family head not recorded"} • {record.barangay_name ?? `Barangay ${record.barangay_id}`} • {formatStatus(record.status)}</span>
-                </div>
-                <time>{formatDate(record.verified_at)}</time>
-              </article>
-            ))}
-          </div>
-        )}
-        <SharedPagination pagination={historyPagination} onPageChange={setHistoryPage} label="Distribution history" />
-      </section> : null}
+          <SharedPagination pagination={historyPagination} onPageChange={setHistoryPage} label="Distribution history" />
+        </> : <EmptyState title="Select a relief program" description="Choose a campaign to view its distribution history." />}
+      </section>
 
       <Modal
         className={styles.switcherDialog}
@@ -499,6 +442,17 @@ export function ReliefDistributionPanel() {
             onSelect={selectCampaign}
             selectedBatchId={selectedCampaign?.batch_id ?? null}
           />
+        </div>
+      </Modal>
+      <Modal className={styles.qrDialog} isOpen={isQrOpen} labelledBy="relief-qr-title" onClose={() => setIsQrOpen(false)} size="sm">
+        <header className={styles.qrHeader}>
+          <div><span>Resident Relief Distribution</span><h3 id="relief-qr-title">Scan Relief QR Code</h3><p>Campaign QR code availability for the selected relief program.</p></div>
+          <button type="button" onClick={() => setIsQrOpen(false)} aria-label="Close QR code">×</button>
+        </header>
+        <div className={styles.qrBody}>
+          <div className={styles.qrUnavailable}><ScanIcon /><strong>QR code unavailable</strong><p>Campaign QR codes are not available. Use Open QR Scanner to verify beneficiary identifiers.</p></div>
+          <div className={styles.qrCampaign}><span>{selectedScope}</span></div>
+          <button className={styles.qrDownload} type="button" disabled>Download QR Code</button>
         </div>
       </Modal>
     </section>
@@ -591,7 +545,7 @@ function DistributionResultCard({
           <h3>Beneficiary Result</h3>
           <p>Verification results for {campaign.plan_name} will appear here after scanning or manual entry.</p>
         </header>
-        <div className={styles.emptyState}>No beneficiary verified yet.</div>
+        <div className={styles.resultField}>No beneficiary verified yet.</div>
       </section>
     );
   }
@@ -769,3 +723,9 @@ function formatStatus(value?: string | null) {
   const text = String(value ?? "").replace(/_/g, " ").trim();
   return text ? text.replace(/\b\w/g, (char) => char.toUpperCase()) : "Unknown";
 }
+
+function ScanIcon() { return <svg width="21" height="21" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M4 7V4h3M17 4h3v3M20 17v3h-3M7 20H4v-3M8 8h8v8H8z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" /></svg>; }
+function DownloadIcon() { return <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 3v12m0 0 4-4m-4 4-4-4M5 21h14" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" /></svg>; }
+function SearchIcon() { return <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="11" cy="11" r="7" stroke="currentColor" strokeWidth="2"/><path d="m16 16 4 4" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/></svg>; }
+function CalendarIcon() { return <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M6 3v3M18 3v3M4 9h16M5 5h14a1 1 0 0 1 1 1v14H4V6a1 1 0 0 1 1-1Z" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" /></svg>; }
+function ChevronIcon() { return <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="m6 9 6 6 6-6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" /></svg>; }

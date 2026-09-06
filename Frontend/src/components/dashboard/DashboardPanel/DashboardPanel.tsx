@@ -3,6 +3,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { useEffect, useMemo, useState } from "react";
 import { MapPanel } from "@/components/dashboard/MapPanel/MapPanel";
+import { useDashboardPresentation } from "@/components/layout/DashboardPresentationContext";
 import { Badge } from "@/components/ui/Badge/Badge";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { ErrorState } from "@/components/ui/ErrorState";
@@ -17,6 +18,7 @@ import type { DashboardStat } from "@/types/dashboard";
 import styles from "./DashboardPanel.module.css";
 
 export function DashboardPanel() {
+  const presentation = useDashboardPresentation();
   const pageSize = 5;
   const [showSevereOnly, setShowSevereOnly] = useState(false);
   const [selectedSensorId, setSelectedSensorId] = useState<string | null>(null);
@@ -55,20 +57,20 @@ export function DashboardPanel() {
     return [
       {
         label: "Sensor Nodes",
-        value: isLoading ? "..." : String(sensorRows.length),
+        value: isLoading ? "..." : error ? "Unavailable" : String(sensorRows.length),
         caption: isLoading ? "Loading sensor network" : "Live sensor nodes",
         tone: "blue",
         captionTone: "info",
       },
       {
         label: "Severe Alerts",
-        value: isLoading ? "..." : String(severeSensors.length),
+        value: isLoading ? "..." : error ? "Unavailable" : String(severeSensors.length),
         caption: showSevereOnly ? "Showing severe sensors" : "View severe sensors",
         tone: "cyan",
         captionTone: severeSensors.length > 0 ? "danger" : "success",
       },
     ];
-  }, [isLoading, sensorRows.length, severeSensors.length, showSevereOnly]);
+  }, [error, isLoading, sensorRows.length, severeSensors.length, showSevereOnly]);
 
   function openSensorManagement() {
     window.location.hash = "#sensors";
@@ -88,6 +90,30 @@ export function DashboardPanel() {
 
   return (
     <div className={styles.dashboard}>
+      <section className={styles.weatherRow} aria-label="Weather forecasts unavailable">
+        <button type="button" className={styles.weatherOverview} onClick={() => presentation?.open("weatherForecast")} aria-label="Open weather forecast">
+          <div className={styles.weatherCurrent}>
+            <img src="/images/weather/cloud.png" alt="" />
+            <div><span>Current Weather</span><strong aria-label="Temperature unavailable">—</strong><p>Unavailable</p></div>
+          </div>
+          <div className={styles.weatherDetails} aria-label="Weather measurements unavailable">
+            {["Feels like", "Humidity", "Rain Chance", "UV Index", "Wind", "Pressure"].map((label) => (
+              <div key={label}><span>{label}</span><strong aria-label={`${label} unavailable`}>—</strong></div>
+            ))}
+          </div>
+        </button>
+        <button type="button" className={styles.hourlyPreview} onClick={() => presentation?.open("weatherForecast")} aria-label="Open hourly weather forecast">
+          <h2>Hourly Forecast</h2>
+          <div aria-hidden="true">
+            {Array.from({ length: 8 }, (_, index) => (
+              <article key={index}>
+                <span>—</span><span className={styles.forecastIconPlaceholder} /><strong>—</strong>
+              </article>
+            ))}
+          </div>
+          <p className={styles.unavailable}>Weather and hourly forecasts are unavailable.</p>
+        </button>
+      </section>
       <section className={styles.statsGrid} aria-label="Dashboard statistics">
         {simpleStats.map((stat, index) => (
           <StatCard
@@ -100,6 +126,7 @@ export function DashboardPanel() {
       </section>
       <section className={styles.mapSection}>
         <MapPanel
+          variant="embedded"
           sensors={showSevereOnly ? severeSensors : sensorRows}
           isLoading={isLoading}
           error={error}

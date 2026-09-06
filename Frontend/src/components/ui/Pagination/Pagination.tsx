@@ -23,7 +23,7 @@ export function Pagination({ pagination, onPageChange, label = "Records" }: Pagi
   const pages = Array.from({ length: lastVisiblePage - firstVisiblePage + 1 }, (_, index) => firstVisiblePage + index);
 
   return (
-    <nav className={styles.pagination} aria-label={`${label} pagination`}>
+    <nav className={`${styles.pagination} ${styles.compact}`} aria-label={`${label} pagination`}>
       <span className={styles.summary}>Showing {start}&ndash;{end} of {pagination.total}</span>
       <div className={styles.controls}>
         <button type="button" disabled={pagination.page <= 1} onClick={() => onPageChange(pagination.page - 1)}>

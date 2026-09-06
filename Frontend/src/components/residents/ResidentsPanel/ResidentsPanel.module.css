@@ -4,6 +4,12 @@
   padding-top: 0;
 }
 
+/* Polished RBI layout */
+.panel{margin:0 auto;max-width:1000px;min-height:1050px;padding:32px 0 40px}.backButton{background:transparent;border:0;color:#0088ff;font-size:16px;font-weight:600;padding:0}.pageTitle{color:#1e1e1e;font-size:36px;line-height:1.2;margin:32px 0 0}.summary{display:grid;gap:20px;grid-template-columns:repeat(3,minmax(0,1fr));margin-top:28px}.summary article{align-items:center;background:#fff;border:1px solid rgba(255,255,255,.7);border-radius:16px;box-shadow:0 6px 18px rgba(37,99,235,.12);display:flex;gap:19px;height:100px;padding:0 34px}.summaryIcon{align-items:center;background:rgba(0,136,255,.12);border:1px solid rgba(255,255,255,.75);border-radius:12px;box-shadow:0 4px 12px rgba(37,99,235,.12);color:#0088ff;display:flex;height:44px;justify-content:center;width:44px}.summaryIcon svg{height:23px;stroke:currentColor;stroke-linecap:round;stroke-linejoin:round;stroke-width:1.7;width:23px}.summary h2{font-size:16px;font-weight:600;margin:0;white-space:nowrap}.summary p{font-size:26px;line-height:1;margin:6px 0 0}.scrollArea{gap:35px;margin-top:26px}.card{border:0;border-radius:16px;box-shadow:0 10px 15px -3px rgba(0,0,0,.1),0 4px 6px -4px rgba(0,0,0,.1);min-height:333px}.card h3{background:#0088ff;font-size:20px;font-weight:600;height:76px;padding:25px 24px}.cardBody{padding:24px 24px 0 15px}.toolbar{gap:16px;margin-bottom:24px}.searchField{border-color:#e5e7eb;border-radius:10px;min-height:46px}.searchField input{font-size:16px}.addButton{background:#0088ff;border-radius:10px;min-height:46px}.wrap{overflow:hidden}.table{min-width:1040px}.table th,.table td{font-size:14px;height:57px;padding:0 12px}.table th{background:#fff;height:44px}.linkButton,.linkText{color:#0088ff}.compactToolbar{max-width:417px}
+@media(max-width:800px){.summary{grid-template-columns:1fr}.pageTitle{font-size:30px}.summary article{height:90px}.panel{padding-top:24px}}
+.barangayPanel .toolbar{max-width:none}.barangayPanel .searchField{max-width:none;width:100%}.barangayPanel .card{height:332.8px;min-height:332.8px}.barangayPanel .cardBody{height:256.8px;overflow:hidden}.barangayPanel .table th:first-child,.barangayPanel .table td:first-child{width:7%}.barangayPanel .table th:nth-child(2){width:21%}.barangayPanel .table th:nth-child(3){width:13%}.barangayPanel .table th:nth-child(4){width:17%}.barangayPanel .table th:nth-child(5),.barangayPanel .table th:nth-child(6){width:15%}.barangayPanel .compactToolbar{max-width:417px}.barangayPanel .compactToolbar .searchField{width:417px}
+.barangayPanel{padding-top:32px}.barangayPanel>.backButton{display:block}.barangayPanel>.pageTitle{display:block}.barangayPanel>.summary{margin-top:28px}.barangayPanel>.scrollArea{margin-top:26px}
+
 .scrollArea {
   display: grid;
   gap: 26px;
@@ -554,3 +560,349 @@
     padding-top: 10px;
   }
 }
+
+/* Final Barangay RBI table geometry — kept last to override the legacy admin table. */
+.barangayPanel .scrollArea {
+  gap: 35px;
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.barangayPanel .card {
+  background: #ffffff;
+  border: 0;
+  border-radius: 16px;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.10), 0 4px 6px -4px rgba(0, 0, 0, 0.10);
+  height: 408.8px;
+  min-height: 408.8px;
+  overflow: hidden;
+}
+
+.barangayPanel .card > h3 {
+  align-items: center;
+  background: #0088ff;
+  color: #ffffff;
+  display: flex;
+  flex: 0 0 76px;
+  font-size: 20px;
+  font-weight: 600;
+  height: 76px;
+  padding: 0 24px;
+}
+
+.barangayPanel .cardBody {
+  flex: 0 0 332.8px;
+  height: 332.8px;
+  overflow: hidden;
+  padding: 24px 24px 0 15px;
+}
+
+.barangayPanel .toolbar {
+  margin-bottom: 24px;
+}
+
+.barangayPanel .searchField {
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  min-height: 46px;
+}
+
+.barangayPanel .searchField input {
+  font-size: 16px;
+}
+
+.barangayPanel .wrap {
+  flex: 0 0 auto;
+  overflow: hidden;
+}
+
+.barangayPanel .table {
+  min-width: 1040px;
+  table-layout: fixed;
+}
+
+.barangayPanel .table th,
+.barangayPanel .table td {
+  background: #ffffff;
+  border-bottom: 1px solid #e5e7eb;
+  color: #1e1e1e;
+  font-size: 14px;
+  height: 57px;
+  padding: 0 12px;
+}
+
+.barangayPanel .table th {
+  font-weight: 700;
+  height: 44px;
+  position: static;
+}
+
+.barangayPanel .card:first-child .table th:nth-child(1) { width: 7%; }
+.barangayPanel .card:first-child .table th:nth-child(2) { width: 21%; }
+.barangayPanel .card:first-child .table th:nth-child(3) { width: 13%; }
+.barangayPanel .card:first-child .table th:nth-child(4) { width: 17%; }
+.barangayPanel .card:first-child .table th:nth-child(5) { width: 15%; }
+.barangayPanel .card:first-child .table th:nth-child(6) { width: 15%; }
+
+.barangayPanel .card:nth-child(2) .table th:nth-child(1) { width: 7%; }
+.barangayPanel .card:nth-child(2) .table th:nth-child(2) { width: 15.5%; }
+.barangayPanel .card:nth-child(2) .table th:nth-child(3) { width: 16%; }
+.barangayPanel .card:nth-child(2) .table th:nth-child(n+4):nth-child(-n+8) { width: 10%; }
+.barangayPanel .card:nth-child(2) .table th:nth-child(9) { width: auto; }
+
+/* Typography parity with the polished Source Sans Pro screen. */
+.barangayPanel,
+.barangayPanel button,
+.barangayPanel input,
+.barangayPanel table {
+  font-family: "Source Sans Pro", ui-sans-serif, system-ui, sans-serif;
+  font-synthesis: none;
+}
+
+.barangayPanel .pageTitle {
+  font-size: 36px;
+  font-weight: 700;
+  letter-spacing: 0;
+}
+
+.barangayPanel .summary h2 {
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.barangayPanel .summary p {
+  font-size: 26px;
+  font-weight: 400;
+}
+
+.barangayPanel .card > h3 {
+  font-size: 20px;
+  font-weight: 600;
+}
+
+.barangayPanel .searchField input {
+  font-size: 16px;
+  font-weight: 400;
+}
+
+.barangayPanel .table th {
+  color: #1e1e1e;
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 20px;
+  text-align: left;
+  vertical-align: middle;
+}
+
+.barangayPanel .table td {
+  color: #1e1e1e;
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 20px;
+  text-align: left;
+  vertical-align: middle;
+}
+
+.barangayPanel .linkButton,
+.barangayPanel .linkText {
+  appearance: none;
+  background: transparent;
+  border: 0;
+  border-radius: 0;
+  color: #0088ff;
+  display: block;
+  font: inherit;
+  font-feature-settings: inherit;
+  font-weight: 400;
+  font-variation-settings: inherit;
+  letter-spacing: inherit;
+  margin: 0;
+  max-width: 100%;
+  opacity: 1;
+  overflow: hidden;
+  padding: 0;
+  text-align: left;
+  text-decoration: none;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.barangayPanel .linkButton:hover,
+.barangayPanel .linkButton:focus-visible {
+  color: #0088ff;
+  text-decoration: underline;
+}
+
+.barangayPanel .card:has(.cardBody nav) {
+  height: 430px;
+  min-height: 430px;
+}
+
+.barangayPanel .card:has(.cardBody nav) .cardBody {
+  flex-basis: 354px;
+  height: 354px;
+}
+
+.barangayPanel .cardBody nav {
+  flex: 0 0 auto;
+  margin: 14px 10px 0;
+  padding-top: 0;
+  width: auto;
+}
+
+.barangayPanel .cardBody nav > div {
+  gap: 8px;
+}
+
+.tablePagination {
+  margin-top: -11px;
+  width: 100%;
+}
+
+.tablePagination nav {
+  margin: 0;
+  padding: 0 10px;
+  width: 100%;
+}
+
+.tablePagination nav > div {
+  gap: 12px;
+}
+
+/* RBI forms/details use the same centered glass-overlay modal language. */
+.residentDialog,
+.familyDetailsDialog {
+  --modal-width: 1100px;
+  background: #ffffff;
+  border: 1px solid rgba(255,255,255,.70);
+  border-radius: 16px;
+  box-shadow: 0 6px 18px rgba(37,99,235,.12);
+}
+
+.residentDialog .modalHeader,
+.familyDetailsDialog .modalHeader {
+  background: #ffffff;
+  color: #1e1e1e;
+  padding: 42px 60px 20px;
+}
+
+.residentDialog .modalHeader h2,
+.familyDetailsDialog .modalHeader h2 {
+  font-size: 24px;
+  font-weight: 700;
+}
+
+.residentDialog .modalHeader p,
+.familyDetailsDialog .modalHeader p {
+  color: rgba(30,30,30,.58);
+  font-size: 14px;
+}
+
+.residentDialog .closeButton,
+.familyDetailsDialog .closeButton {
+  background: #e1efff;
+  border-radius: 9px;
+  color: #0088ff;
+  font-size: 25px;
+  height: 44px;
+  width: 44px;
+}
+
+.residentDialog .closeButton:hover,
+.familyDetailsDialog .closeButton:hover {
+  background: #cfe6ff;
+}
+
+.residentDialog .residentForm,
+.familyDetailsDialog .familyDetailsBody {
+  padding: 20px 60px 40px;
+}
+
+.memberName {
+  color: #0088ff;
+  display: block;
+  font-family: "Source Sans Pro", ui-sans-serif, system-ui, sans-serif;
+  font-size: 14px;
+  font-weight: 400;
+  letter-spacing: 0;
+  line-height: 20px;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.panel.panel { margin-left: 0; margin-right: 0; max-width: none; width: 100%; }
+
+/* Resident Information table geometry from the web-app reference. */
+.barangayPanel .card { border-radius: 16px; height: 489px; min-height: 489px; }
+.barangayPanel .card > h3 { flex-basis: 70px; height: 70px; padding: 0 22px; }
+.barangayPanel .cardBody { flex-basis: 419px; height: 419px; padding: 23px 14px 0; }
+.barangayPanel .toolbar { margin-bottom: 21px; }
+.barangayPanel .compactToolbar { max-width: none; width: 100%; }
+.barangayPanel .compactToolbar .searchField { max-width: none; width: 100%; }
+.barangayPanel .table { min-width: 900px; width: 100%; }
+.barangayPanel .table:has(thead th:nth-child(8)) { min-width: 1040px; }
+.barangayPanel .table th,.barangayPanel .table td { height: 53px; padding-left: 14px; padding-right: 14px; }
+.barangayPanel .table th { height: 43px; }
+
+.barangayPanel .residentTable th:nth-child(1) { width: 7%; }
+.barangayPanel .residentTable th:nth-child(2) { width: 21%; }
+.barangayPanel .residentTable th:nth-child(3) { width: 10%; }
+.barangayPanel .residentTable th:nth-child(4) { width: 15%; }
+.barangayPanel .residentTable th:nth-child(5) { width: 22%; }
+.barangayPanel .residentTable th:nth-child(6) { width: 15%; }
+.barangayPanel .residentTable th:nth-child(7) { width: 10%; }
+
+.barangayPanel .familyTable th:nth-child(1) { width: 7%; }
+.barangayPanel .familyTable th:nth-child(2) { width: 21%; }
+.barangayPanel .familyTable th:nth-child(3) { width: 22%; }
+.barangayPanel .familyTable th:nth-child(n+4) { width: 8.333%; }
+
+.barangayPanel .searchField {
+  align-items: center;
+  box-sizing: border-box;
+  gap: 11px;
+  height: 43px;
+  min-height: 43px;
+  padding: 0 13px;
+}
+
+.barangayPanel .searchField input {
+  background: transparent;
+  height: 100%;
+  line-height: 43px;
+  padding: 0;
+}
+
+.barangayPanel .searchIcon {
+  border-color: #9ca3af;
+  flex: 0 0 14px;
+  height: 14px;
+  margin-left: 0;
+  width: 14px;
+}
+
+.barangayPanel .searchIcon::after { background: #9ca3af; }
+
+@media (max-width: 520px) {
+  .barangayPanel .compactToolbar,
+  .barangayPanel .compactToolbar .searchField { max-width: none; width: 100%; }
+}
+
+/* Preserve record actions and full table scrolling at every viewport. */
+.barangayPanel .card,.barangayPanel .card:has(.cardBody nav) { height: auto; min-height: 0; }
+.barangayPanel .cardBody,.barangayPanel .card:has(.cardBody nav) .cardBody { flex-basis: auto; height: auto; overflow: visible; padding-bottom: 24px; }
+.barangayPanel .wrap { overflow-x: auto; }
+.barangayPanel .table { table-layout: auto; }
+.barangayPanel .toolbar { flex-wrap: wrap; }
+.barangayPanel .searchField { flex: 1 1 220px; min-width: 0; }
+.summary { grid-template-columns: repeat(auto-fit,minmax(min(240px,100%),1fr)); }
+.summary article { min-width: 0; padding: 18px 24px; }
+.summary h2 { white-space: normal; }
+.summaryIcon { flex-shrink: 0; }
+@media(max-width:680px) {
+  .residentDialog .modalHeader,.familyDetailsDialog .modalHeader { padding: 24px 20px 16px; }
+  .residentDialog .residentForm,.familyDetailsDialog .familyDetailsBody { padding: 16px 20px 24px; }
+}
+
+.idCell { max-width: 110px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }

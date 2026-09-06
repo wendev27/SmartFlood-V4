@@ -3,7 +3,8 @@
 import type { ReactNode } from "react";
 import { Sidebar } from "@/components/layout/Sidebar/Sidebar";
 import { Topbar } from "@/components/layout/Topbar/Topbar";
-import type { NavItem, PageKey } from "@/types/navigation";
+import { DashboardPresentationContext, type DashboardPresentationNavigation } from "@/components/layout/DashboardPresentationContext";
+import type { DashboardRole, NavItem, PageKey } from "@/types/navigation";
 import styles from "./AppShell.module.css";
 
 export interface DashboardUserProfile {
@@ -19,6 +20,8 @@ export interface DashboardUserProfile {
 }
 
 interface AppShellProps {
+  presentation?: DashboardPresentationNavigation;
+  userRole?: DashboardRole;
   activePage: PageKey;
   isMobileNavOpen: boolean;
   hideTopbar?: boolean;
@@ -30,6 +33,8 @@ interface AppShellProps {
 }
 
 export function AppShell({
+  presentation,
+  userRole,
   activePage,
   isMobileNavOpen,
   hideTopbar = false,
@@ -40,18 +45,22 @@ export function AppShell({
   children,
 }: AppShellProps) {
   return (
+    <DashboardPresentationContext.Provider value={presentation ?? null}>
     <main className={styles.shell}>
       <Sidebar
         activePage={activePage}
         isOpen={isMobileNavOpen}
         items={navigationItems}
+        userProfile={userProfile}
+        userRole={userRole}
         onNavigate={onNavigate}
         onToggleMobileNav={onToggleMobileNav}
       />
       <section className={styles.dashboard}>
-        {hideTopbar ? null : <Topbar activePage={activePage} userProfile={userProfile} />}
-        {children}
+        {hideTopbar && !presentation?.view ? null : <Topbar activePage={activePage} userProfile={userProfile} userRole={userRole} actionsOnly={Boolean(presentation?.view)} />}
+        <div className={styles.content}>{children}</div>
       </section>
     </main>
+    </DashboardPresentationContext.Provider>
   );
 }

@@ -18,6 +18,7 @@ interface ActionResultModalProps {
   secondaryLabel?: string;
   onSecondary?: () => void;
   onClose: () => void;
+  variant?: "default" | "cswdd";
 }
 
 const iconPath: Record<ActionResultType, string> = {
@@ -38,6 +39,7 @@ export function ActionResultModal({
   secondaryLabel,
   onSecondary,
   onClose,
+  variant = "default",
 }: ActionResultModalProps) {
   const labelledBy = `action-result-${type}-title`;
   const showActions = Boolean(primaryLabel || secondaryLabel);
@@ -53,8 +55,8 @@ export function ActionResultModal({
   }
 
   return (
-    <Modal isOpen={open} onClose={onClose} labelledBy={labelledBy} className={styles.dialog}>
-      <div className={cn(styles.card, styles[type])}>
+    <Modal isOpen={open} onClose={onClose} labelledBy={labelledBy} className={cn(styles.dialog, variant === "cswdd" && styles.cswddDialog)} backdropClassName={variant === "cswdd" ? styles.cswddBackdrop : undefined}>
+      <div className={cn(styles.card, styles[type], variant === "cswdd" && styles.cswddCard)}>
         <span className={styles.iconWrap} aria-hidden="true">
           <svg viewBox="0 0 24 24" className={styles.icon}>
             {type === "error" ? (

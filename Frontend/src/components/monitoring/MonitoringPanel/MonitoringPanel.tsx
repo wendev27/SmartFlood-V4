@@ -1,6 +1,10 @@
 "use client";
 
 import dynamic from "next/dynamic";
+import { useQuery } from "@tanstack/react-query";
+import { queryKeys, queryStaleTime } from "@/lib/queryKeys";
+import { getSensors } from "@/services/sensorsService";
+import { alertActivityPresentation } from "@/adapters/alertActivityPresentation";
 import { useEffect, useMemo, useState } from "react";
 import { SmartFloodIcon, type SmartFloodIconName } from "@/components/icons/SmartFloodIcon";
 import type { DashboardUserProfile } from "@/components/layout/AppShell/AppShell";
@@ -13,9 +17,9 @@ import { Modal } from "@/components/ui/Modal/Modal";
 import { Pagination as SharedPagination, type PaginationState } from "@/components/ui/Pagination/Pagination";
 import { formatBarangayName, normalizeBarangayForCompare } from "@/lib/formatters";
 import { resolveSensorCoordinates } from "@/lib/sensorMapping";
-import { filterSensorsForUserScope } from "@/lib/sensorScope";
 import { getFloodBadgeTone, getFloodStatusClass, getFloodStatusLabel } from "@/lib/statusStyles";
 import { getFloodMonitoringData, getSensorHistory, type FloodHistoryRow } from "@/services/floodService";
+import { historyNarrativePresentation } from "./historyPresentation";
 import styles from "./MonitoringPanel.module.css";
 
 const FloodHeatmapMap = dynamic(
@@ -62,16 +66,49 @@ export function MonitoringPanel({ onViewChange, resetSignal = 0, userProfile }: 
         {monitoringModules.map((item) => (
           <button className={styles.moduleCard} key={item.label} type="button" onClick={() => item.view && changeView(item.view)}>
             <span className={styles.moduleIcon}>
-              <SmartFloodIcon name={item.icon} size={40} />
+              {item.view === "alertLevels" ? <img src="/images/dashboard/alert-level-icon.svg" alt="" /> : <MonitoringModuleIcon view={item.view} fallback={item.icon} />}
             </span>
             <strong>{item.label}</strong>
             <p>{item.caption}</p>
-            <span className={styles.openText}>Open <span aria-hidden="true">↗</span></span>
           </button>
         ))}
       </div>
     </section>
   );
+}
+
+function MonitoringModuleIcon({ view, fallback }: { view?: MonitoringView; fallback: SmartFloodIconName }) {
+  if (view === "heatmap") {
+    return <svg viewBox="0 0 44 44" fill="none" aria-hidden="true"><path d="M23.1184 4.05167C22.4584 3.53834 21.5417 3.53834 20.8817 4.05167C17.3985 6.71001 7.11343 15.3817 7.16843 25.4833C7.16843 33.66 13.8235 40.3333 22.0184 40.3333C30.2134 40.3333 36.8684 33.6783 36.8684 25.5017C36.8867 15.5467 26.5834 6.72834 23.1184 4.05167Z" stroke="currentColor" strokeWidth="2.75" strokeMiterlimit="10" /></svg>;
+  }
+
+  if (view === "history") {
+    return <svg viewBox="0 0 44 44" fill="none" aria-hidden="true"><path d="M23.8335 27.5H12.8335L16.5002 31.1667M12.8335 27.5L16.5002 23.8333" stroke="currentColor" strokeWidth="2.75" strokeLinecap="round" strokeLinejoin="round"/><path d="M40.3334 18.3333V27.5C40.3334 36.6667 36.6667 40.3333 27.5001 40.3333H16.5001C7.33341 40.3333 3.66675 36.6667 3.66675 27.5V16.5C3.66675 7.33334 7.33341 3.66667 16.5001 3.66667H25.6667" stroke="currentColor" strokeWidth="2.75" strokeLinecap="round" strokeLinejoin="round"/><path d="M40.3334 18.3333H33.0001C27.5001 18.3333 25.6667 16.5 25.6667 11V3.66667L33.0001 11L40.3334 18.3333Z" stroke="currentColor" strokeWidth="2.75" strokeLinecap="round" strokeLinejoin="round"/></svg>;
+  }
+
+  return <SmartFloodIcon name={fallback} size={40} />;
+}
+
+function ClipboardListIcon() {
+  return (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <path d="M9 5H6a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-3" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+      <rect x="9" y="2" width="6" height="4" rx="1" stroke="currentColor" strokeWidth="2" />
+      <path d="M9 12h6M9 16h6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+    </svg>
+  );
+}
+
+function SlidersIcon() {
+  return <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16M8 4v4M16 10v4M10 16v4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" /></svg>;
+}
+
+function ClockIcon() {
+  return <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="12" cy="12" r="9" stroke="currentColor" strokeWidth="2" /><path d="M12 7v5l3 2" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" /></svg>;
+}
+
+function DownloadIcon() {
+  return <svg width="19" height="19" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 3v12m0 0 4-4m-4 4-4-4M5 21h14" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" /></svg>;
 }
 
 function FloodHistory({ onBack, userProfile }: MonitoringSubpageProps) {
@@ -89,6 +126,8 @@ function FloodHistory({ onBack, userProfile }: MonitoringSubpageProps) {
   const [customEnd, setCustomEnd] = useState("");
   const [refreshVersion, setRefreshVersion] = useState(0);
   const [historyPage, setHistoryPage] = useState(1);
+  const [areHistoryFiltersOpen, setAreHistoryFiltersOpen] = useState(false);
+  const [isHistoryReportOpen, setIsHistoryReportOpen] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -139,6 +178,7 @@ function FloodHistory({ onBack, userProfile }: MonitoringSubpageProps) {
       && (!levelFilter || historyLevel(reading.waterLevelM, reading.computedStatus) === levelFilter)
       && (!normalizedSearch || normalizeBarangayForCompare(searchable).includes(normalizedSearch));
   }), [barangay, customEnd, customStart, history, levelFilter, range, search, sensor]);
+  const historyNarrative = useMemo(() => historyNarrativePresentation(filteredHistory), [filteredHistory]);
   const timeline = useMemo(() => groupHistory(filteredHistory, groupBy), [filteredHistory, groupBy]);
   const timelineMax = Math.max(1, ...timeline.map((group) => group.maxLevel));
   const chartPoints = timelinePoints(timeline, timelineMax);
@@ -185,8 +225,9 @@ function FloodHistory({ onBack, userProfile }: MonitoringSubpageProps) {
         </div>
         <div className={styles.subpageHeaderActions}>
           <DashboardHeaderActions userProfile={userProfile} />
-          <button className={styles.refreshHistory} type="button" onClick={() => setRefreshVersion((current) => current + 1)}>
-            {isLoading ? "Refreshing..." : "Refresh Data"}
+          <button className={styles.refreshHistory} type="button" onClick={() => setIsHistoryReportOpen(true)}>
+            <ClipboardListIcon />
+            View Historical Report
           </button>
         </div>
       </div>
@@ -198,7 +239,10 @@ function FloodHistory({ onBack, userProfile }: MonitoringSubpageProps) {
         <h3>Flood History Records</h3>
         <div className={styles.historyBody}>
           {isLoading ? <LoadingState message="Loading flood history records..." /> : null}
-          <div className={styles.analyticsFilters}>
+          <button className={styles.historyFiltersButton} type="button" aria-expanded={areHistoryFiltersOpen} aria-controls="flood-history-filters" onClick={() => setAreHistoryFiltersOpen((open) => !open)}>
+            <SlidersIcon />Filters
+          </button>
+          <div className={styles.analyticsFilters} id="flood-history-filters" hidden={!areHistoryFiltersOpen}>
             <label>
               <span>Date Range</span>
               <select value={range} onChange={(event) => setRange(event.target.value as HistoryRange)}>
@@ -251,19 +295,11 @@ function FloodHistory({ onBack, userProfile }: MonitoringSubpageProps) {
             <button className={styles.resetHistoryFilters} type="button" onClick={resetHistoryFilters}>Reset</button>
           </div>
           {range === "custom" ? (
-            <div className={styles.customRange}>
+            <div className={styles.customRange} hidden={!areHistoryFiltersOpen}>
               <label><span>Start Date</span><input type="date" value={customStart} onChange={(event) => setCustomStart(event.target.value)} /></label>
               <label><span>End Date</span><input type="date" value={customEnd} onChange={(event) => setCustomEnd(event.target.value)} /></label>
             </div>
           ) : null}
-
-          <div className={styles.historySummary}>
-            <HistoryMetric label="Total Records" value={filteredHistory.length} />
-            <HistoryMetric label="Highest Water Level" value={`${highestWaterLevel.toFixed(2)}m`} />
-            <HistoryMetric label="Severe Count" value={countHistoryLevel(filteredHistory, "Severe")} />
-            <HistoryMetric label="Warning Count" value={countHistoryLevel(filteredHistory, "Flood Warning")} />
-            <HistoryMetric label="Latest Reading" value={formatTimestamp(latestReadingTime)} />
-          </div>
 
           <div className={styles.historyChartHeading}>
             <h4>Flood Level Timeline</h4>
@@ -350,8 +386,38 @@ function FloodHistory({ onBack, userProfile }: MonitoringSubpageProps) {
             </table>
           </div>
           <SharedPagination pagination={paginatedHistory.pagination} onPageChange={setHistoryPage} label="Flood history records" />
+          <div className={styles.historySummary} aria-label="Filtered history statistics">
+            <HistoryMetric label="Total Records" value={isLoading ? "Loading…" : error ? "Unavailable" : filteredHistory.length} />
+            <HistoryMetric label="Highest Water Level" value={isLoading ? "Loading…" : error ? "Unavailable" : filteredHistory.some((record) => record.waterLevelM != null) ? `${highestWaterLevel.toFixed(2)}m` : "No reading"} />
+            <HistoryMetric label="Severe Count" value={isLoading ? "Loading…" : error ? "Unavailable" : countHistoryLevel(filteredHistory, "Severe")} />
+            <HistoryMetric label="Warning Count" value={isLoading ? "Loading…" : error ? "Unavailable" : countHistoryLevel(filteredHistory, "Flood Warning")} />
+            <HistoryMetric label="Latest Reading" value={isLoading ? "Loading…" : error ? "Unavailable" : formatTimestamp(latestReadingTime)} />
+          </div>
+          <button className={styles.historyRefreshButton} type="button" onClick={() => setRefreshVersion((current) => current + 1)}>
+            {isLoading ? "Refreshing..." : "Refresh Data"}
+          </button>
         </div>
       </article>
+      <Modal isOpen={isHistoryReportOpen} onClose={() => setIsHistoryReportOpen(false)} labelledBy="historical-report-title" className={styles.reportDialog} backdropClassName={styles.printBackdrop}>
+        <header className={styles.reportHeader}>
+          <h2 id="historical-report-title">Narrative Report</h2>
+          <div className={styles.reportHeaderActions}>
+            <button className={styles.downloadReport} type="button" disabled={isLoading || Boolean(error)} title="Open the print dialog to save as PDF" onClick={() => window.print()}><DownloadIcon /><span>Download PDF</span></button>
+            <button className={styles.closeReport} type="button" aria-label="Close historical report" onClick={() => setIsHistoryReportOpen(false)}>×</button>
+          </div>
+        </header>
+        <div className={`${styles.reportBody} ${styles.narrativeSections}`}>
+          {isLoading ? <LoadingState message="Loading historical report..." /> : error ? <ErrorState title="Unable to Load Historical Report" message={error} retryLabel="Retry" onRetry={() => setRefreshVersion((current) => current + 1)} /> : <>
+            <section><h3>Executive Summary</h3><p>{historyNarrative.summary}</p></section>
+            <section>
+              <h3>Water Level Analysis</h3><p>{historyNarrative.waterLevelAnalysis}</p>
+              <div className={styles.highestEvent}><strong>Highest Water Level Event</strong><span>{historyNarrative.highestEvent}</span></div>
+              <div className={styles.lowestEvent}><strong>Lowest Water Level Event</strong><span>{historyNarrative.lowestEvent}</span></div>
+            </section>
+            <section><h3 className={styles.durationHeading}><ClockIcon />Duration and Impact</h3><p>{historyNarrative.observationPeriod}</p></section>
+          </>}
+        </div>
+      </Modal>
     </section>
   );
 }
@@ -407,12 +473,11 @@ function FloodHeatmap({ onBack, userProfile }: MonitoringSubpageProps) {
             Back
           </button>
           <h2>Flood Heatmap</h2>
-          <p>Monitor flood levels and manage alerts</p>
         </div>
         <div className={styles.subpageHeaderActions}>
           <DashboardHeaderActions userProfile={userProfile} />
           <button className={styles.reviewButton} type="button" onClick={() => setIsReportOpen(true)}>
-            <span aria-hidden="true">▣</span>
+            <ClipboardListIcon />
             Review Narrative Report
           </button>
         </div>
@@ -490,16 +555,17 @@ function FloodHeatmap({ onBack, userProfile }: MonitoringSubpageProps) {
           </div>
         </div>
       </article>
-      <Modal isOpen={isReportOpen} onClose={() => setIsReportOpen(false)} labelledBy="narrative-report-title" className={styles.reportDialog}>
+      <Modal isOpen={isReportOpen} onClose={() => setIsReportOpen(false)} labelledBy="narrative-report-title" className={styles.reportDialog} backdropClassName={styles.printBackdrop}>
         <header className={styles.reportHeader}>
-          <div>
-            <h2 id="narrative-report-title">Flood Narrative Report</h2>
-            <p>Latest live sensor summary</p>
+          <h2 id="narrative-report-title">Narrative Report</h2>
+          <div className={styles.reportHeaderActions}>
+            <button className={styles.downloadReport} type="button" disabled={isLoading || Boolean(error)} title="Open the print dialog to save as PDF" onClick={() => window.print()}><DownloadIcon /><span>Download PDF</span></button>
+            <button className={styles.closeReport} type="button" aria-label="Close narrative report" onClick={() => setIsReportOpen(false)}>×</button>
           </div>
-          <button type="button" aria-label="Close narrative report" onClick={() => setIsReportOpen(false)}>x</button>
         </header>
-        <div className={styles.reportBody}>
-          <p>{narrativeFor(latestReadings, highestReading, highestRiskBarangay)}</p>
+        <div className={`${styles.reportBody} ${styles.narrativeSections}`}>
+          <section><h3>Current State</h3><p>{isLoading ? "Loading sensor readings…" : error ? "Current sensor readings are unavailable." : narrativeFor(latestReadings, highestReading, highestRiskBarangay)}</p></section>
+          <section><h3>Current Measurements</h3>
           <dl className={styles.reportGrid}>
             <ReportDetail label="Sensor Nodes" value={latestReadings.length} />
             <ReportDetail label="Severe" value={countRisk(latestReadings, "severity")} />
@@ -510,6 +576,7 @@ function FloodHeatmap({ onBack, userProfile }: MonitoringSubpageProps) {
             <ReportDetail label="Highest Risk Barangay" value={formatBarangayName(highestRiskBarangay) || "No reading"} />
             <ReportDetail label="Latest Reading" value={formatTimestamp(history[0]?.createdAt ?? null)} />
           </dl>
+          </section>
         </div>
       </Modal>
     </section>
@@ -517,7 +584,14 @@ function FloodHeatmap({ onBack, userProfile }: MonitoringSubpageProps) {
 }
 
 function AlertLevelManagement({ onBack, userProfile }: MonitoringSubpageProps) {
-  const visibleActivity = filterSensorsForUserScope(recentActivity, userProfile);
+  const sensorsQuery = useQuery({
+    queryKey: queryKeys.sensors.latest,
+    queryFn: getSensors,
+    staleTime: queryStaleTime.realTime,
+    refetchInterval: 5_000,
+    refetchIntervalInBackground: false,
+  });
+  const visibleActivity = useMemo(() => alertActivityPresentation(sensorsQuery.data ?? []), [sensorsQuery.data]);
 
   return (
     <section className={styles.alertPage} aria-label="Alert level management">
@@ -527,7 +601,7 @@ function AlertLevelManagement({ onBack, userProfile }: MonitoringSubpageProps) {
             <span aria-hidden="true">←</span>
             Back
           </button>
-          <h2>Alert Level Management</h2>
+          <h2>Alert Level</h2>
         </div>
         <DashboardHeaderActions userProfile={userProfile} />
       </div>
@@ -560,10 +634,13 @@ function AlertLevelManagement({ onBack, userProfile }: MonitoringSubpageProps) {
       </article>
 
       <article className={styles.activityPanel}>
-        <h3>Recent Alert Activity</h3>
+        <h3>Current Sensor Alerts</h3>
         <div className={styles.activityList}>
+          {sensorsQuery.isPending ? <LoadingState message="Loading current sensor alerts..." /> : null}
+          {sensorsQuery.isError ? <ErrorState title="Unable to Load Sensor Alerts" message={sensorsQuery.error instanceof Error ? sensorsQuery.error.message : "Unable to load sensor readings."} retryLabel="Retry" onRetry={() => sensorsQuery.refetch()} /> : null}
+          {!sensorsQuery.isPending && !sensorsQuery.isError && visibleActivity.length === 0 ? <EmptyState title="No current sensor alerts" description="No available readings meet an alert threshold." /> : null}
           {visibleActivity.map((activity) => (
-            <section className={`${styles.activityItem} ${styles[activity.tone]}`} key={activity.title}>
+            <section className={`${styles.activityItem} ${styles[activity.tone]}`} key={activity.key}>
               <span className={styles.activityIcon}>
                 <SmartFloodIcon name="alertLevel" size={20} />
               </span>
@@ -892,7 +969,7 @@ const monitoringModules: Array<{
   view?: "alertLevels" | "heatmap" | "history";
 }> = [
   {
-    label: "Alert Level Management",
+    label: "Alert Level",
     caption: "View descriptive graphs and narrative reports",
     icon: "alertLevel",
     view: "alertLevels",
@@ -932,29 +1009,5 @@ const alertLevels = [
     action: "Suggested Automated Action",
     note: "Chest-deep, forced evacuation",
     tone: "critical",
-  },
-] as const;
-
-const recentActivity = [
-  {
-    title: "Severe Alert Detected",
-    meta: "SNS-001 reached Severe level at 1.35m.",
-    badge: "Severe",
-    tone: "critical",
-    barangayName: "Barangay Tañong",
-  },
-  {
-    title: "Flood Warning level at Barangay Potrero",
-    meta: "Water level: 0.90m · 15 minutes ago",
-    badge: "Flood Warning",
-    tone: "warning",
-    barangayName: "Barangay Potrero",
-  },
-  {
-    title: "Flood Alert level at Barangay Catmon",
-    meta: "Water level: 0.35m · 1 hour ago",
-    badge: "Flood Alert",
-    tone: "alert",
-    barangayName: "Barangay Catmon",
   },
 ] as const;

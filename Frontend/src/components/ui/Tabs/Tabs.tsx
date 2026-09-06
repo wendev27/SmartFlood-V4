@@ -24,6 +24,8 @@ export function Tabs<T extends string>({ items, activeKey, onChange, ariaLabel }
         <button
           key={item.key}
           className={cn(styles.tab, item.key === activeKey && styles.active)}
+          role="tab"
+          aria-selected={item.key === activeKey}
           type="button"
           onClick={() => onChange(item.key)}
         >

@@ -101,6 +101,7 @@ export function AccountManagement() {
   const [selectedUser, setSelectedUser] = useState<AccountUserRow | null>(null);
   const [previewUser, setPreviewUser] = useState<AccountUserRow | null>(null);
   const [passwordUser, setPasswordUser] = useState<AccountUserRow | null>(null);
+  const [deleteUser, setDeleteUser] = useState<AccountUserRow | null>(null);
   const [newPassword, setNewPassword] = useState("");
   const [resultModal, setResultModal] = useState({
     open: false,
@@ -362,7 +363,7 @@ export function AccountManagement() {
         <button type="button" className={styles.addButton} onClick={openAddForm}>+ Add Account</button>
       </div>
       {error ? <ErrorState title="Unable to Load Accounts" message={error} retryLabel="Retry" onRetry={refreshUsers} /> : null}
-      <DataTable className={styles.tableScroll} headers={["Name / Email", "Role", "Department / Barangay", "Status", "Actions"]} minWidth={880}>
+      <DataTable className={styles.tableScroll} headers={["Name / Email", "Role", "Department / Barangay", "Last Login", "Status", "Actions"]} minWidth={880}>
         {paginatedUsers.rows.map((user, index) => (
           <tr key={user.id || `${user.email}-${index}`}>
             <td>
@@ -370,8 +371,9 @@ export function AccountManagement() {
               <a className={styles.emailLink} href={`mailto:${user.email}`}>{user.email}</a>
             </td>
             <td>{user.role_label}</td>
-            <td><Badge tone={departmentTone(user.department)}>{formatBarangayName(user.department)}</Badge></td>
-            <td><Badge tone={statusTone(user.status)}>{statusLabel(user.status)}</Badge></td>
+            <td><strong className={styles.department}>{formatBarangayName(user.department)}</strong></td>
+            <td>{formatDateTime(user.last_login_at, "Not recorded")}</td>
+            <td><span className={user.status === "active" ? styles.enabled : styles.disabled}>{statusLabel(user.status)}</span></td>
             <td>
               <div className={styles.rowActions}>
                 <button className={styles.actionPill} type="button" onClick={() => setPreviewUser(user)}>
@@ -384,12 +386,12 @@ export function AccountManagement() {
         ))}
         {isLoading ? (
           <tr>
-            <td colSpan={5}><LoadingState message="Loading account users..." /></td>
+            <td colSpan={6}><LoadingState message="Loading account users..." /></td>
           </tr>
         ) : null}
         {!isLoading && displayedUsers.length === 0 ? (
           <tr>
-            <td colSpan={5}>
+            <td colSpan={6}>
               <EmptyState
                 title={users.length === 0 ? "No accounts found" : "No accounts match your filters"}
                 description={users.length === 0 ? "System accounts will appear here once they are created." : "Try another name, email, role, department, or status filter."}
@@ -402,17 +404,22 @@ export function AccountManagement() {
       </DataTable>
       <SharedPagination pagination={paginatedUsers.pagination} onPageChange={setPage} label="Account users" />
 
-      <Modal isOpen={isFormOpen} onClose={() => setIsFormOpen(false)} labelledBy="account-form-title" className={styles.accountDialog}>
+      <Modal isOpen={isFormOpen} onClose={() => setIsFormOpen(false)} labelledBy="account-form-title" className={`${styles.accountDialog} ${formMode === "edit" ? styles.editDialog : ""}`} backdropClassName={styles.accountBackdrop}>
         <header className={styles.modalHeader}>
           <div>
             <h3 id="account-form-title">{formMode === "edit" ? "Edit Account" : "Add New Account"}</h3>
             <p>{formMode === "edit" ? "Update profile and access settings" : "Create a login-ready dashboard account"}</p>
           </div>
-          <button type="button" onClick={() => setIsFormOpen(false)} aria-label="Close account form">x</button>
+          <div className={styles.headerActions}>
+            {formMode === "edit" && selectedUser ? <button className={styles.deleteAdminButton} type="button" onClick={() => { setIsFormOpen(false); setDeleteUser(selectedUser); }} aria-label="View account deletion availability" title="Account deletion unavailable">
+              <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M3 6h18"/><path d="M8 6V4h8v2"/><path d="m19 6-1 14H6L5 6"/><path d="M10 11v5M14 11v5"/></svg>
+            </button> : null}
+            <button type="button" onClick={() => setIsFormOpen(false)} aria-label="Close account form">x</button>
+          </div>
         </header>
         <form className={styles.accountForm} onSubmit={submitAccount}>
           {formError ? <p className={styles.formError}>{formError}</p> : null}
-          <div className={styles.formGrid}>
+          <div className={`${styles.formGrid} ${formMode === "edit" ? styles.editFormGrid : ""}`}>
             <label>First Name<input value={form.first_name} onChange={(event) => updateForm("first_name", event.target.value)} /></label>
             <label>Last Name<input value={form.last_name} onChange={(event) => updateForm("last_name", event.target.value)} /></label>
             <label>Email<input type="email" value={form.email} onChange={(event) => updateForm("email", event.target.value)} /></label>
@@ -454,19 +461,22 @@ export function AccountManagement() {
         </form>
       </Modal>
 
-      <Modal isOpen={Boolean(previewUser)} onClose={() => setPreviewUser(null)} labelledBy="account-preview-title" className={styles.accountDialog}>
+      <Modal isOpen={Boolean(previewUser)} onClose={() => setPreviewUser(null)} labelledBy="account-preview-title" className={`${styles.accountDialog} ${styles.previewDialog}`} backdropClassName={styles.accountBackdrop}>
         {previewUser ? (
           <>
             <header className={styles.modalHeader}>
               <div>
-                <h3 id="account-preview-title">{previewUser.full_name || previewUser.email}</h3>
+                <h3 id="account-preview-title">Account Details</h3>
                 <p>Account details and access assignment</p>
               </div>
-              <button type="button" onClick={() => setPreviewUser(null)} aria-label="Close account preview">x</button>
+              <div className={styles.headerActions}>
+                <button className={styles.editAdminButton} type="button" onClick={() => openEditForm(previewUser)} aria-label="Edit account"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg></button>
+                <button type="button" onClick={() => setPreviewUser(null)} aria-label="Close account preview">×</button>
+              </div>
             </header>
             <dl className={styles.detailGrid}>
-              <Detail label="Full Name" value={previewUser.full_name || "Unnamed account"} />
               <Detail label="Email" value={previewUser.email} />
+              <Detail label="Full Name" value={previewUser.full_name || "Unnamed account"} />
               <Detail label="Mobile" value={previewUser.mobile_number} />
               <Detail label="Role" value={previewUser.role_label} />
               <Detail label="Department / Barangay" value={previewUser.department} />
@@ -480,6 +490,7 @@ export function AccountManagement() {
               <Detail label="Locked Until" value={formatDateTime(previewUser.locked_until, "Not locked")} />
             </dl>
             <div className={styles.previewActions}>
+              <Button size="sm" onClick={() => setPreviewUser(null)}>Back</Button>
               <Button size="sm" onClick={() => setPasswordUser(previewUser)}><span className={`${styles.buttonIcon} ${styles.keyIcon}`} aria-hidden="true" />Change Password</Button>
               {previewUser.status === "active" ? (
                 <Button size="sm" tone="muted" onClick={() => updateStatus(previewUser, "inactive")} disabled={isSubmitting}><span className={`${styles.buttonIcon} ${styles.powerIcon}`} aria-hidden="true" />Disable Account</Button>
@@ -498,7 +509,7 @@ export function AccountManagement() {
         ) : null}
       </Modal>
 
-      <Modal isOpen={Boolean(passwordUser)} onClose={() => setPasswordUser(null)} labelledBy="password-title" className={styles.passwordDialog}>
+      <Modal isOpen={Boolean(passwordUser)} onClose={() => setPasswordUser(null)} labelledBy="password-title" className={styles.passwordDialog} backdropClassName={styles.accountBackdrop}>
         <header className={styles.modalHeader}>
           <div>
             <h3 id="password-title">Change Password</h3>
@@ -513,6 +524,20 @@ export function AccountManagement() {
             <Button type="submit" disabled={isSubmitting || !newPassword.trim()}>{isSubmitting ? "Saving..." : "Change Password"}</Button>
           </footer>
         </form>
+      </Modal>
+
+      <Modal isOpen={Boolean(deleteUser)} onClose={() => { setDeleteUser(null); setIsFormOpen(true); }} labelledBy="delete-account-title" className={styles.deleteDialog} backdropClassName={styles.accountBackdrop}>
+        <div className={styles.deleteContent}>
+          <div className={styles.deleteHeading}>
+            <span className={styles.warningIcon} aria-hidden="true">!</span>
+            <div><h3 id="delete-account-title">Delete Account</h3><p>Account deletion is unavailable.</p></div>
+          </div>
+          <div className={styles.deleteWarning}>Account status controls remain available.</div>
+          <div className={styles.deleteActions}>
+            <button type="button" onClick={() => { setDeleteUser(null); setIsFormOpen(true); }}>Cancel</button>
+            <button type="button" disabled>Confirm</button>
+          </div>
+        </div>
       </Modal>
 
       <ActionResultModal

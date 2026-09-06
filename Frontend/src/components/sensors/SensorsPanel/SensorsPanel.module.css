@@ -166,3 +166,7 @@
     padding: clamp(22px, 1.8vw, 30px);
   }
 }
+
+.tableCard { border: 1px solid rgba(255,255,255,.7); border-radius: 16px; box-shadow: 0 6px 18px rgba(37,99,235,.12); padding: 24px; }
+.tableCard h3 { color: #1e1e1e; font-size: 24px; font-weight: 600; }
+.toolbar input,.toolbar select { border-radius: 12px; font-size: 14px; }

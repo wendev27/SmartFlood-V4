@@ -55,6 +55,37 @@
   margin-top: 14px;
 }
 
+.searchEmptyState {
+  align-self: stretch;
+  background: transparent;
+  border: 0;
+  box-sizing: border-box;
+  color: rgba(0, 136, 255, 0.58);
+  margin: 0 auto;
+  min-height: 430px;
+  padding: 32px 24px;
+  width: 100%;
+}
+
+.searchEmptyState strong {
+  color: rgba(0, 136, 255, 0.58);
+  font-size: 24px;
+}
+
+.searchEmptyState p {
+  color: rgba(0, 136, 255, 0.58);
+  font-size: 14px;
+  font-weight: 700;
+  margin-top: 24px;
+}
+
+.noResultsImage {
+  height: 150px;
+  margin-bottom: 20px;
+  opacity: 0.78;
+  width: 150px;
+}
+
 .loadingState {
   background: #f8fafc;
   border: 1px solid #e2e8f0;
@@ -62,13 +93,10 @@
   min-height: 120px;
 }
 
-.spinner {
-  animation: spin 0.8s linear infinite;
-  border: 3px solid #dbeafe;
-  border-top-color: var(--color-blue);
-  border-radius: 999px;
-  height: 30px;
-  width: 30px;
+.ripple {
+  color: var(--color-blue);
+  height: 72px;
+  width: 72px;
 }
 
 .errorState {
@@ -92,12 +120,6 @@
 .errorState button {
   flex: 0 0 auto;
   margin-left: auto;
-}
-
-@keyframes spin {
-  to {
-    transform: rotate(360deg);
-  }
 }
 
 @media (max-width: 640px) {

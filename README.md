@@ -1,11 +1,13 @@
-# SmartFlood V3.2
+# SmartFlood V3.3
 
-SmartFlood V3.2 separates the original full-stack SmartFlood application into a collaborator-friendly frontend and backend-owned API services while preserving the existing UI, endpoint paths, database usage, and AI flow.
+SmartFlood V3.3 brings the SmartFlood-V3.2rey frontend presentation into the V3.2 application while preserving V3.2 APIs, services, authentication, role permissions, database usage, and AI workflows.
+
+The frontend migration passes its automated checks. Rendered visual acceptance and authenticated end-to-end verification remain pending. See [the migration report](Frontend/MIGRATION_REPORT.md) and [the UI/API audit](Frontend/UI_PARITY_AUDIT.md) for implemented areas and unavailable capabilities.
 
 ## Structure
 
 ```text
-SmartFlood-V3.2/
+SmartFlood-V3.3/
 ├── Frontend/      # Next.js / React UI, browser-safe config only
 ├── Backend/
 │   ├── api/       # Backend-owned Next.js API compatibility layer
@@ -60,4 +62,4 @@ Backend/api Next.js route handlers
   +-- Backend/ai FastAPI
 ```
 
-See [docs/ARCHITECTURE.md](/home/hyoukasterben/Desktop/SmartFloodV3.2/SmartFlood-V3.2/docs/ARCHITECTURE.md) and [docs/API_ROUTE_CLASSIFICATION.md](/home/hyoukasterben/Desktop/SmartFloodV3.2/SmartFlood-V3.2/docs/API_ROUTE_CLASSIFICATION.md).
+See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) and [docs/API_ROUTE_CLASSIFICATION.md](docs/API_ROUTE_CLASSIFICATION.md).

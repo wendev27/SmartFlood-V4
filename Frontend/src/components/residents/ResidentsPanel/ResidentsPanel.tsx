@@ -131,6 +131,7 @@ export function ResidentsPanel() {
   const [residentPage, setResidentPage] = useState(1);
   const [familyPage, setFamilyPage] = useState(1);
   const [connectedResidentPage, setConnectedResidentPage] = useState(1);
+  const [selectedResident, setSelectedResident] = useState<ResidentRow | null>(null);
   const [selectedFamily, setSelectedFamily] = useState<FamilyRow | null>(null);
   const [isResidentModalOpen, setIsResidentModalOpen] = useState(false);
   const [residentModalMode, setResidentModalMode] = useState<"add" | "edit">("add");
@@ -419,7 +420,14 @@ export function ResidentsPanel() {
   }
 
   return (
-    <section className={styles.panel} aria-label="Resident information">
+    <section className={cn(styles.panel, styles.barangayPanel)} aria-label="Resident information">
+      <button className={styles.backButton} type="button" onClick={() => { window.location.hash = "dashboard"; }}>← Back</button>
+      <h1 className={styles.pageTitle}>Resident Information</h1>
+      <section className={styles.summary} aria-label="Resident summary">
+        <SummaryCard label="Total Residents" value={isResidentsLoading ? "…" : residentsError ? "Unavailable" : residents.length} icon="residents" />
+        <SummaryCard label="Total Families" value={isFamiliesLoading ? "…" : familiesError ? "Unavailable" : familyClusters.length} icon="families" />
+        <SummaryCard label="Family Heads" value={isResidentsLoading ? "…" : residentsError ? "Unavailable" : residents.filter((resident) => resident.is_family_head).length} icon="vulnerable" />
+      </section>
       <div className={styles.scrollArea}>
         <article className={styles.card}>
           <h3>All Residents</h3>
@@ -465,9 +473,9 @@ export function ResidentsPanel() {
                       key={resident.resident_id || `${resident.first_name}-${resident.last_name}-${index}`}
                       className={cn(resident.selected && styles.selected)}
                     >
-                      <td>{String((residentPage - 1) * pageSize + index + 1).padStart(3, "0")}</td>
+                      <td className={styles.idCell} title={resident.resident_id}>{resident.resident_id || "Not recorded"}</td>
                       <td>
-                        <span className={styles.linkText}>{resident.name}</span>
+                        <button className={styles.linkButton} type="button" onClick={() => setSelectedResident(resident)}>{resident.name}</button>
                       </td>
                       <td>{resident.age}</td>
                       <td>{resident.sex}</td>
@@ -506,9 +514,9 @@ export function ResidentsPanel() {
                 </tbody>
               </table>
             </div>
-            <SharedPagination pagination={paginatedResidents.pagination} onPageChange={setResidentPage} label="Residents" />
           </div>
         </article>
+        <SharedPagination pagination={paginatedResidents.pagination} onPageChange={setResidentPage} label="Residents" />
 
         <article className={styles.card}>
           <h3>Family Cluster</h3>
@@ -547,7 +555,7 @@ export function ResidentsPanel() {
                 <tbody>
                   {paginatedFamilies.rows.map((cluster, index) => (
                     <tr key={cluster.family_id || `${cluster.familyName}-${index}`}>
-                      <td>{`FC-${String((familyPage - 1) * pageSize + index + 1).padStart(3, "0")}`}</td>
+                      <td className={styles.idCell} title={cluster.family_id}>{cluster.family_id || "Not recorded"}</td>
                       <td>
                         <button className={styles.linkButton} type="button" onClick={() => setSelectedFamily(cluster)}>
                           {cluster.familyName}
@@ -580,9 +588,9 @@ export function ResidentsPanel() {
                 </tbody>
               </table>
             </div>
-            <SharedPagination pagination={paginatedFamilies.pagination} onPageChange={setFamilyPage} label="Family clusters" />
           </div>
         </article>
+        <SharedPagination pagination={paginatedFamilies.pagination} onPageChange={setFamilyPage} label="Family clusters" />
       </div>
       <Modal
         isOpen={canManageResidentRecords && isResidentModalOpen}
@@ -761,6 +769,41 @@ export function ResidentsPanel() {
         </form>
       </Modal>
       <Modal
+        isOpen={Boolean(selectedResident)}
+        onClose={() => setSelectedResident(null)}
+        labelledBy="resident-details-title"
+        className={styles.familyDetailsDialog}
+      >
+        {selectedResident ? (
+          <>
+            <header className={styles.modalHeader}>
+              <div>
+                <h2 id="resident-details-title">{selectedResident.name}</h2>
+                <p>Resident Information</p>
+              </div>
+              <button className={styles.closeButton} type="button" aria-label="Close resident details" onClick={() => setSelectedResident(null)}>x</button>
+            </header>
+            <div className={styles.familyDetailsBody}>
+              <section className={styles.detailsSection}>
+                <h3>Resident Details</h3>
+                <dl className={styles.detailsGrid}>
+                  <Detail label="Resident ID" value={selectedResident.resident_id || "Not recorded"} />
+                  <Detail label="Full Name" value={selectedResident.name} />
+                  <Detail label="Age" value={selectedResident.age || "Not recorded"} />
+                  <Detail label="Sex" value={selectedResident.sex || "Not recorded"} />
+                  <Detail label="Contact Number" value={selectedResident.contact || "Not recorded"} />
+                  <Detail label="Barangay" value={selectedResident.barangay || "Not recorded"} />
+                  <Detail label="Street" value={selectedResident.street || "Not recorded"} />
+                  <Detail label="Complete Address" value={selectedResident.address || "Not recorded"} />
+                  <Detail label="Family ID" value={selectedResident.family_id || "Not assigned"} />
+                  <Detail label="Family Role" value={selectedResident.is_family_head ? "Family Head" : "Family Member"} />
+                </dl>
+              </section>
+            </div>
+          </>
+        ) : null}
+      </Modal>
+      <Modal
         isOpen={Boolean(selectedFamily)}
         onClose={() => setSelectedFamily(null)}
         labelledBy="family-details-title"
@@ -852,6 +895,18 @@ export function ResidentsPanel() {
       />
     </section>
   );
+}
+
+function SummaryCard({ label, value, icon }: { label: string; value: number | string; icon: "residents" | "families" | "vulnerable" }) {
+  return <article><span className={styles.summaryIcon}>{icon === "families" ? <HeartIcon /> : <PeopleIcon grouped={icon === "vulnerable"} />}</span><div><h2>{label}</h2><p>{value.toLocaleString()}</p></div></article>;
+}
+
+function PeopleIcon({ grouped = false }: { grouped?: boolean }) {
+  return <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx={grouped ? "8" : "12"} cy="8" r="3"/><path d={grouped ? "M2.5 20c.4-4 2.2-6 5.5-6s5.1 2 5.5 6M16 7a3 3 0 0 1 0 6m-1 2c3.5 0 5.5 1.7 6 5" : "M5 21c.6-5 2.8-7 7-7s6.4 2 7 7"}/></svg>;
+}
+
+function HeartIcon() {
+  return <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1.1-1.1a5.5 5.5 0 0 0-7.8 7.8l1.1 1.1L12 21l7.8-7.5 1.1-1.1a5.5 5.5 0 0 0-.1-7.8Z"/></svg>;
 }
 
 function mapResident(row: Record<string, unknown>): ResidentRow {
