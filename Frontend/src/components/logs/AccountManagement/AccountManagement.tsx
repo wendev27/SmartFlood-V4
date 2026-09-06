@@ -454,7 +454,22 @@ export function AccountManagement() {
             <h3 id="account-form-title">{formMode === "edit" ? "Edit Details" : "Add New Account"}</h3>
             <p>{formMode === "edit" ? "Update profile and access settings" : "Create a login-ready dashboard account"}</p>
           </div>
-          {formMode === "add" ? <button type="button" onClick={() => setIsFormOpen(false)} aria-label="Close account form">x</button> : null}
+          {formMode === "edit" && selectedUser ? (
+            <div className={styles.headerActions}>
+              <button
+                className={styles.deleteAdminButton}
+                type="button"
+                onClick={() => {
+                  setIsFormOpen(false);
+                  setDeleteUser(selectedUser);
+                }}
+                aria-label="Delete account"
+                title="Delete account"
+              >
+                <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M3 6h18"/><path d="M8 6V4h8v2"/><path d="m19 6-1 14H6L5 6"/><path d="M10 11v5M14 11v5"/></svg>
+              </button>
+            </div>
+          ) : <button type="button" onClick={() => setIsFormOpen(false)} aria-label="Close account form">x</button>}
         </header>
         <form className={styles.accountForm} onSubmit={submitAccount}>
           {formError ? <p className={styles.formError}>{formError}</p> : null}
@@ -519,9 +534,6 @@ export function AccountManagement() {
               <div className={styles.headerActions}>
                 <button className={styles.editAdminButton} type="button" onClick={() => openEditForm(previewUser)} aria-label="Edit admin">
                   <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
-                </button>
-                <button className={styles.deleteAdminButton} type="button" onClick={() => setDeleteUser(previewUser)} aria-label="Delete admin">
-                  <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6h18"/><path d="M8 6V4h8v2"/><path d="m19 6-1 14H6L5 6"/><path d="M10 11v5M14 11v5"/></svg>
                 </button>
               </div>
             </header>
