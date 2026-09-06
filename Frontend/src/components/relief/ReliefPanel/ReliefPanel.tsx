@@ -2,6 +2,8 @@
 
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useMemo, useState } from "react";
+import { QRCodeSVG } from "qrcode.react";
+import { useCampaignQrToken } from "@/components/providers/CampaignQrTokenProvider";
 import { ActionResultModal, type ActionResultType } from "@/components/ui/ActionResultModal";
 import { Button } from "@/components/ui/Button/Button";
 import { DataTable } from "@/components/ui/DataTable/DataTable";
@@ -72,6 +74,7 @@ const planCopy: Record<ReliefPlanId, { focus: string; description: string; butto
 export function ReliefPanel() {
   const pageSize = 5;
   const queryClient = useQueryClient();
+  const { campaignQrToken, setCampaignQrToken } = useCampaignQrToken();
   const [generationInventory, setGenerationInventory] = useState<Record<GenerationInventoryField, string>>(generationInventoryDefaults);
   const [isGenerationOpen, setIsGenerationOpen] = useState(false);
   const [selectedReport, setSelectedReport] = useState<ReliefRecommendation | null>(null);
@@ -445,6 +448,11 @@ export function ReliefPanel() {
     setActionError("");
     try {
       const workflow = await approveReliefRecommendationPlan(selectedPlan as unknown as Record<string, unknown>);
+      setCampaignQrToken(
+        workflow.qr_token && workflow.batch_id
+          ? { batchId: workflow.batch_id, token: workflow.qr_token }
+          : null,
+      );
       const savedRows = Array.isArray(workflow.data) ? workflow.data : [];
       const [latestRows, currentAllocation] = await Promise.all([
         savedRows.length > 0 ? Promise.resolve(savedRows) : getReliefRecommendations(),
@@ -1050,7 +1058,17 @@ export function ReliefPanel() {
         primaryLabel="OK"
         onPrimary={() => setResultModal((current) => ({ ...current, open: false }))}
         onClose={() => setResultModal((current) => ({ ...current, open: false }))}
-      />
+      >
+        {resultModal.type === "success" && campaignQrToken?.token ? (
+          <QRCodeSVG
+            value={campaignQrToken.token}
+            size={240}
+            level="M"
+            marginSize={4}
+            title="Relief campaign QR code"
+          />
+        ) : null}
+      </ActionResultModal>
     </>
   );
 }

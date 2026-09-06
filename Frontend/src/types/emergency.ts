@@ -230,6 +230,10 @@ export interface ReliefCampaignHistoryResponse {
   campaigns: ReliefCampaign[];
 }
 
+export interface ReliefCampaignQrTokenResponse {
+  qr_token: string;
+}
+
 export interface ReliefCampaignActionResponse {
   campaign: ReliefCampaign;
   progress: ReliefCampaignProgress;

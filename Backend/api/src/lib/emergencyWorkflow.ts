@@ -1,6 +1,7 @@
 import { createHash, randomBytes } from "node:crypto";
 import { auditActorForViewer, type DashboardViewer } from "@/lib/dashboardViewer";
 import { logAuditEvent } from "@/lib/auditLogger";
+import { encryptCampaignQrToken } from "@/lib/campaignQrCrypto";
 import { supabaseServer } from "@/lib/supabaseServer";
 
 const planIds = new Set(["severity_first", "vulnerability_first", "balanced"]);
@@ -127,6 +128,7 @@ export async function createAcceptedWorkflowBatch(
   const actor = auditActorForViewer(viewer);
   const qrToken = randomBytes(32).toString("base64url");
   const qrTokenHash = createHash("sha256").update(qrToken, "utf8").digest("hex");
+  const qrTokenEncrypted = encryptCampaignQrToken(qrToken);
   const { data: batch, error: batchError } = await supabaseServer
     .from("emergency_allocation_batches")
     .insert([{
@@ -137,6 +139,7 @@ export async function createAcceptedWorkflowBatch(
       accepted_by: viewer.id,
       accepted_at: now,
       qr_token_hash: qrTokenHash,
+      qr_token_encrypted: qrTokenEncrypted,
     }])
     .select("batch_id,plan_id,plan_name,status")
     .single();

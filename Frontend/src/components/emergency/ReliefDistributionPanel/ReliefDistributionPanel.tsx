@@ -1,5 +1,6 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import { FormEvent, useEffect, useMemo, useState } from "react";
 import { Modal } from "@/components/ui/Modal/Modal";
 import { Pagination as SharedPagination, type PaginationState } from "@/components/ui/Pagination/Pagination";
@@ -32,6 +33,7 @@ type LoadState = "idle" | "loading" | "verifying" | "confirming";
 const pageSize = 5;
 
 export function ReliefDistributionPanel() {
+  const router = useRouter();
   const currentUser = getCurrentUser();
   const role = normalizeUserRole(currentUser);
   if (role === "super" || role === "cswdd") return <AdminReliefAuditPanel />;
@@ -192,7 +194,8 @@ export function ReliefDistributionPanel() {
 
   function openScannerWindow() {
     if (!selectedCampaign || !selectedIsDistributable) return;
-    window.open(reliefDistributionScannerUrl(selectedCampaign.batch_id), "_blank", "noopener,noreferrer");
+    setError(null);
+    router.push(reliefDistributionScannerUrl(selectedCampaign.batch_id));
   }
 
   async function exportCampaignRecords() {

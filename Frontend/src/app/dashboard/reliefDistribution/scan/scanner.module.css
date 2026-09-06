@@ -13,6 +13,7 @@
 
 .header,
 .campaignBar,
+.qrCard,
 .manualCard,
 .resultCard {
   background: #ffffff;
@@ -31,6 +32,7 @@
 
 .header span,
 .campaignBar span,
+.qrCard header span,
 .manualCard header span,
 .resultCard header span {
   color: #0f61ff;
@@ -42,6 +44,7 @@
 }
 
 .header h1,
+.qrCard h2,
 .manualCard h2,
 .resultCard h2 {
   color: #14385f;
@@ -75,6 +78,30 @@
   display: block;
   font-size: 13px;
   line-height: 1.35;
+}
+
+.qrCard {
+  display: grid;
+  gap: 16px;
+  padding: clamp(18px, 2vw, 24px);
+}
+
+.qrCard p {
+  color: #64748b;
+  font-size: 12px;
+  line-height: 1.5;
+  margin: 8px 0 0;
+}
+
+.qrFrame {
+  align-items: center;
+  background: #ffffff;
+  border: 1px solid #dce9f9;
+  border-radius: 8px;
+  display: flex;
+  justify-content: center;
+  min-height: 340px;
+  padding: 28px;
 }
 
 .scannerGrid {

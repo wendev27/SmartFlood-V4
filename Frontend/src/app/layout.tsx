@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { CampaignQrTokenProvider } from "@/components/providers/CampaignQrTokenProvider";
 import { QueryProvider } from "@/components/providers/QueryProvider";
 import "./globals.css";
 
@@ -10,7 +11,7 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="en">
-      <body><QueryProvider>{children}</QueryProvider></body>
+      <body><QueryProvider><CampaignQrTokenProvider>{children}</CampaignQrTokenProvider></QueryProvider></body>
     </html>
   );
 }

@@ -3,6 +3,7 @@
 import { Button } from "@/components/ui/Button/Button";
 import { Modal } from "@/components/ui/Modal/Modal";
 import { cn } from "@/lib/cn";
+import type { ReactNode } from "react";
 import styles from "./ActionResultModal.module.css";
 
 export type ActionResultType = "success" | "error" | "warning" | "info";
@@ -18,6 +19,7 @@ interface ActionResultModalProps {
   secondaryLabel?: string;
   onSecondary?: () => void;
   onClose: () => void;
+  children?: ReactNode;
 }
 
 const iconPath: Record<ActionResultType, string> = {
@@ -38,6 +40,7 @@ export function ActionResultModal({
   secondaryLabel,
   onSecondary,
   onClose,
+  children,
 }: ActionResultModalProps) {
   const labelledBy = `action-result-${type}-title`;
   const showActions = Boolean(primaryLabel || secondaryLabel);
@@ -85,6 +88,8 @@ export function ActionResultModal({
         <p className={styles.description}>{description}</p>
 
         {details ? <div className={styles.details}>{details}</div> : null}
+
+        {children ? <div className={styles.content}>{children}</div> : null}
 
         {showActions ? (
           <div className={styles.actions}>
