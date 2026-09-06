@@ -147,11 +147,6 @@ export function VerificationPanel() {
 
     setIsReviewOpen(false);
     setSelectedApplication(null);
-    await Promise.all([
-      queryClient.invalidateQueries({ queryKey: queryKeys.verification.applications }),
-      queryClient.invalidateQueries({ queryKey: queryKeys.residents.list }),
-      queryClient.invalidateQueries({ queryKey: ["families"] }),
-    ]);
     setResultModal({
       open: true,
       type: action === "approved" ? "success" : "warning",
@@ -161,6 +156,11 @@ export function VerificationPanel() {
         : "The resident application has been rejected and moved to rejected records.",
       details: "The applicant list and tab counts have been refreshed.",
     });
+    void Promise.all([
+      queryClient.invalidateQueries({ queryKey: queryKeys.verification.applications }),
+      queryClient.invalidateQueries({ queryKey: queryKeys.residents.list }),
+      queryClient.invalidateQueries({ queryKey: ["families"] }),
+    ]);
   }
 
   const emptyFormValues: ApplicationFormValues = {
@@ -222,6 +222,7 @@ export function VerificationPanel() {
         ))}
         {!isLoading && visibleApplications.length === 0 ? (
           <EmptyState
+            searchResult={Boolean(search.trim())}
             title={emptyTitleFor(activeTab)}
             description={search ? "Try another applicant name, barangay, phone, address, or application ID." : emptyDescriptionFor(activeTab)}
           />

@@ -1,9 +1,9 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { createPortal } from "react-dom";
 import { Pagination, type PaginationState } from "@/components/ui/Pagination/Pagination";
 import { EmptyState } from "@/components/ui/EmptyState";
+import { Modal } from "@/components/ui/Modal/Modal";
 import styles from "./EmergencyReportPanel.module.css";
 
 type View = "main" | "reports" | "history";
@@ -71,18 +71,19 @@ export function EmergencyReportPanel() {
         ) : null}
       </div>
       <Pagination compact pagination={pagination} onPageChange={setPage} label="Emergency reports" />
-      {selected ? createPortal(<div className={styles.overlay} onMouseDown={(event) => event.target === event.currentTarget && setSelected(null)}>
+      <Modal isOpen={Boolean(selected)} onClose={() => setSelected(null)} labelledBy="emergency-report-detail-title" className={styles.dialog} size="xl">
+        {selected ? <>
         {toast ? <button type="button" className={styles.toast} onClick={() => setToast(null)}><b>✓</b><span><strong>{toast}</strong><small>{toast === "Arrived" ? "You have arrived at the location." : "You are now en route to the location."}</small></span></button> : null}
-        <article className={styles.dialog} role="dialog" aria-modal="true"><button className={styles.close} onClick={() => setSelected(null)} aria-label="Close">×</button>
-          <header><span className={styles.avatar}><UserIcon /></span><div><h2>{selected.name}</h2><p>{selected.date}</p></div></header>
+        <button className={styles.close} onClick={() => setSelected(null)} aria-label="Close">×</button>
+          <header><span className={styles.avatar}><UserIcon /></span><div><h2 id="emergency-report-detail-title">{selected.name}</h2><p>{selected.date}</p></div></header>
           <div className={styles.contact}><p><span className={styles.contactIcon}><PinIcon /></span><span>BLK. 16-B, LOT 64 Padas Alley, Dagat-Dagatan, Caloocan, Metro Manila<small>MX37+5M Caloocan, Metro Manila</small></span></p><p><span className={styles.contactIcon}><PhoneIcon /></span>0997 452 1458</p></div>
           <div className={styles.message}><p>Mataas na po ang baha sa aming lugar at mabilis pa ring tumataas ang tubig sa kasalukuyan. Pasok na po ang baha sa loob ng bahay at nagbabanta na sa aming kaligtasan. Hindi na po ligtas para sa amin ang lumabas o lumakad nang mag-isa dahil sa lakas ng agos at lalim ng tubig sa paligid.</p><p>Kailangan na po namin ng agarang tulong o rescue team para makalikas nang ligtas patungo sa pinakamalapit na evacuation center bago pa man lalong tumaas ang tubig.</p><p>Nawawalan na rin po kami ng kuryente at access sa linis na tubig. Kung may nakakakilala po sa mga barangay officials, Caloocan CDRRMO, Red Cross, o anumang rescue group sa Dagat-Dagatan area, paki-report po ang aming kinaroroonan.</p></div>
           <EvidenceCarousel activeIndex={evidenceIndex} onChange={setEvidenceIndex} />
           {selected.status === "Pending" || selected.status === "En Route" ? <button className={styles.advance} data-status={selected.status} type="button" onClick={() => advance(selected)}>Mark as {selected.status === "Pending" ? "En Route" : "Arrived"}</button> : null}
           {selected.status === "Arrived" ? <p className={styles.awaitingResolution}>Awaiting the resident to confirm that this emergency has been resolved.</p> : null}
           {selected.status === "Resolved" ? <blockquote>“The rescue team responded quickly and assisted our family during the flooding. Thank you.”</blockquote> : null}
-        </article>
-      </div>, document.body) : null}
+        </> : null}
+      </Modal>
     </section>
   );
 }

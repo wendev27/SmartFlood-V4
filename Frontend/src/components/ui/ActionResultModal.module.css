@@ -1,21 +1,18 @@
 .dialog {
   --modal-width: 408px;
-  border-radius: 8px;
+  border-radius: 16px;
   overflow: hidden;
   width: min(var(--modal-width), calc(100dvw - 32px));
 }
 
 .card {
   align-items: center;
-  background:
-    radial-gradient(circle at 100% 0%, rgba(248, 250, 252, 0.92) 0 20%, transparent 20.5%),
-    radial-gradient(circle at 0% 100%, rgba(248, 250, 252, 0.92) 0 18%, transparent 18.5%),
-    #ffffff;
+  background: #ffffff;
   display: flex;
   flex-direction: column;
-  min-height: 328px;
+  min-height: 340px;
   overflow-y: auto;
-  padding: 22px 36px 32px;
+  padding: 32px 36px 36px;
   text-align: center;
 }
 
@@ -25,10 +22,10 @@
   box-shadow: 0 12px 20px rgba(15, 23, 42, 0.18);
   color: #ffffff;
   display: inline-flex;
-  height: 58px;
+  height: 64px;
   justify-content: center;
-  margin-bottom: 16px;
-  width: 58px;
+  margin-bottom: 20px;
+  width: 64px;
 }
 
 .icon {
@@ -42,7 +39,8 @@
 }
 
 .card h2 {
-  font-size: 20px;
+  color: #1e1e1e;
+  font-size: 22px;
   font-weight: 900;
   line-height: 1.2;
   margin: 0 0 12px;
@@ -58,7 +56,7 @@
 
 .details {
   border: 1px solid;
-  border-radius: 8px;
+  border-radius: 12px;
   font-size: 12px;
   font-weight: 800;
   line-height: 1.45;
@@ -70,16 +68,16 @@
 
 .actions {
   display: grid;
-  gap: 8px;
-  margin-top: 18px;
+  gap: 10px;
+  margin-top: 24px;
   width: 100%;
 }
 
 .primaryButton,
 .secondaryButton {
-  border-radius: 8px;
-  font-size: 13px;
-  min-height: 30px;
+  border-radius: 10px;
+  font-size: 14px;
+  min-height: 44px;
   width: 100%;
 }
 
@@ -96,7 +94,7 @@
 }
 
 .success h2 {
-  color: #08c965;
+  color: #1e1e1e;
 }
 
 .success .details {
@@ -110,7 +108,7 @@
 }
 
 .error h2 {
-  color: #f80d18;
+  color: #1e1e1e;
 }
 
 .error .details {
@@ -124,7 +122,7 @@
 }
 
 .warning h2 {
-  color: #b45309;
+  color: #1e1e1e;
 }
 
 .warning .details {
@@ -138,7 +136,7 @@
 }
 
 .info h2 {
-  color: var(--color-blue);
+  color: #1e1e1e;
 }
 
 .info .details {
@@ -148,57 +146,47 @@
 }
 
 .cswddBackdrop {
-  background:rgba(255,255,255,.52);
-  backdrop-filter:blur(11px);
+  background:rgba(15,23,42,.24);
+  backdrop-filter:blur(10px);
 }
 
 .cswddDialog {
-  --modal-width:520px;
-  border:1px solid rgba(255,255,255,.7);
-  border-radius:26px;
-  box-shadow:0 6px 18px rgba(37,99,235,.12);
+  --modal-width:408px;
+  border-radius:16px;
 }
 
 .cswddCard {
-  background:#fff;
-  color:#1e1e1e;
-  min-height:0;
-  padding:48px 42px 36px;
+  min-height:340px;
+  padding:32px 36px 36px;
 }
 
-.cswddCard .iconWrap { display:none; }
+.cswddCard .iconWrap { display:inline-flex; }
 .cswddCard h2,.cswddCard.success h2,.cswddCard.error h2,.cswddCard.warning h2,.cswddCard.info h2 {
   color:#1e1e1e;
-  font-size:26px;
-  font-weight:700;
-  line-height:normal;
-  margin:0;
+  font-size:22px;
+  font-weight:900;
+  line-height:1.2;
+  margin:0 0 12px;
 }
 .cswddCard .description {
-  color:#1e1e1e;
-  font-size:17px;
-  line-height:normal;
-  margin-top:20px;
-  max-width:420px;
+  color:#475569;
+  font-size:13px;
+  line-height:1.55;
+  margin-top:0;
+  max-width:280px;
 }
 .cswddCard .details {
-  background:transparent;
-  border:0;
-  color:#1e1e1e;
-  font-size:14px;
-  font-weight:400;
-  line-height:1.45;
-  margin-top:18px;
-  padding:0;
+  font-size:12px;
+  font-weight:800;
+  margin-top:22px;
+  padding:15px 18px;
 }
-.cswddCard .actions { margin-top:28px; }
+.cswddCard .actions { margin-top:24px; }
 .cswddCard .primaryButton {
   border:0;
-  border-radius:16px;
-  box-shadow:0 10px 7.5px rgba(0,0,0,.1),0 4px 3px rgba(0,0,0,.1);
-  font-size:16px;
-  font-weight:600;
-  height:48px;
+  border-radius:10px;
+  font-size:14px;
+  min-height:44px;
 }
 
 @media (max-width: 520px) {

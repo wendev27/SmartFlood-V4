@@ -2,7 +2,7 @@
   align-items: center;
   -webkit-backdrop-filter: blur(10px);
   backdrop-filter: blur(10px);
-  background: rgba(255, 255, 255, 0.35);
+  background: rgba(15, 23, 42, 0.24);
   display: flex;
   inset: 0;
   justify-content: center;
@@ -17,9 +17,10 @@
 .dialog {
   --modal-width: 920px;
   background: #ffffff;
-  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.82);
+  border-radius: 16px;
   box-sizing: border-box;
-  box-shadow: 0 24px 60px rgba(15, 23, 42, 0.28);
+  box-shadow: 0 24px 64px rgba(15, 23, 42, 0.24), 0 6px 18px rgba(37, 99, 235, 0.1);
   display: flex;
   flex-direction: column;
   max-height: calc(100dvh - 48px);
@@ -78,7 +79,7 @@
   }
 
   .dialog {
-    border-radius: 8px;
+    border-radius: 14px;
     max-height: calc(100dvh - 28px);
     max-width: calc(100dvw - 28px);
     width: min(var(--modal-width), calc(100dvw - 28px));
