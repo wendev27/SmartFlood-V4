@@ -140,7 +140,7 @@ export default function DashboardPage() {
       {activePage === "monitoring" ? <MonitoringPanel resetSignal={monitoringResetVersion} onViewChange={setMonitoringView} userProfile={session.profile} /> : null}
       {activePage === "relief" ? (session.role === "cswdd" || adminView?.role === "cswdd" ? <CswddReliefPanel /> : <ReliefPanel />) : null}
       {activePage === "reliefManagement" ? <ReliefManagementPanel /> : null}
-      {activePage === "emergencyNotifications" ? <BarangayReliefPanel /> : null}
+      {activePage === "emergencyNotifications" ? <BarangayReliefPanel barangayScope={adminView?.role === "barangay" ? adminView.label : undefined} /> : null}
       {activePage === "reliefDistribution" ? (session.role === "barangay" || adminView?.role === "barangay" ? <EmergencyReportPanel /> : <ReliefDistributionPanel />) : null}
       {activePage === "sensors" ? <SensorsPanel /> : null}
       {activePage === "residents" ? (

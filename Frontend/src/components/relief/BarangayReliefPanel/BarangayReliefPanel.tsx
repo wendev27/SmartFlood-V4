@@ -15,7 +15,7 @@ const modules: Array<{ view: Exclude<ReliefView, "main">; title: string; icon: s
   { view: "endorsement", title: "Resident Relief Request Endorsement", icon: "/images/dashboard/relief-allocation.svg" },
 ];
 
-export function BarangayReliefPanel() {
+export function BarangayReliefPanel({ barangayScope }: { barangayScope?: string }) {
   const [view, setView] = useState<ReliefView>("main");
 
   if (view === "main") {
@@ -38,8 +38,8 @@ export function BarangayReliefPanel() {
       <h1>{title}</h1>
       <div className={styles.content}>
         {view === "allocation" ? <EmergencyNotificationsPanel /> : null}
-        {view === "distribution" ? <ReliefDistributionPanel mode="distribution" /> : null}
-        {view === "history" ? <ReliefDistributionPanel mode="history" /> : null}
+        {view === "distribution" ? <ReliefDistributionPanel mode="distribution" barangayScope={barangayScope} forceBarangayView={Boolean(barangayScope)} /> : null}
+        {view === "history" ? <ReliefDistributionPanel mode="history" barangayScope={barangayScope} forceBarangayView={Boolean(barangayScope)} /> : null}
         {view === "endorsement" ? <ReliefEndorsementEmpty /> : null}
       </div>
     </section>

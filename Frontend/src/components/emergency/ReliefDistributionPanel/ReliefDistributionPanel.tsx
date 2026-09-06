@@ -5,6 +5,7 @@ import { Modal } from "@/components/ui/Modal/Modal";
 import { Pagination as SharedPagination, type PaginationState } from "@/components/ui/Pagination/Pagination";
 import { AdminReliefAuditPanel } from "@/components/emergency/ReliefDistributionPanel/AdminReliefAuditPanel";
 import { cn } from "@/lib/cn";
+import { normalizeBarangayForCompare } from "@/lib/formatters";
 import { getCurrentUser, normalizeUserRole, userDisplayName } from "@/lib/authSession";
 import { downloadReliefHistoryReport } from "@/lib/reliefHistoryReport";
 import {
@@ -31,10 +32,18 @@ import styles from "./ReliefDistributionPanel.module.css";
 type LoadState = "idle" | "loading" | "verifying" | "confirming";
 const pageSize = 5;
 
-export function ReliefDistributionPanel({ mode = "distribution" }: { mode?: "distribution" | "history" }) {
+export function ReliefDistributionPanel({
+  mode = "distribution",
+  barangayScope,
+  forceBarangayView = false,
+}: {
+  mode?: "distribution" | "history";
+  barangayScope?: string;
+  forceBarangayView?: boolean;
+}) {
   const currentUser = getCurrentUser();
   const role = normalizeUserRole(currentUser);
-  if (role === "super" || role === "cswdd") return <AdminReliefAuditPanel />;
+  if (!forceBarangayView && (role === "super" || role === "cswdd")) return <AdminReliefAuditPanel />;
 
   const [campaigns, setCampaigns] = useState<ReliefCampaign[]>([]);
   const [selectedCampaign, setSelectedCampaign] = useState<ReliefCampaign | null>(null);
@@ -75,8 +84,8 @@ export function ReliefDistributionPanel({ mode = "distribution" }: { mode?: "dis
     && (selectedCampaign.progress?.barangays ?? []).some((barangay) => barangay.barangay_status === "family_heads_notified"),
   );
   const receivedCount = historyPagination?.total ?? history.filter((record) => record.status === "received").length;
-  const barangayCount = selectedCampaign?.progress?.total_barangays ?? selectedCampaign?.progress?.barangays?.length ?? 0;
-  const selectedScope = selectedCampaign ? campaignScopeLabel(selectedCampaign) : "No campaign selected";
+  const barangayCount = barangayScope ? 1 : selectedCampaign?.progress?.total_barangays ?? selectedCampaign?.progress?.barangays?.length ?? 0;
+  const selectedScope = barangayScope || (selectedCampaign ? campaignScopeLabel(selectedCampaign) : "No campaign selected");
   const filteredDistributionHistory = useMemo(() => history.filter((record) => {
     const timestamp = record.verified_at ?? record.created_at;
     if (!timestamp) return !historyStartDate && !historyEndDate;
@@ -128,8 +137,11 @@ export function ReliefDistributionPanel({ mode = "distribution" }: { mode?: "dis
         setState("loading");
         const response = await getReliefDistributionHistory(selectedCampaign.batch_id, historyPage, pageSize);
         if (!cancelled) {
-          setHistory(response.distributions);
-          setHistoryPagination(response.pagination ?? null);
+          const scopedDistributions = barangayScope
+            ? response.distributions.filter((record) => sameBarangay(record.barangay_name, barangayScope))
+            : response.distributions;
+          setHistory(scopedDistributions);
+          setHistoryPagination(response.pagination ? { ...response.pagination, total: scopedDistributions.length, totalPages: Math.max(1, Math.ceil(scopedDistributions.length / pageSize)) } : null);
           setError(null);
         }
       } catch (historyError) {
@@ -143,7 +155,7 @@ export function ReliefDistributionPanel({ mode = "distribution" }: { mode?: "dis
     return () => {
       cancelled = true;
     };
-  }, [selectedCampaign, historyPage, historyRefreshVersion]);
+  }, [barangayScope, selectedCampaign, historyPage, historyRefreshVersion]);
 
   useEffect(() => {
     let cancelled = false;
@@ -165,9 +177,20 @@ export function ReliefDistributionPanel({ mode = "distribution" }: { mode?: "dis
           pageSize,
         );
         if (!cancelled) {
-          setBeneficiaryStatusRows(response.beneficiaries);
-          setBeneficiarySummary(response.summary);
-          setBeneficiaryPagination(response.pagination);
+          const scopedBeneficiaries = barangayScope
+            ? response.beneficiaries.filter((beneficiary) => sameBarangay(beneficiary.barangay_name, barangayScope))
+            : response.beneficiaries;
+          setBeneficiaryStatusRows(scopedBeneficiaries);
+          const scopedReceived = scopedBeneficiaries.filter((beneficiary) => beneficiary.status === "received").length;
+          setBeneficiarySummary(barangayScope ? {
+            ...response.summary,
+            barangays: scopedBeneficiaries.length > 0 ? 1 : 0,
+            eligible: scopedBeneficiaries.length,
+            received: scopedReceived,
+            not_received: scopedBeneficiaries.length - scopedReceived,
+            coverage: scopedBeneficiaries.length > 0 ? Math.round((scopedReceived / scopedBeneficiaries.length) * 100) : 0,
+          } : response.summary);
+          setBeneficiaryPagination({ ...response.pagination, total: scopedBeneficiaries.length, totalPages: Math.max(1, Math.ceil(scopedBeneficiaries.length / pageSize)) });
           setError(null);
         }
       } catch (statusError) {
@@ -179,7 +202,7 @@ export function ReliefDistributionPanel({ mode = "distribution" }: { mode?: "dis
     return () => {
       cancelled = true;
     };
-  }, [selectedCampaign, beneficiaryFilter, beneficiarySearch, beneficiaryPage, beneficiaryRefreshVersion]);
+  }, [barangayScope, selectedCampaign, beneficiaryFilter, beneficiarySearch, beneficiaryPage, beneficiaryRefreshVersion]);
 
   function selectCampaign(campaign: ReliefCampaign) {
     setSelectedCampaign(campaign);
@@ -888,6 +911,10 @@ function campaignScopeLabel(campaign: ReliefCampaign) {
   if (barangays.length === 1) return barangays[0]?.barangay_name || "Assigned barangay";
   if (barangays.length > 1) return `${barangays.length} barangays`;
   return "Visible scope";
+}
+
+function sameBarangay(value: string | null | undefined, scope: string) {
+  return normalizeBarangayForCompare(value ?? "") === normalizeBarangayForCompare(scope);
 }
 
 async function fetchAllDistributionHistory(batchId: string) {
