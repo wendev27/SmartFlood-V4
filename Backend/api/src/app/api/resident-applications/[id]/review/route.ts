@@ -139,6 +139,19 @@ export async function PATCH(req: NextRequest, context: RouteContext) {
       return NextResponse.json({ success: false, error: "selected_family_id is required to approve a non-family-head application" }, { status: 400 });
     }
 
+    const { data: family, error: familyError } = await supabaseServer
+      .from("families")
+      .select("family_id,barangay_id,barangay_name")
+      .eq("family_id", familyId)
+      .single();
+
+    if (familyError || !family) {
+      return NextResponse.json({ success: false, error: "Selected family cluster was not found." }, { status: 400 });
+    }
+    if (Number(application.barangay_id) !== Number(family.barangay_id)) {
+      return NextResponse.json({ success: false, error: "Selected family cluster must belong to the application barangay." }, { status: 403 });
+    }
+
     const { data: resident, error: residentError } = await supabaseServer
       .from("residents_v3")
       .insert([{ ...pickResidentPayload(residentBase, familyId), is_family_head: false }])
