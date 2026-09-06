@@ -1,5 +1,6 @@
 "use client";
 
+import { useQuery } from "@tanstack/react-query";
 import { useEffect, useMemo, useState } from "react";
 import { Modal } from "@/components/ui/Modal/Modal";
 import { Pagination, type PaginationState } from "@/components/ui/Pagination/Pagination";
@@ -7,6 +8,7 @@ import { getCurrentUser, logLabelForRole, normalizeUserRole } from "@/lib/authSe
 import { cn } from "@/lib/cn";
 import { formatBarangayName, normalizeBarangayForCompare } from "@/lib/formatters";
 import { filterLogsForViewer } from "@/lib/logVisibility";
+import { queryKeys, queryStaleTime } from "@/lib/queryKeys";
 import { getAuditLogs } from "@/services/logsService";
 import type { AuditLog } from "@/types/logs";
 import styles from "./SystemLogs.module.css";
@@ -16,37 +18,20 @@ export function SystemLogs() {
   const [query, setQuery] = useState("");
   const [moduleFilter, setModuleFilter] = useState("");
   const [actionFilter, setActionFilter] = useState("");
-  const [logsSource, setLogsSource] = useState<AuditLog[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState("");
   const [previewLog, setPreviewLog] = useState<AuditLog | null>(null);
   const [page, setPage] = useState(1);
   const user = getCurrentUser();
   const role = normalizeUserRole(user) ?? "barangay";
-  const title = logLabelForRole(role);
+  const title = logLabelForRole(role, user);
   const emptyMessage = role === "cswdd" ? "No CSWDD logs found." : "No logs available for your role or assigned barangay.";
-
-  useEffect(() => {
-    let cancelled = false;
-
-    async function load() {
-      setIsLoading(true);
-      setError("");
-      try {
-        const data = await getAuditLogs();
-        if (!cancelled) setLogsSource(data as unknown as AuditLog[]);
-      } catch (loadError) {
-        if (!cancelled) setError(loadError instanceof Error ? loadError.message : "Unable to load logs.");
-      } finally {
-        if (!cancelled) setIsLoading(false);
-      }
-    }
-
-    load();
-    return () => {
-      cancelled = true;
-    };
-  }, []);
+  const logsQuery = useQuery({
+    queryKey: queryKeys.logs.audit,
+    queryFn: getAuditLogs,
+    staleTime: queryStaleTime.logs,
+  });
+  const logsSource = useMemo(() => (logsQuery.data ?? []) as unknown as AuditLog[], [logsQuery.data]);
+  const isLoading = logsQuery.isPending;
+  const error = logsQuery.error instanceof Error ? logsQuery.error.message : logsQuery.error ? "Unable to load logs." : "";
 
   const roleScopedLogs = useMemo(() => filterLogsForViewer(logsSource, user), [logsSource, user]);
   const moduleOptions = useMemo(() => unique(roleScopedLogs.map((log) => log.module ?? "")), [roleScopedLogs]);
@@ -112,6 +97,7 @@ export function SystemLogs() {
       </div>
 
       {error ? <p className={styles.error}>{error}</p> : null}
+      {logsQuery.isFetching && !logsQuery.isPending ? <p className={styles.error} role="status">Refreshing logs...</p> : null}
 
       <div className={styles.tableWrap}>
         <table className={styles.table}>

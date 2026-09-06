@@ -5,6 +5,7 @@ import type {
   EmergencyNotificationListResponse,
   ReliefCampaignActionResponse,
   ReliefCampaignHistoryResponse,
+  ReliefCampaignQrTokenResponse,
   ReliefBeneficiaryStatusFilter,
   ReliefBeneficiaryStatusResponse,
   ReliefDistributionHistoryResponse,
@@ -53,20 +54,29 @@ export async function notifyFamilyHeadsForEmergencyAllocation(itemId: string) {
   return response.data ?? null;
 }
 
-export async function verifyReliefDistribution(batchId: string, identifier: string) {
+export async function verifyReliefDistribution(batchId: string | null, identifier: string, qrToken?: string | null) {
   const response = await fetchEnvelope<ReliefDistributionVerifyResponse>("/api/emergency/distribution/verify", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ batchId, identifier }),
+    body: JSON.stringify({
+      ...(batchId?.trim() ? { batchId: batchId.trim() } : {}),
+      ...(qrToken?.trim() ? { qrToken: qrToken.trim() } : {}),
+      identifier,
+    }),
   });
   return response as ReliefDistributionVerifyResponse;
 }
 
-export async function confirmReliefDistribution(batchId: string, identifier: string, allocationItemId?: string | null) {
+export async function confirmReliefDistribution(batchId: string | null, identifier: string, allocationItemId?: string | null, qrToken?: string | null) {
   const response = await fetchEnvelope<ReliefDistributionVerifyResponse>("/api/emergency/distribution/confirm", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ batchId, identifier, allocation_item_id: allocationItemId ?? null }),
+    body: JSON.stringify({
+      ...(batchId?.trim() ? { batchId: batchId.trim() } : {}),
+      ...(qrToken?.trim() ? { qrToken: qrToken.trim() } : {}),
+      identifier,
+      allocation_item_id: allocationItemId ?? null,
+    }),
   });
   return response as ReliefDistributionVerifyResponse;
 }
@@ -114,6 +124,20 @@ export function reliefDistributionScannerUrl(batchId: string) {
 export async function getReliefCampaignHistory() {
   const data = await fetchJson<ReliefCampaignHistoryResponse>("/api/emergency/campaigns/history");
   return data.campaigns;
+}
+
+export async function getReliefCampaignQrToken(batchId: string) {
+  const data = await fetchJson<ReliefCampaignQrTokenResponse>(`/api/emergency/campaigns/${encodeURIComponent(batchId)}/qr`);
+  return data.qr_token;
+}
+
+export async function getReliefCampaignByQrToken(qrToken: string, batchId?: string | null) {
+  const response = await fetchEnvelope<ReliefCampaignHistoryResponse>("/api/emergency/campaigns/history", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ qrToken, ...(batchId ? { batchId } : {}) }),
+  });
+  return response.data?.campaigns ?? [];
 }
 
 export async function startReliefCampaign(batchId: string, expiresAt: string) {

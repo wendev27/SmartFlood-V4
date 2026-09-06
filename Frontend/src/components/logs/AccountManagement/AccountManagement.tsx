@@ -1,6 +1,7 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState, type FormEvent } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useEffect, useMemo, useState, type FormEvent } from "react";
 import { ActionResultModal, type ActionResultType } from "@/components/ui/ActionResultModal";
 import { Badge } from "@/components/ui/Badge/Badge";
 import { Button } from "@/components/ui/Button/Button";
@@ -12,6 +13,7 @@ import { Modal } from "@/components/ui/Modal/Modal";
 import { Pagination as SharedPagination, type PaginationState } from "@/components/ui/Pagination/Pagination";
 import { withAuditActor } from "@/lib/auditClient";
 import { formatBarangayName, normalizeBarangayForCompare } from "@/lib/formatters";
+import { queryKeys, queryStaleTime } from "@/lib/queryKeys";
 import { fetchJson } from "@/services/apiClient";
 import { getAccountUsers } from "@/services/logsService";
 import styles from "./AccountManagement.module.css";
@@ -85,10 +87,8 @@ const barangayOptions = [
 
 export function AccountManagement() {
   const pageSize = 5;
-  const [users, setUsers] = useState<AccountUserRow[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const queryClient = useQueryClient();
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [error, setError] = useState("");
   const [search, setSearch] = useState("");
   const [departmentFilter, setDepartmentFilter] = useState("");
   const [roleFilter, setRoleFilter] = useState("");
@@ -109,23 +109,19 @@ export function AccountManagement() {
     description: "",
     details: "",
   });
-
-  const refreshUsers = useCallback(async () => {
-    setIsLoading(true);
-    setError("");
-    try {
-      const data = await getAccountUsers();
-      setUsers(data.map(mapAccountUser));
-    } catch (loadError) {
-      setError(loadError instanceof Error ? loadError.message : "Unable to load account users.");
-    } finally {
-      setIsLoading(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    refreshUsers();
-  }, [refreshUsers]);
+  const usersQuery = useQuery({
+    queryKey: queryKeys.accounts.users,
+    queryFn: getAccountUsers,
+    staleTime: queryStaleTime.admin,
+  });
+  const users = useMemo(() => (usersQuery.data ?? []).map(mapAccountUser), [usersQuery.data]);
+  const isLoading = usersQuery.isPending;
+  const error = usersQuery.error instanceof Error ? usersQuery.error.message : usersQuery.error ? "Unable to load account users." : "";
+  const refreshUsers = () => usersQuery.refetch();
+  const invalidateUsers = () => Promise.all([
+    queryClient.invalidateQueries({ queryKey: queryKeys.accounts.users }),
+    queryClient.invalidateQueries({ queryKey: queryKeys.logs.audit }),
+  ]);
 
   const departmentOptions = useMemo(() => uniqueSorted(users.map((user) => user.department)), [users]);
   const roleFilterOptions = useMemo(() => {
@@ -245,13 +241,13 @@ export function AccountManagement() {
       }
 
       setIsFormOpen(false);
-      await refreshUsers();
+      await invalidateUsers();
       setResultModal({
         open: true,
         type: "success",
         title: formMode === "edit" ? "Account Updated Successfully" : "Account Created Successfully",
-        description: formMode === "edit" ? "The dashboard account profile and RBAC settings were updated." : "The dashboard account is ready for login with its assigned role.",
-        details: "Password hashes are stored server-side and never returned to the client.",
+        description: formMode === "edit" ? "The account profile and access level were updated." : "The dashboard account is ready for login with its assigned role.",
+        details: "Passwords are protected and are never shown in the dashboard.",
       });
     } catch (saveError) {
       setResultModal({
@@ -259,7 +255,7 @@ export function AccountManagement() {
         type: "error",
         title: formMode === "edit" ? "Failed to Update Account" : "Failed to Create Account",
         description: saveError instanceof Error ? saveError.message : "Unable to save account.",
-        details: "Check required fields, unique email, and role/barangay settings.",
+        details: "Check the required fields, email address, role, and barangay assignment.",
       });
     } finally {
       setIsSubmitting(false);
@@ -279,13 +275,13 @@ export function AccountManagement() {
       });
       setPasswordUser(null);
       setNewPassword("");
-      await refreshUsers();
+      await invalidateUsers();
       setResultModal({
         open: true,
         type: "success",
         title: "Password Changed Successfully",
         description: "The account password has been updated and failed login attempts were reset.",
-        details: "The new password was hashed before storage.",
+        details: "The new password is now active for this account.",
       });
     } catch (passwordError) {
       setResultModal({
@@ -308,14 +304,14 @@ export function AccountManagement() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(withAuditActor({ status })),
       });
-      await refreshUsers();
+      await invalidateUsers();
       setPreviewUser((current) => current?.id === user.id ? { ...current, status } : current);
       setResultModal({
         open: true,
         type: status === "active" ? "success" : "warning",
         title: status === "active" ? "Account Enabled" : "Account Status Updated",
         description: `${user.full_name || user.email} is now ${statusLabel(status).toLowerCase()}.`,
-        details: "The account status was updated in app_users.",
+        details: "The account status was updated.",
       });
     } catch (statusError) {
       setResultModal({
@@ -363,7 +359,7 @@ export function AccountManagement() {
           setStatusFilter("");
           setPage(1);
         }}>Reset</button>
-        <button type="button" className={styles.addButton} onClick={openAddForm}>+ Add New</button>
+        <button type="button" className={styles.addButton} onClick={openAddForm}>+ Add Account</button>
       </div>
       {error ? <ErrorState title="Unable to Load Accounts" message={error} retryLabel="Retry" onRetry={refreshUsers} /> : null}
       <DataTable className={styles.tableScroll} headers={["Name / Email", "Role", "Department / Barangay", "Status", "Actions"]} minWidth={880}>
@@ -410,7 +406,7 @@ export function AccountManagement() {
         <header className={styles.modalHeader}>
           <div>
             <h3 id="account-form-title">{formMode === "edit" ? "Edit Account" : "Add New Account"}</h3>
-            <p>{formMode === "edit" ? "Update profile and RBAC settings" : "Create a login-ready dashboard account"}</p>
+            <p>{formMode === "edit" ? "Update profile and access settings" : "Create a login-ready dashboard account"}</p>
           </div>
           <button type="button" onClick={() => setIsFormOpen(false)} aria-label="Close account form">x</button>
         </header>
@@ -464,7 +460,7 @@ export function AccountManagement() {
             <header className={styles.modalHeader}>
               <div>
                 <h3 id="account-preview-title">{previewUser.full_name || previewUser.email}</h3>
-                <p>Account details and RBAC assignment</p>
+                <p>Account details and access assignment</p>
               </div>
               <button type="button" onClick={() => setPreviewUser(null)} aria-label="Close account preview">x</button>
             </header>

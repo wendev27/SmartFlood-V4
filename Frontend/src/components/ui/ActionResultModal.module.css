@@ -68,6 +68,10 @@
   width: 100%;
 }
 
+.content {
+  margin-top: 22px;
+}
+
 .actions {
   display: grid;
   gap: 8px;

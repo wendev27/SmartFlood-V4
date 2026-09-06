@@ -1,6 +1,6 @@
 import { assignedBarangayForUser } from "@/lib/barangayScope";
 import { dashboardViewerRole, type DashboardViewer } from "@/lib/dashboardViewer";
-import { getCampaign, reconcileCampaignDistributionReadiness, refreshCampaignExpiration } from "@/lib/emergencyCampaigns";
+import { getCampaign, reconcileCampaignDistributionReadiness, refreshCampaignExpiration, resolveCampaignBatchIdByQrToken } from "@/lib/emergencyCampaigns";
 import type { Pagination } from "@/lib/emergencyReports";
 import { supabaseServer } from "@/lib/supabaseServer";
 
@@ -17,6 +17,7 @@ export type DistributionInput = {
   identifier: string;
   allocation_item_id?: string | null;
   batch_id?: string | null;
+  qr_token?: string | null;
 };
 
 export type DistributionContext = {
@@ -27,6 +28,7 @@ export type DistributionContext = {
   beneficiary?: BeneficiarySummary;
   allocation?: AllocationSummary;
   existing_distribution?: DistributionSummary | null;
+  request_error?: boolean;
 };
 
 type FamilyRecord = Record<string, unknown>;
@@ -53,10 +55,17 @@ export async function resolveDistributionContext(viewer: DashboardViewer | null,
   const barangay = assignedBarangayForUser(viewer);
   if (!barangay) return { status: "UNAUTHORIZED", reason: "Your account is not assigned to a barangay." };
 
-  const batchId = stringifyOrNull(input.batch_id);
-  if (!batchId) {
-    return { status: "CAMPAIGN_NOT_ACTIVE", viewer, role, reason: "Select a relief campaign before verifying beneficiaries." };
+  const campaignIdentifier = await resolveCampaignBatchId(input);
+  if (!campaignIdentifier.batchId) {
+    return {
+      status: "CAMPAIGN_NOT_ACTIVE",
+      viewer,
+      role,
+      request_error: campaignIdentifier.requestError,
+      reason: "reason" in campaignIdentifier ? campaignIdentifier.reason : "Unable to resolve the relief campaign.",
+    };
   }
+  const batchId = campaignIdentifier.batchId;
 
   const campaign = await getCampaign(batchId);
   if (!campaign) {
@@ -140,6 +149,29 @@ export async function resolveDistributionContext(viewer: DashboardViewer | null,
   };
 }
 
+async function resolveCampaignBatchId(input: DistributionInput): Promise<{ batchId: string; requestError?: false } | { batchId: null; requestError: true; reason: string }> {
+  const batchId = stringifyOrNull(input.batch_id);
+  const qrToken = stringifyOrNull(input.qr_token);
+
+  if (!batchId && !qrToken) {
+    return { batchId: null, requestError: true, reason: "A batchId or qrToken is required." };
+  }
+
+  let tokenBatchId: string | null = null;
+  if (qrToken) {
+    tokenBatchId = await resolveCampaignBatchIdByQrToken(qrToken);
+    if (!tokenBatchId) {
+      return { batchId: null, requestError: true, reason: "Campaign QR token was not found." };
+    }
+  }
+
+  if (batchId && tokenBatchId && batchId !== tokenBatchId) {
+    return { batchId: null, requestError: true, reason: "batchId and qrToken refer to different campaigns." };
+  }
+
+  return { batchId: batchId ?? tokenBatchId! };
+}
+
 export async function getDistributionHistoryForViewer(viewer: DashboardViewer | null) {
   if (!viewer) {
     return { status: "UNAUTHORIZED" as const, reason: "Unauthorized." };
@@ -167,42 +199,59 @@ export async function getDistributionHistoryForViewerByBatchPaginated(viewer: Da
     return { status: "UNAUTHORIZED" as const, reason: "You do not have access to relief distribution history." };
   }
 
-  let query = supabaseServer
-    .from("relief_distributions")
-    .select(distributionSelect, pagination ? { count: "exact" } : undefined)
-    .order("verified_at", { ascending: false });
-
-  if (batchId) query = query.eq("batch_id", batchId);
-
+  let barangayId: number | null = null;
   if (role === "barangay") {
     const barangay = assignedBarangayForUser(viewer);
     if (!barangay) return { status: "UNAUTHORIZED" as const, reason: "Your account is not assigned to a barangay." };
-    query = query.eq("barangay_id", barangay.barangay_id);
+    barangayId = barangay.barangay_id;
   }
 
   if (pagination) {
     const from = (pagination.page - 1) * pagination.limit;
-    query = query.range(from, from + pagination.limit - 1);
-  } else {
-    query = query.limit(100);
+    const { error: countError, count } = await distributionHistoryQuery(batchId, barangayId, true);
+    if (countError) throw new Error(countError.message);
+
+    const total = count ?? 0;
+    const baseResponse = {
+      status: "OK" as const,
+      pagination: {
+        page: pagination.page,
+        limit: pagination.limit,
+        total,
+        totalPages: Math.max(1, Math.ceil(total / pagination.limit)),
+      },
+    };
+    if (from >= total) {
+      return { ...baseResponse, distributions: [] };
+    }
+
+    const { data, error } = await distributionHistoryQuery(batchId, barangayId).range(from, from + pagination.limit - 1);
+    if (error) throw new Error(error.message);
+    return {
+      ...baseResponse,
+      distributions: await attachDistributionNames((data ?? []) as Record<string, unknown>[]),
+    };
   }
 
-  const { data, error, count } = await query;
+  const query = distributionHistoryQuery(batchId, barangayId).limit(100);
+  const { data, error } = await query;
   if (error) throw new Error(error.message);
   const response: { status: "OK"; distributions: DistributionSummary[]; pagination?: Pagination } = {
     status: "OK",
     distributions: await attachDistributionNames((data ?? []) as Record<string, unknown>[]),
   };
-  if (pagination) {
-    const total = count ?? 0;
-    response.pagination = {
-      page: pagination.page,
-      limit: pagination.limit,
-      total,
-      totalPages: Math.max(1, Math.ceil(total / pagination.limit)),
-    };
-  }
   return response;
+}
+
+function distributionHistoryQuery(batchId: string | null, barangayId: number | null, countOnly = false) {
+  let query = supabaseServer
+    .from("relief_distributions")
+    .select(distributionSelect, countOnly ? { count: "exact", head: true } : undefined)
+    .order("verified_at", { ascending: false });
+
+  if (batchId) query = query.eq("batch_id", batchId);
+  if (barangayId) query = query.eq("barangay_id", barangayId);
+  return query;
 }
 
 export function duplicateDistributionError(error: unknown) {

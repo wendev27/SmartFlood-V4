@@ -1,17 +1,18 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import { FormEvent, useEffect, useMemo, useState } from "react";
 import { Modal } from "@/components/ui/Modal/Modal";
 import { Pagination as SharedPagination, type PaginationState } from "@/components/ui/Pagination/Pagination";
 import { AdminReliefAuditPanel } from "@/components/emergency/ReliefDistributionPanel/AdminReliefAuditPanel";
 import { cn } from "@/lib/cn";
-import { getCurrentUser, normalizeUserRole } from "@/lib/authSession";
+import { getCurrentUser, normalizeUserRole, userDisplayName } from "@/lib/authSession";
+import { downloadReliefHistoryReport } from "@/lib/reliefHistoryReport";
 import {
   confirmReliefDistribution,
   getReliefBeneficiaryStatus,
   getReliefCampaignHistory,
   getReliefDistributionHistory,
-  reliefDistributionExportUrl,
   reliefDistributionScannerUrl,
   verifyReliefDistribution,
 } from "@/services/emergencyService";
@@ -32,7 +33,9 @@ type LoadState = "idle" | "loading" | "verifying" | "confirming";
 const pageSize = 5;
 
 export function ReliefDistributionPanel() {
-  const role = normalizeUserRole(getCurrentUser());
+  const router = useRouter();
+  const currentUser = getCurrentUser();
+  const role = normalizeUserRole(currentUser);
   if (role === "super" || role === "cswdd") return <AdminReliefAuditPanel />;
 
   const [campaigns, setCampaigns] = useState<ReliefCampaign[]>([]);
@@ -191,12 +194,20 @@ export function ReliefDistributionPanel() {
 
   function openScannerWindow() {
     if (!selectedCampaign || !selectedIsDistributable) return;
-    window.open(reliefDistributionScannerUrl(selectedCampaign.batch_id), "_blank", "noopener,noreferrer");
+    setError(null);
+    router.push(reliefDistributionScannerUrl(selectedCampaign.batch_id));
   }
 
-  function exportCampaignRecords() {
+  async function exportCampaignRecords() {
     if (!selectedCampaign) return;
-    window.open(reliefDistributionExportUrl(selectedCampaign.batch_id), "_blank", "noopener,noreferrer");
+    const allHistory = await fetchAllDistributionHistory(selectedCampaign.batch_id);
+    downloadReliefHistoryReport({
+      campaign: selectedCampaign,
+      history: allHistory,
+      summary: beneficiarySummary,
+      scopeLabel: selectedScope,
+      generatedBy: userDisplayName(currentUser) || undefined,
+    });
   }
 
   async function handleVerify(event: FormEvent<HTMLFormElement>) {
@@ -302,7 +313,7 @@ export function ReliefDistributionPanel() {
               Open QR Scanner
             </button>
             <button className={styles.secondaryButton} type="button" onClick={exportCampaignRecords}>
-              Export Excel
+              Download History Report
             </button>
           </div>
           {!selectedIsDistributable && selectedCampaign.status === "in_distribution" ? (
@@ -723,6 +734,20 @@ function campaignScopeLabel(campaign: ReliefCampaign) {
   if (barangays.length === 1) return barangays[0]?.barangay_name || "Assigned barangay";
   if (barangays.length > 1) return `${barangays.length} barangays`;
   return "Visible scope";
+}
+
+async function fetchAllDistributionHistory(batchId: string) {
+  const limit = 100;
+  const firstPage = await getReliefDistributionHistory(batchId, 1, limit);
+  const rows = [...firstPage.distributions];
+  const totalPages = firstPage.pagination?.totalPages ?? 1;
+
+  for (let page = 2; page <= totalPages; page += 1) {
+    const nextPage = await getReliefDistributionHistory(batchId, page, limit);
+    rows.push(...nextPage.distributions);
+  }
+
+  return rows;
 }
 
 function distributionUnavailableCopy(campaign: ReliefCampaign) {

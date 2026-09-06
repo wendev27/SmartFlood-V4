@@ -1,15 +1,18 @@
 "use client";
 
+import { useQuery } from "@tanstack/react-query";
 import { useEffect, useMemo, useState } from "react";
 import { Modal } from "@/components/ui/Modal/Modal";
 import { Pagination as SharedPagination, type PaginationState } from "@/components/ui/Pagination/Pagination";
 import { cn } from "@/lib/cn";
+import { getCurrentUser, userDisplayName } from "@/lib/authSession";
+import { downloadReliefHistoryReport } from "@/lib/reliefHistoryReport";
+import { queryKeys, queryStaleTime } from "@/lib/queryKeys";
 import {
   getReliefCampaignHistory,
   getReliefDistributionHistory,
   getReliefDistributionReport,
   getReliefNotReceived,
-  reliefDistributionExportUrl,
 } from "@/services/emergencyService";
 import type {
   Pagination,
@@ -24,20 +27,50 @@ import styles from "./ReliefDistributionPanel.module.css";
 const pageSize = 5;
 
 export function AdminReliefAuditPanel() {
-  const [campaigns, setCampaigns] = useState<ReliefCampaign[]>([]);
   const [selectedCampaign, setSelectedCampaign] = useState<ReliefCampaign | null>(null);
-  const [summary, setSummary] = useState<ReliefReportSummary | null>(null);
-  const [barangays, setBarangays] = useState<ReliefBarangayBreakdown[]>([]);
-  const [history, setHistory] = useState<ReliefDistributionRecord[]>([]);
-  const [historyPagination, setHistoryPagination] = useState<Pagination | null>(null);
-  const [notReceived, setNotReceived] = useState<ReliefNotReceivedBeneficiary[]>([]);
-  const [notReceivedPagination, setNotReceivedPagination] = useState<Pagination | null>(null);
   const [historyPage, setHistoryPage] = useState(1);
   const [notReceivedPage, setNotReceivedPage] = useState(1);
   const [barangayPage, setBarangayPage] = useState(1);
   const [isSwitcherOpen, setIsSwitcherOpen] = useState(false);
-  const [loading, setLoading] = useState("loading campaigns");
-  const [error, setError] = useState<string | null>(null);
+  const campaignsQuery = useQuery({
+    queryKey: queryKeys.relief.campaigns,
+    queryFn: getReliefCampaignHistory,
+    staleTime: queryStaleTime.operational,
+  });
+  const campaigns = campaignsQuery.data ?? [];
+  const selectedBatchId = selectedCampaign?.batch_id ?? "";
+  const reportQuery = useQuery({
+    queryKey: selectedBatchId ? queryKeys.relief.distributionReport(selectedBatchId) : ["relief", "distribution-report", "none"],
+    queryFn: () => getReliefDistributionReport(selectedBatchId),
+    staleTime: queryStaleTime.operational,
+    enabled: Boolean(selectedBatchId),
+  });
+  const historyQuery = useQuery({
+    queryKey: queryKeys.relief.distributionHistory(selectedBatchId, historyPage, pageSize),
+    queryFn: () => getReliefDistributionHistory(selectedBatchId, historyPage, pageSize),
+    staleTime: queryStaleTime.operational,
+    enabled: Boolean(selectedBatchId),
+  });
+  const notReceivedQuery = useQuery({
+    queryKey: selectedBatchId ? queryKeys.relief.notReceived(selectedBatchId, notReceivedPage, pageSize) : ["relief", "not-received", "none"],
+    queryFn: () => getReliefNotReceived(selectedBatchId, notReceivedPage, pageSize),
+    staleTime: queryStaleTime.operational,
+    enabled: Boolean(selectedBatchId),
+  });
+  const summary = reportQuery.data?.summary ?? null;
+  const barangays = reportQuery.data?.barangays ?? [];
+  const history = historyQuery.data?.distributions ?? [];
+  const historyPagination = historyQuery.data?.pagination ?? null;
+  const notReceived = notReceivedQuery.data?.beneficiaries ?? [];
+  const notReceivedPagination = notReceivedQuery.data?.pagination ?? null;
+  const loadError = campaignsQuery.error ?? reportQuery.error ?? historyQuery.error ?? notReceivedQuery.error;
+  const error = loadError instanceof Error ? loadError.message : loadError ? "Unable to load relief distribution audit data." : null;
+  const loading = campaignsQuery.isPending
+    ? "loading campaigns"
+    : reportQuery.isPending && selectedBatchId
+      ? "loading report"
+      : "";
+  const isBackgroundRefreshing = !loading && (campaignsQuery.isFetching || reportQuery.isFetching || historyQuery.isFetching || notReceivedQuery.isFetching);
 
   const activeCampaigns = useMemo(() => campaigns.filter((campaign) => campaign.status === "in_distribution"), [campaigns]);
   const notReadyCampaigns = useMemo(
@@ -59,28 +92,9 @@ export function AdminReliefAuditPanel() {
   }, [barangays, barangayPage]);
 
   useEffect(() => {
-    let cancelled = false;
-    async function loadCampaigns() {
-      try {
-        setLoading("loading campaigns");
-        const rows = await getReliefCampaignHistory();
-        if (!cancelled) {
-          setCampaigns(rows);
-          setSelectedCampaign(rows.find((campaign) => campaign.status === "in_distribution") ?? rows[0] ?? null);
-          setError(null);
-        }
-      } catch (loadError) {
-        if (!cancelled) setError(loadError instanceof Error ? loadError.message : "Unable to load relief campaigns.");
-      } finally {
-        if (!cancelled) setLoading("");
-      }
-    }
-
-    loadCampaigns();
-    return () => {
-      cancelled = true;
-    };
-  }, []);
+    if (selectedCampaign && campaigns.some((campaign) => campaign.batch_id === selectedCampaign.batch_id)) return;
+    setSelectedCampaign(campaigns.find((campaign) => campaign.status === "in_distribution") ?? campaigns[0] ?? null);
+  }, [campaigns, selectedCampaign]);
 
   useEffect(() => {
     setHistoryPage(1);
@@ -92,97 +106,22 @@ export function AdminReliefAuditPanel() {
     if (barangayPage !== paginatedBarangays.pagination.page) setBarangayPage(paginatedBarangays.pagination.page);
   }, [barangayPage, paginatedBarangays.pagination.page]);
 
-  useEffect(() => {
-    let cancelled = false;
-    async function loadReport() {
-      if (!selectedCampaign) {
-        setSummary(null);
-        setBarangays([]);
-        return;
-      }
-      try {
-        setLoading("loading report");
-        const report = await getReliefDistributionReport(selectedCampaign.batch_id);
-        if (!cancelled) {
-          setSummary(report.summary);
-          setBarangays(report.barangays);
-          setError(null);
-        }
-      } catch (reportError) {
-        if (!cancelled) setError(reportError instanceof Error ? reportError.message : "Unable to load campaign report.");
-      } finally {
-        if (!cancelled) setLoading("");
-      }
-    }
-    loadReport();
-    return () => {
-      cancelled = true;
-    };
-  }, [selectedCampaign]);
-
-  useEffect(() => {
-    let cancelled = false;
-    async function loadHistory() {
-      if (!selectedCampaign) {
-        setHistory([]);
-        setHistoryPagination(null);
-        return;
-      }
-      try {
-        const response = await getReliefDistributionHistory(selectedCampaign.batch_id, historyPage, pageSize);
-        if (!cancelled) {
-          setHistory(response.distributions);
-          setHistoryPagination(response.pagination ?? null);
-          setError(null);
-        }
-      } catch (historyError) {
-        if (!cancelled) setError(historyError instanceof Error ? historyError.message : "Unable to load distribution history.");
-      }
-    }
-    loadHistory();
-    return () => {
-      cancelled = true;
-    };
-  }, [selectedCampaign, historyPage]);
-
-  useEffect(() => {
-    let cancelled = false;
-    async function loadNotReceived() {
-      if (!selectedCampaign) {
-        setNotReceived([]);
-        setNotReceivedPagination(null);
-        return;
-      }
-      try {
-        const response = await getReliefNotReceived(selectedCampaign.batch_id, notReceivedPage, pageSize);
-        if (!cancelled) {
-          setNotReceived(response.beneficiaries);
-          setNotReceivedPagination(response.pagination);
-          setError(null);
-        }
-      } catch (notReceivedError) {
-        if (!cancelled) setError(notReceivedError instanceof Error ? notReceivedError.message : "Unable to load not-yet-served beneficiaries.");
-      }
-    }
-    loadNotReceived();
-    return () => {
-      cancelled = true;
-    };
-  }, [selectedCampaign, notReceivedPage]);
-
   function selectCampaign(campaign: ReliefCampaign) {
     setSelectedCampaign(campaign);
     setIsSwitcherOpen(false);
-    setHistory([]);
-    setNotReceived([]);
-    setSummary(null);
-    setBarangays([]);
-    setError(null);
   }
 
-  function exportCampaignReport() {
+  async function exportCampaignReport() {
     if (!selectedCampaign) return;
-    window.open(reliefDistributionExportUrl(selectedCampaign.batch_id), "_blank", "noopener,noreferrer");
+    const allHistory = await fetchAllDistributionHistory(selectedCampaign.batch_id);
+    downloadReliefHistoryReport({
+      campaign: selectedCampaign,
+      history: allHistory,
+      summary,
+      barangays,
+      scopeLabel: "All Barangays",
+      generatedBy: userDisplayName(getCurrentUser()) || undefined,
+    });
   }
 
   return (
@@ -206,6 +145,7 @@ export function AdminReliefAuditPanel() {
 
       {error ? <p className={styles.errorMessage}>{error}</p> : null}
       {loading ? <p className={styles.stateMessage}>{formatStatus(loading)}...</p> : null}
+      {isBackgroundRefreshing ? <p className={styles.stateMessage}>Refreshing audit data...</p> : null}
 
       {selectedCampaign ? (
         <section className={cn(styles.card, styles.selectedCampaignCard)}>
@@ -227,7 +167,7 @@ export function AdminReliefAuditPanel() {
           </dl>
           <div className={styles.actionRow}>
             <button className={styles.secondaryButton} type="button" onClick={exportCampaignReport}>
-              Export Campaign Report
+              Download History Report
             </button>
           </div>
         </section>
@@ -400,6 +340,20 @@ function NotReceivedList({ records }: { records: ReliefNotReceivedBeneficiary[] 
       ))}
     </div>
   );
+}
+
+async function fetchAllDistributionHistory(batchId: string) {
+  const limit = 100;
+  const firstPage = await getReliefDistributionHistory(batchId, 1, limit);
+  const rows = [...firstPage.distributions];
+  const totalPages = firstPage.pagination?.totalPages ?? 1;
+
+  for (let page = 2; page <= totalPages; page += 1) {
+    const nextPage = await getReliefDistributionHistory(batchId, page, limit);
+    rows.push(...nextPage.distributions);
+  }
+
+  return rows;
 }
 
 

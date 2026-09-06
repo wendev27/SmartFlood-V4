@@ -1,9 +1,11 @@
 "use client";
 
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useMemo, useState } from "react";
 import { Modal } from "@/components/ui/Modal/Modal";
 import { Pagination as SharedPagination, type PaginationState } from "@/components/ui/Pagination/Pagination";
 import { cn } from "@/lib/cn";
+import { queryKeys, queryStaleTime } from "@/lib/queryKeys";
 import {
   acceptEmergencyAllocationItem,
   confirmEmergencyAllocationReceipt,
@@ -19,12 +21,21 @@ type ActionState = "idle" | "loading" | "accepting" | "rejecting" | "confirming"
 
 export function EmergencyNotificationsPanel() {
   const pageSize = 5;
-  const [notifications, setNotifications] = useState<EmergencyNotification[]>([]);
+  const queryClient = useQueryClient();
   const [selectedId, setSelectedId] = useState<string | null>(null);
-  const [actionState, setActionState] = useState<ActionState>("loading");
+  const [actionState, setActionState] = useState<ActionState>("idle");
   const [message, setMessage] = useState<string | null>(null);
-  const [error, setError] = useState<string | null>(null);
+  const [actionError, setActionError] = useState<string | null>(null);
   const [page, setPage] = useState(1);
+  const notificationsQuery = useQuery({
+    queryKey: queryKeys.notifications.emergency,
+    queryFn: getEmergencyNotifications,
+    staleTime: queryStaleTime.operational,
+  });
+  const notifications = notificationsQuery.data ?? [];
+  const error = actionError || (notificationsQuery.error instanceof Error ? notificationsQuery.error.message : notificationsQuery.error ? "Unable to load emergency notifications." : null);
+  const isInitialLoading = notificationsQuery.isPending;
+  const isBackgroundRefreshing = notificationsQuery.isFetching && !notificationsQuery.isPending;
 
   const selected = useMemo(
     () => notifications.find((notification) => notification.notification_id === selectedId) ?? null,
@@ -44,34 +55,18 @@ export function EmergencyNotificationsPanel() {
     if (page !== paginatedNotifications.pagination.page) setPage(paginatedNotifications.pagination.page);
   }, [page, paginatedNotifications.pagination.page]);
 
-  useEffect(() => {
-    let cancelled = false;
-
-    async function loadNotifications() {
-      try {
-        setActionState("loading");
-        const rows = await getEmergencyNotifications();
-        if (!cancelled) {
-          setNotifications(rows);
-          setError(null);
-        }
-      } catch (loadError) {
-        if (!cancelled) setError(loadError instanceof Error ? loadError.message : "Unable to load emergency notifications.");
-      } finally {
-        if (!cancelled) setActionState("idle");
-      }
-    }
-
-    loadNotifications();
-    return () => {
-      cancelled = true;
-    };
-  }, []);
+  const invalidateRelatedQueries = async () => {
+    await Promise.all([
+      queryClient.invalidateQueries({ queryKey: queryKeys.notifications.emergency }),
+      queryClient.invalidateQueries({ queryKey: queryKeys.relief.currentAllocation }),
+      queryClient.invalidateQueries({ queryKey: queryKeys.relief.campaigns }),
+    ]);
+  };
 
   async function openNotification(notification: EmergencyNotification) {
     setSelectedId(notification.notification_id);
     setMessage(null);
-    setError(null);
+    setActionError(null);
 
     if (notification.status !== "pending" && notification.status !== "sent") return;
 
@@ -79,9 +74,10 @@ export function EmergencyNotificationsPanel() {
       const updated = await markEmergencyNotificationRead(notification.notification_id);
       if (updated) {
         mergeNotification({ ...notification, ...updated });
+        await queryClient.invalidateQueries({ queryKey: queryKeys.notifications.emergency });
       }
     } catch (readError) {
-      setError(readError instanceof Error ? readError.message : "Unable to mark notification as read.");
+      setActionError(readError instanceof Error ? readError.message : "Unable to mark notification as read.");
     }
   }
 
@@ -90,7 +86,7 @@ export function EmergencyNotificationsPanel() {
 
     try {
       setActionState(action === "accept" ? "accepting" : "rejecting");
-      setError(null);
+      setActionError(null);
       setMessage(null);
       const response = action === "accept"
         ? await acceptEmergencyAllocationItem(selected.allocation_item.item_id)
@@ -107,8 +103,9 @@ export function EmergencyNotificationsPanel() {
       }
 
       setMessage(action === "accept" ? "Allocation Accepted" : "Allocation Rejected");
+      await invalidateRelatedQueries();
     } catch (actionError) {
-      setError(actionError instanceof Error ? actionError.message : `Unable to ${action} allocation.`);
+      setActionError(actionError instanceof Error ? actionError.message : `Unable to ${action} allocation.`);
     } finally {
       setActionState("idle");
     }
@@ -119,7 +116,7 @@ export function EmergencyNotificationsPanel() {
 
     try {
       setActionState("confirming");
-      setError(null);
+      setActionError(null);
       setMessage(null);
       const response = await confirmEmergencyAllocationReceipt(selected.allocation_item.item_id);
       if (response?.notification) {
@@ -129,8 +126,9 @@ export function EmergencyNotificationsPanel() {
         mergeNotification({ ...selected, allocation_item: response.allocation_item });
       }
       setMessage("Relief Received");
+      await invalidateRelatedQueries();
     } catch (confirmationError) {
-      setError(confirmationError instanceof Error ? confirmationError.message : "Unable to confirm relief receipt.");
+      setActionError(confirmationError instanceof Error ? confirmationError.message : "Unable to confirm relief receipt.");
     } finally {
       setActionState("idle");
     }
@@ -141,7 +139,7 @@ export function EmergencyNotificationsPanel() {
 
     try {
       setActionState("notifying");
-      setError(null);
+      setActionError(null);
       setMessage(null);
       const response = await notifyFamilyHeadsForEmergencyAllocation(selected.allocation_item.item_id);
       if (response?.notification) {
@@ -152,15 +150,16 @@ export function EmergencyNotificationsPanel() {
       }
       const created = Number(response?.notifications_created ?? 0);
       setMessage(created > 0 ? `Family Heads Notified: ${created}` : "Family Heads Notified");
+      await invalidateRelatedQueries();
     } catch (notificationError) {
-      setError(notificationError instanceof Error ? notificationError.message : "Unable to notify family heads.");
+      setActionError(notificationError instanceof Error ? notificationError.message : "Unable to notify family heads.");
     } finally {
       setActionState("idle");
     }
   }
 
   function mergeNotification(updated: EmergencyNotification) {
-    setNotifications((current) => current.map((notification) => (
+    queryClient.setQueryData(queryKeys.notifications.emergency, (current: EmergencyNotification[] | undefined) => (current ?? []).map((notification) => (
       notification.notification_id === updated.notification_id
         ? {
           ...notification,
@@ -185,8 +184,9 @@ export function EmergencyNotificationsPanel() {
 
       {message ? <p className={styles.stateMessage}>{message}</p> : null}
       {error ? <p className={styles.errorMessage}>{error}</p> : null}
+      {isBackgroundRefreshing ? <p className={styles.stateMessage}>Refreshing notifications...</p> : null}
 
-      {actionState === "loading" ? (
+      {isInitialLoading ? (
         <div className={styles.emptyState}>Loading emergency notifications...</div>
       ) : notifications.length === 0 ? (
         <div className={styles.emptyState}>No emergency relief notifications for your barangay yet.</div>
