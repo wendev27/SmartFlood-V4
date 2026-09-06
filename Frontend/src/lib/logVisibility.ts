@@ -51,7 +51,7 @@ export function normalizeLogRole(viewer: LogViewer | null | undefined): LogRole 
 export function filterLogsForViewer<T extends ScopedAuditLog>(logs: T[], viewer: LogViewer | null | undefined): T[] {
   const role = normalizeLogRole(viewer);
   if (!viewer || !role) return [];
-  if (role === "super") return logs;
+  if (role === "super" || role === "cdrrmo") return logs;
 
   return logs.filter((log) => canViewLog(log, viewer, role));
 }

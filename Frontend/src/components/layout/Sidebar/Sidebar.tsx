@@ -17,7 +17,6 @@ const commandCenterAccess = [
     items: [
       { key: "relief", label: "Relief Management", icon: "cube" },
       { key: "residents", label: "Resident Information", icon: "users" },
-      { key: "systemLogs", label: "CSWDD System Logs", icon: "document" },
     ] as NavItem[],
   },
   ...[
@@ -33,7 +32,6 @@ const commandCenterAccess = [
       { key: "reliefDistribution", label: "Emergency Report Management", icon: "document" },
       { key: "residents", label: "Registry of Barangay Inhabitants (RBI)", icon: "users" },
       { key: "accounts", label: "Resident Account Registration Management", icon: "check" },
-      { key: "systemLogs", label: `${label} System Logs`, icon: "document" },
     ] as NavItem[],
   })),
 ];

@@ -17,13 +17,17 @@ import styles from "./SystemLogs.module.css";
 export function SystemLogs({ adminView }: { adminView?: AdminViewContext | null }) {
   const pageSize = 7;
   const [query, setQuery] = useState("");
+  const [departmentFilter, setDepartmentFilter] = useState("");
   const [moduleFilter, setModuleFilter] = useState("");
   const [actionFilter, setActionFilter] = useState("");
   const [previewLog, setPreviewLog] = useState<AuditLog | null>(null);
   const [page, setPage] = useState(1);
   const user = getCurrentUser();
   const role = normalizeUserRole(user) ?? "barangay";
-  const title = adminView
+  const isUniversalViewer = role === "cdrrmo" || role === "super";
+  const title = isUniversalViewer
+    ? "CDRRMO Command Center System Logs"
+    : adminView
     ? `${adminView.label} System Logs`
     : logLabelForRole(role, user);
   const emptyMessage = role === "cswdd" ? "No CSWDD logs found." : "No logs available for your role or assigned barangay.";
@@ -37,6 +41,7 @@ export function SystemLogs({ adminView }: { adminView?: AdminViewContext | null 
   const error = logsQuery.error instanceof Error ? logsQuery.error.message : logsQuery.error ? "Unable to load logs." : "";
 
   const roleScopedLogs = useMemo(() => filterLogsForViewer(logsSource, user), [logsSource, user]);
+  const departmentOptions = useMemo(() => unique(roleScopedLogs.map(departmentForLog)), [roleScopedLogs]);
   const moduleOptions = useMemo(() => unique(roleScopedLogs.map((log) => log.module ?? "")), [roleScopedLogs]);
   const actionOptions = useMemo(() => unique(roleScopedLogs.map((log) => log.action)), [roleScopedLogs]);
 
@@ -54,10 +59,11 @@ export function SystemLogs({ adminView }: { adminView?: AdminViewContext | null 
       ].join(" ");
       const matchesQuery = !normalizedQuery || normalizeBarangayForCompare(searchable).includes(normalizedQuery);
       return matchesQuery
+        && (!departmentFilter || departmentForLog(log) === departmentFilter)
         && (!moduleFilter || log.module === moduleFilter)
         && (!actionFilter || log.action === actionFilter);
     });
-  }, [actionFilter, moduleFilter, query, roleScopedLogs]);
+  }, [actionFilter, departmentFilter, moduleFilter, query, roleScopedLogs]);
 
   const paginatedLogs = useMemo(() => {
     const totalPages = Math.max(1, Math.ceil(logs.length / pageSize));
@@ -71,7 +77,7 @@ export function SystemLogs({ adminView }: { adminView?: AdminViewContext | null 
 
   useEffect(() => {
     setPage(1);
-  }, [actionFilter, moduleFilter, query]);
+  }, [actionFilter, departmentFilter, moduleFilter, query]);
 
   useEffect(() => {
     if (page !== paginatedLogs.pagination.page) setPage(paginatedLogs.pagination.page);
@@ -91,6 +97,18 @@ export function SystemLogs({ adminView }: { adminView?: AdminViewContext | null 
             onChange={(event) => setQuery(event.target.value)}
           />
         </label>
+        {isUniversalViewer ? <select aria-label="Filter logs by department or office" value={departmentFilter} onChange={(event) => setDepartmentFilter(event.target.value)}>
+          <option value="">All Departments / Offices</option>
+          {departmentOptions.map((department) => <option key={department} value={department}>{department}</option>)}
+        </select> : null}
+        <select aria-label="Filter logs by module" value={moduleFilter} onChange={(event) => setModuleFilter(event.target.value)}>
+          <option value="">All Modules</option>
+          {moduleOptions.map((module) => <option key={module} value={module}>{formatBarangayName(module)}</option>)}
+        </select>
+        <select aria-label="Filter logs by action" value={actionFilter} onChange={(event) => setActionFilter(event.target.value)}>
+          <option value="">All Actions</option>
+          {actionOptions.map((action) => <option key={action} value={action}>{formatBarangayName(action)}</option>)}
+        </select>
       </div>
 
       {error ? <p className={styles.error}>{error}</p> : null}
@@ -112,7 +130,7 @@ export function SystemLogs({ adminView }: { adminView?: AdminViewContext | null 
               <tr key={log.log_id ?? `${log.created_at}-${log.action}`}>
                 <td className={styles.event}>{log.action}</td>
                 <td>{formatBarangayName(log.actor_name || "-")}</td>
-                <td>{formatBarangayName(log.barangay_name || log.actor_role || "-")}</td>
+                <td>{departmentForLog(log)}</td>
                 <td>{formatBarangayName(log.description || log.module || "-")}</td>
                 <td>{formatDateTime(log.created_at ?? "")}</td>
               </tr>
@@ -228,6 +246,20 @@ function getActionTone(action: string) {
 
 function unique(values: string[]) {
   return Array.from(new Set(values.filter(Boolean))).sort((a, b) => a.localeCompare(b));
+}
+
+function departmentForLog(log: AuditLog) {
+  const explicitDepartment = String(log.department ?? "").trim();
+  if (explicitDepartment && !/^(system|sensor|authentication)$/i.test(explicitDepartment)) {
+    return formatBarangayName(explicitDepartment);
+  }
+  if (log.barangay_name) return formatBarangayName(log.barangay_name);
+
+  const source = `${log.actor_role ?? ""} ${log.module ?? ""}`;
+  if (/cswdd|city welfare/i.test(source)) return "CSWDD";
+  if (/barangay/i.test(source)) return "Barangay";
+  if (/cdrrmo|ndrrmo|command center|disaster/i.test(source)) return "CDRRMO";
+  return explicitDepartment ? formatBarangayName(explicitDepartment) : "System";
 }
 
 function formatDateTime(value: string) {
