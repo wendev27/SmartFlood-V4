@@ -1,4 +1,6 @@
 .dashboard { max-width: 100%; width: 100%; }
+.weatherError { align-items: center; color: #b42318; display: flex; flex-wrap: wrap; gap: 12px; grid-column: 1 / -1; }
+.weatherError button { background: #e8f3ff; border: 1px solid #b9dbff; border-radius: 10px; color: #006dcc; padding: 8px 14px; }
 
 .statsGrid {
   display: grid;

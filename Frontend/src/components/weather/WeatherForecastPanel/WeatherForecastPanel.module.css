@@ -24,3 +24,6 @@
 
 .unavailable { color: #64748b; font-size: 14px; margin: -8px 0 24px; }
 .placeholderIcon { filter: grayscale(1); opacity: .45; }
+.refresh { background: #e8f3ff; border: 1px solid #b9dbff; border-radius: 10px; color: #006dcc; font: inherit; padding: 8px 14px; }
+.refresh:disabled { cursor: wait; opacity: .6; }
+.dailyEmpty { color: #64748b; padding: 0 34px 24px; }

@@ -3,6 +3,8 @@
 import { useQuery } from "@tanstack/react-query";
 import { useEffect, useMemo, useState } from "react";
 import { MapPanel } from "@/components/dashboard/MapPanel/MapPanel";
+import { useWeather } from "@/components/weather/useWeather";
+import { weatherDetails, weatherImage, weatherTime, weatherValue } from "@/adapters/weatherPresentation";
 import { useDashboardPresentation } from "@/components/layout/DashboardPresentationContext";
 import { Badge } from "@/components/ui/Badge/Badge";
 import { EmptyState } from "@/components/ui/EmptyState";
@@ -19,6 +21,9 @@ import styles from "./DashboardPanel.module.css";
 
 export function DashboardPanel() {
   const presentation = useDashboardPresentation();
+  const weather = useWeather();
+  const currentWeather = weather.data?.current;
+  const forecastRows = weather.data?.hourly ?? [];
   const pageSize = 5;
   const [showSevereOnly, setShowSevereOnly] = useState(false);
   const [selectedSensorId, setSelectedSensorId] = useState<string | null>(null);
@@ -90,29 +95,29 @@ export function DashboardPanel() {
 
   return (
     <div className={styles.dashboard}>
-      <section className={styles.weatherRow} aria-label="Weather forecasts unavailable">
+      <section className={styles.weatherRow} aria-label="Malabon City weather">
         <button type="button" className={styles.weatherOverview} onClick={() => presentation?.open("weatherForecast")} aria-label="Open weather forecast">
           <div className={styles.weatherCurrent}>
-            <img src="/images/weather/cloud.png" alt="" />
-            <div><span>Current Weather</span><strong aria-label="Temperature unavailable">—</strong><p>Unavailable</p></div>
+            <img src={weatherImage(currentWeather?.icon, currentWeather?.time)} alt="" />
+            <div><span>Malabon City Weather</span><strong>{weather.isPending ? "…" : weatherValue(currentWeather?.temperature, "°C")}</strong><p>{currentWeather?.description ?? (weather.isPending ? "Loading…" : "Unavailable")}</p></div>
           </div>
-          <div className={styles.weatherDetails} aria-label="Weather measurements unavailable">
-            {["Feels like", "Humidity", "Rain Chance", "UV Index", "Wind", "Pressure"].map((label) => (
-              <div key={label}><span>{label}</span><strong aria-label={`${label} unavailable`}>—</strong></div>
+          <div className={styles.weatherDetails} aria-label="Current weather measurements">
+            {weatherDetails(currentWeather).map(({ label, value }) => (
+              <div key={label}><span>{label}</span><strong>{weather.isPending ? "…" : value}</strong></div>
             ))}
           </div>
         </button>
         <button type="button" className={styles.hourlyPreview} onClick={() => presentation?.open("weatherForecast")} aria-label="Open hourly weather forecast">
-          <h2>Hourly Forecast</h2>
-          <div aria-hidden="true">
-            {Array.from({ length: 8 }, (_, index) => (
-              <article key={index}>
-                <span>—</span><span className={styles.forecastIconPlaceholder} /><strong>—</strong>
-              </article>
-            ))}
+          <h2>{weather.data?.intervalHours === 3 ? "3-Hour Forecast" : "Hourly Forecast"}</h2>
+          <div>
+            {forecastRows.map((row) => <article key={row.time} title={row.description}>
+              <span>{weatherTime(row.time)}</span><img src={weatherImage(row.icon, row.time)} alt={row.description} /><strong>{weatherValue(row.temperature, "°C")}</strong>
+            </article>)}
+            {weather.isPending ? Array.from({ length: 8 }, (_, index) => <article key={index} aria-hidden="true"><span>…</span><span className={styles.forecastIconPlaceholder} /><strong>…</strong></article>) : null}
           </div>
-          <p className={styles.unavailable}>Weather and hourly forecasts are unavailable.</p>
+          <p className={styles.unavailable}>{weather.isPending ? "Loading Malabon City weather…" : weather.error ? "Weather could not refresh. Open details or retry below." : forecastRows.length ? `Source: ${weather.data?.sources.join(" / ")}. Times in Philippine time.` : "Forecast temporarily unavailable."}</p>
         </button>
+        {weather.isError ? <div className={styles.weatherError} role="alert"><span>{weather.error.message}</span><button type="button" disabled={weather.isFetching} onClick={() => weather.refetch()}>Retry weather</button></div> : null}
       </section>
       <section className={styles.statsGrid} aria-label="Dashboard statistics">
         {simpleStats.map((stat, index) => (

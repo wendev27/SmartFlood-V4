@@ -239,3 +239,31 @@ test("distribution adapter preserves API identity, scope and verification time w
   assert.equal(missing.verifiedTime, "");
   assert.equal(JSON.stringify(record), before);
 });
+
+test("weather details render real observations and only the available forecast days", () => {
+  const { WeatherForecastPanel } = require("@/components/weather/WeatherForecastPanel/WeatherForecastPanel");
+  const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+  const current = { time: "2026-09-07T00:00:00Z", temperature: 27, feelsLike: 30, humidity: 89, rainChance: 0, uvIndex: 0, windKmh: 7.56, pressureHpa: 1005, description: "Mostly cloudy", icon: "cloud" };
+  client.setQueryData(["weather", "malabon"], { location: "Malabon City", timezone: "Asia/Manila", current, hourly: [current], daily: [{ time: current.time, high: 31, low: 25, rainChance: 65, description: "Rain", icon: "rain" }], intervalHours: 1, sources: ["Tomorrow.io"], notices: [] });
+  const html = renderToStaticMarkup(React.createElement(QueryClientProvider, { client }, React.createElement(WeatherForecastPanel, { onBack() {} })));
+  assert.match(html, /27°C/);
+  assert.match(html, /89%/);
+  assert.match(html, /0%/);
+  assert.match(html, /8 km\/h/);
+  assert.match(html, /1-Day Forecast/);
+  assert.doesNotMatch(html, /7-Day Forecast|Weather observations and forecasts are unavailable/);
+  assert.match(html, /Mostly cloudy/);
+  client.clear();
+});
+
+test("weather errors expose retry without fabricated observations", () => {
+  const { WeatherForecastPanel } = require("@/components/weather/WeatherForecastPanel/WeatherForecastPanel");
+  const client = new QueryClient({ defaultOptions: { queries: { retry: false, retryOnMount: false } } });
+  client.getQueryCache().build(client, { queryKey: ["weather", "malabon"] }).setState({ status: "error", fetchStatus: "idle", error: new Error("Weather providers are unavailable.") });
+  const html = renderToStaticMarkup(React.createElement(QueryClientProvider, { client }, React.createElement(WeatherForecastPanel, { onBack() {} })));
+  assert.match(html, /Weather providers are unavailable/);
+  assert.match(html, /Retry weather/);
+  assert.match(html, /Observation time unavailable/);
+  assert.doesNotMatch(html, /\d+°C/);
+  client.clear();
+});

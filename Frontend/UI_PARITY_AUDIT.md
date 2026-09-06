@@ -1,5 +1,7 @@
 # REY presentation and V3.2 integration audit
 
+> Weather update: current conditions and forecasts are now connected through the frontend Next.js server. See [WEATHER_INTEGRATION.md](WEATHER_INTEGRATION.md). Earlier weather-unavailable entries below describe the previous migration baseline.
+
 This is a source-code audit for the current frontend migration, not a rendered visual acceptance report. `SmartFlood-V3.2rey` is the presentation reference; `SmartFlood-V3.2` remains the API, data, authentication, authorization, database, and AI authority. Backend access is locked for this task. This audit only created this document; it made no backend, database, environment, dependency, Git-index or Git-history changes.
 
 The final asset comparison found 31 REY public assets: **26 byte-identical copies in the target, five excluded files, and zero differing copies**. The nine previously absent decorative/control/organization assets have been copied. Four sample emergency photos and one unreferenced map remain excluded. Copy status does not imply every decorative asset is rendered: unavailable weather uses neutral cloud artwork, and the reference inventory selector is not part of the current generation contract.

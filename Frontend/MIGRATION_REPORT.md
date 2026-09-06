@@ -1,5 +1,7 @@
 # Frontend presentation migration
 
+> Weather update: current conditions and forecasts are now connected through the frontend Next.js server. See [WEATHER_INTEGRATION.md](WEATHER_INTEGRATION.md). Earlier weather-unavailable entries below describe the previous migration baseline.
+
 Implemented against V3.2 commit `d58926c`, using V3.2rey commit `7bc3be6` as the presentation reference. The target's existing APIs, services, permissions, and business workflows remain the functional authority.
 
 **Status:** the additional source fidelity pass and automated checks are complete; the migration has **not yet passed rendered visual acceptance**. Visual acceptance at desktop/tablet/mobile sizes and authenticated end-to-end workflows remain unverified because the browser runtime reported `No browser is available` and returned an empty browser list. This report does not claim pixel parity or successful live business transactions.
