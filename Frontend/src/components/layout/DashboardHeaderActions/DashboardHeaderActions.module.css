@@ -12,6 +12,7 @@
   border: 0;
   border-radius: 12px;
   color: #0088ff;
+  cursor: pointer;
   display: flex;
   font-size: 12px;
   font-weight: 600;
