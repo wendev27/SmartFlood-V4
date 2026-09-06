@@ -2,26 +2,45 @@
 
 import { useMemo, useState } from "react";
 import { EmptyState } from "@/components/ui/EmptyState";
+import type { PageKey } from "@/types/navigation";
 import styles from "./NotificationPanel.module.css";
 
 type Category = "Alert" | "Relief" | "System";
 type Filter = "All" | "Unread" | Category;
 
 const notifications = [
-  { id: 1, title: "Critical Flood Alert", message: "Water level in Sensor Node 03 has reached warning threshold.", category: "Alert" as Category, unread: true },
-  { id: 2, title: "Relief Request", message: "Barangay Tanong requested for relief assistance.", category: "Relief" as Category, unread: true },
-  { id: 3, title: "System Maintenance", message: "Scheduled system maintenance notice.", category: "System" as Category, unread: true },
+  { id: 1, title: "Critical Flood Alert", message: "Water level in Sensor Node 03 has reached warning threshold.", category: "Alert" as Category, unread: true, destination: "monitoring" as PageKey },
+  { id: 2, title: "Relief Request", message: "Barangay Tanong requested for relief assistance.", category: "Relief" as Category, unread: true, destination: "relief" as PageKey },
+  { id: 3, title: "System Maintenance", message: "Scheduled system maintenance notice.", category: "System" as Category, unread: true, destination: "systemLogs" as PageKey },
 ];
+
+export const notificationCount = notifications.length;
+export const unreadNotificationCount = notifications.filter((notification) => notification.unread).length;
 
 const filters: Filter[] = ["All", "Unread", "Alert", "Relief", "System"];
 
-export function NotificationPanel({ onBack }: { onBack: () => void }) {
+interface NotificationPanelProps {
+  onBack: () => void;
+  onNavigate: (page: PageKey) => void;
+  onRead: (notificationId: number) => void;
+  readNotificationIds: number[];
+}
+
+export function NotificationPanel({ onBack, onNavigate, onRead, readNotificationIds }: NotificationPanelProps) {
   const [filter, setFilter] = useState<Filter>("All");
   const [query, setQuery] = useState("");
   const visible = useMemo(() => {
     const term = query.trim().toLowerCase();
-    return notifications.filter((item) => (filter === "All" || (filter === "Unread" ? item.unread : item.category === filter)) && (!term || `${item.title} ${item.message}`.toLowerCase().includes(term)));
-  }, [filter, query]);
+    return notifications.filter((item) => {
+      const isUnread = item.unread && !readNotificationIds.includes(item.id);
+      return (filter === "All" || (filter === "Unread" ? isUnread : item.category === filter)) && (!term || `${item.title} ${item.message}`.toLowerCase().includes(term));
+    });
+  }, [filter, query, readNotificationIds]);
+
+  function openNotification(notification: (typeof notifications)[number]) {
+    onRead(notification.id);
+    onNavigate(notification.destination);
+  }
 
   return <section className={styles.page}>
     <button className={styles.back} type="button" onClick={onBack}>‹ Back</button>
@@ -31,12 +50,31 @@ export function NotificationPanel({ onBack }: { onBack: () => void }) {
       <label className={styles.search}><span aria-hidden="true" /><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search requests..." /></label>
     </div>
     <div className={styles.summary}>
-      <Summary label="Total Notification" value={24} icon="bell" />
-      <Summary label="Unread" value={6} icon="mail" />
-      <Summary label="Critical Alerts" value={2} icon="alert" />
+      <Summary label="Total Notification" value={notificationCount} icon="bell" />
+      <Summary label="Unread" value={Math.max(0, unreadNotificationCount - readNotificationIds.length)} icon="mail" />
+      <Summary label="Critical Alerts" value={notifications.filter((notification) => notification.category === "Alert").length} icon="alert" />
     </div>
     <div className={styles.list}>
-      {visible.map((item) => <article key={item.id}>{item.unread ? <i className={styles.unread} /> : null}<Icon category={item.category} /><div><h2>{item.title}</h2><p>{item.message}</p></div></article>)}
+      {visible.map((item) => (
+        <article
+          key={item.id}
+          role="link"
+          tabIndex={0}
+          style={{ cursor: "pointer" }}
+          onClick={() => openNotification(item)}
+          onKeyDown={(event) => {
+            if (event.key === "Enter" || event.key === " ") {
+              event.preventDefault();
+              openNotification(item);
+            }
+          }}
+          aria-label={`Open ${item.title}`}
+        >
+          {item.unread && !readNotificationIds.includes(item.id) ? <i className={styles.unread} /> : null}
+          <Icon category={item.category} />
+          <div><h2>{item.title}</h2><p>{item.message}</p></div>
+        </article>
+      ))}
       {visible.length === 0 ? <EmptyState searchResult title="No notifications match" description="We couldn’t find any notifications matching your search or active filter." /> : null}
     </div>
   </section>;

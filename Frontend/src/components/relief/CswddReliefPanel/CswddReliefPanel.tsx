@@ -6,18 +6,18 @@ import { ReliefPanel } from "@/components/relief/ReliefPanel/ReliefPanel";
 import { EmptyState } from "@/components/ui/EmptyState";
 import styles from "./CswddReliefPanel.module.css";
 
-type View = "main" | "recommendation" | "history" | "distribution" | "endorsement";
+export type CswddReliefView = "main" | "recommendation" | "history" | "distribution" | "endorsement";
 
-const modules: Array<{ view: Exclude<View, "main">; title: string; icon: string }> = [
+const modules: Array<{ view: Exclude<CswddReliefView, "main">; title: string; icon: string }> = [
   { view: "recommendation", title: "AI-Optimized Relief Recommendation", icon: "/images/cswdd/relief-recommendation.svg" },
   { view: "history", title: "Recommendation History", icon: "/images/cswdd/recommendation-history.svg" },
   { view: "distribution", title: "Relief Distribution List", icon: "/images/cswdd/distribution-list.svg" },
   { view: "endorsement", title: "Resident Relief Request Endorsement", icon: "/images/cswdd/request-endorsement.svg" },
 ];
 
-export function CswddReliefPanel({ onViewChange }: { onViewChange?: (isSubpage: boolean) => void }) {
-  const [view, setViewState] = useState<View>("main");
-  const setView = (next: View) => {
+export function CswddReliefPanel({ initialView = "main", onViewChange }: { initialView?: CswddReliefView; onViewChange?: (isSubpage: boolean) => void }) {
+  const [view, setViewState] = useState<CswddReliefView>(initialView);
+  const setView = (next: CswddReliefView) => {
     setViewState(next);
     onViewChange?.(next !== "main");
   };

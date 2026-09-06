@@ -32,6 +32,7 @@ interface AppShellProps {
   userProfile: DashboardUserProfile;
   onNavigate: (page: PageKey, adminView?: AdminViewContext) => void;
   onToggleMobileNav: () => void;
+  unreadNotificationCount?: number;
   children: ReactNode;
 }
 
@@ -44,6 +45,7 @@ export function AppShell({
   userProfile,
   onNavigate,
   onToggleMobileNav,
+  unreadNotificationCount = 0,
   children,
 }: AppShellProps) {
   return (
@@ -58,7 +60,7 @@ export function AppShell({
         onToggleMobileNav={onToggleMobileNav}
       />
       <section className={styles.dashboard}>
-        {hideTopbar ? null : <Topbar activePage={activePage} adminView={adminView} onNavigate={onNavigate} userProfile={userProfile} />}
+        {hideTopbar ? null : <Topbar activePage={activePage} adminView={adminView} onNavigate={onNavigate} unreadNotificationCount={unreadNotificationCount} userProfile={userProfile} />}
         <div className={styles.content}>{children}</div>
       </section>
     </main>

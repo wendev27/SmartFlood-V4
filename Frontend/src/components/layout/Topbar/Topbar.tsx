@@ -8,10 +8,11 @@ interface TopbarProps {
   activePage: PageKey;
   adminView?: AdminViewContext | null;
   onNavigate: (page: PageKey, adminView?: AdminViewContext) => void;
+  unreadNotificationCount?: number;
   userProfile: DashboardUserProfile;
 }
 
-export function Topbar({ activePage, adminView, onNavigate, userProfile }: TopbarProps) {
+export function Topbar({ activePage, adminView, onNavigate, unreadNotificationCount = 0, userProfile }: TopbarProps) {
   const effectiveRole = adminView?.role ?? (/barangay/i.test(userProfile.roleLabel) ? "barangay" : /cswdd/i.test(userProfile.roleLabel) ? "cswdd" : "cdrrmo");
   const isBarangayModuleLanding = activePage === "reliefDistribution" && effectiveRole === "barangay";
   const isResidentPage = activePage === "residents";
@@ -32,7 +33,7 @@ export function Topbar({ activePage, adminView, onNavigate, userProfile }: Topba
         <h2>{copy.title}</h2>
         {copy.subtitle ? <p>{copy.subtitle}</p> : null}
       </div>}
-      <DashboardHeaderActions onNavigate={() => onNavigate("notifications", adminView ?? undefined)} />
+      <DashboardHeaderActions onNavigate={() => onNavigate("notifications", adminView ?? undefined)} unreadCount={unreadNotificationCount} />
     </header>
   );
 }

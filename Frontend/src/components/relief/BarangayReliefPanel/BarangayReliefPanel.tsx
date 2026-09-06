@@ -6,17 +6,17 @@ import { ReliefDistributionPanel } from "@/components/emergency/ReliefDistributi
 import { EmptyState } from "@/components/ui/EmptyState";
 import styles from "./BarangayReliefPanel.module.css";
 
-type ReliefView = "main" | "allocation" | "distribution" | "history" | "endorsement";
+export type BarangayReliefView = "main" | "allocation" | "distribution" | "history" | "endorsement";
 
-const modules: Array<{ view: Exclude<ReliefView, "main">; title: string; icon: string }> = [
+const modules: Array<{ view: Exclude<BarangayReliefView, "main">; title: string; icon: string }> = [
   { view: "allocation", title: "Relief Allocation Notification", icon: "/images/dashboard/relief-allocation.svg" },
   { view: "distribution", title: "Relief Distribution", icon: "/images/dashboard/relief-distribution.svg" },
   { view: "history", title: "Relief Distribution History", icon: "/images/dashboard/relief-history.svg" },
   { view: "endorsement", title: "Resident Relief Request Endorsement", icon: "/images/dashboard/relief-allocation.svg" },
 ];
 
-export function BarangayReliefPanel({ barangayScope }: { barangayScope?: string }) {
-  const [view, setView] = useState<ReliefView>("main");
+export function BarangayReliefPanel({ barangayScope, initialView = "main" }: { barangayScope?: string; initialView?: BarangayReliefView }) {
+  const [view, setView] = useState<BarangayReliefView>(initialView);
 
   if (view === "main") {
     return (

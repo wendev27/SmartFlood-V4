@@ -27,22 +27,23 @@ const FloodHeatmapMap = dynamic(
 export type MonitoringView = "main" | "alertLevels" | "heatmap" | "history";
 
 interface MonitoringPanelProps {
+  initialView?: MonitoringView;
   onViewChange?: (view: MonitoringView) => void;
   resetSignal?: number;
   userProfile: DashboardUserProfile;
 }
 
-export function MonitoringPanel({ onViewChange, resetSignal = 0, userProfile }: MonitoringPanelProps) {
-  const [activeView, setActiveView] = useState<MonitoringView>("main");
+export function MonitoringPanel({ initialView = "main", onViewChange, resetSignal = 0, userProfile }: MonitoringPanelProps) {
+  const [activeView, setActiveView] = useState<MonitoringView>(initialView);
   const canManageAlertLevels = /super|cdrrmo|ndrrmo/i.test(userProfile.roleLabel);
   const visibleModules = canManageAlertLevels
     ? monitoringModules
     : monitoringModules.filter((item) => item.view !== "alertLevels");
 
   useEffect(() => {
-    setActiveView("main");
-    onViewChange?.("main");
-  }, [onViewChange, resetSignal]);
+    setActiveView(initialView);
+    onViewChange?.(initialView);
+  }, [initialView, onViewChange, resetSignal]);
 
   function changeView(view: MonitoringView) {
     setActiveView(view);
