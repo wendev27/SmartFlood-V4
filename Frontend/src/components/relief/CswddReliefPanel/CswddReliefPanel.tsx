@@ -52,19 +52,33 @@ export function CswddReliefPanel({ onViewChange }: { onViewChange?: (isSubpage: 
 
 function CswddEndorsement() {
   const [kind, setKind] = useState<"family" | "individual">("family");
+  const [status, setStatus] = useState("");
+  const [date, setDate] = useState("");
+  const [search, setSearch] = useState("");
+  const hasFilters = Boolean(status || date || search.trim());
+
+  function clearFilters() {
+    setStatus("");
+    setDate("");
+    setSearch("");
+  }
+
   return (
     <div className={styles.endorsement}>
-      <div className={styles.tabs} role="tablist" aria-label="Relief request type">
-        <span className={kind === "individual" ? styles.tabIndicatorRight : styles.tabIndicator} />
-        <button type="button" role="tab" aria-selected={kind === "family"} onClick={() => setKind("family")}>Family Head Requests</button>
-        <button type="button" role="tab" aria-selected={kind === "individual"} onClick={() => setKind("individual")}>Individual Requests</button>
+      <div className={styles.controlsRow}>
+        <div className={styles.tabs} role="tablist" aria-label="Relief request type">
+          <span className={kind === "individual" ? styles.tabIndicatorRight : styles.tabIndicator} />
+          <button type="button" role="tab" aria-selected={kind === "family"} onClick={() => setKind("family")}>Family Head Requests</button>
+          <button type="button" role="tab" aria-selected={kind === "individual"} onClick={() => setKind("individual")}>Individual Requests</button>
+        </div>
+        <section className={styles.filterBar} aria-label="Request filters">
+          <label>Status<select value={status} onChange={(event) => setStatus(event.target.value)}><option value="">All Status</option><option value="pending">Pending</option><option value="endorsed">Endorsed</option><option value="rejected">Rejected</option></select></label>
+          <label>Date<input type="date" value={date} onChange={(event) => setDate(event.target.value)} /></label>
+          <input type="search" aria-label="Search requests" placeholder="Search by resident or reference..." value={search} onChange={(event) => setSearch(event.target.value)} />
+          {hasFilters ? <button className={styles.clearFilters} type="button" onClick={clearFilters}>Clear Filters</button> : null}
+        </section>
       </div>
-      <section className={styles.filterBar} aria-label="Request filters">
-        <label>Status<select><option>All Status</option><option>Pending</option><option>Endorsed</option><option>Rejected</option></select></label>
-        <label>Date Range<input type="date" /></label>
-        <input type="search" aria-label="Search requests" placeholder="Search requests..." />
-      </section>
-      <div className={styles.emptyCard}><EmptyState title={`No ${kind} relief requests available`} description="Resident relief requests will appear here when they are submitted through the mobile application." /></div>
+      <div className={styles.emptyCard}><EmptyState title={hasFilters ? "No requests match your filters" : `No ${kind} relief requests available`} description={hasFilters ? "Try changing or clearing the status, date, or search filters." : "Resident relief requests will appear here when they are submitted through the mobile application."} actionLabel={hasFilters ? "Clear Filters" : undefined} onAction={hasFilters ? clearFilters : undefined} /></div>
     </div>
   );
 }
