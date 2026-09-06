@@ -1,5 +1,6 @@
 export type PageKey =
   | "dashboard"
+  | "weatherForecast"
   | "logs"
   | "systemLogs"
   | "monitoring"

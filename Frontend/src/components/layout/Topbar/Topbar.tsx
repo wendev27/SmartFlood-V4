@@ -19,7 +19,7 @@ export function Topbar({ activePage, adminView, onNavigate, userProfile }: Topba
   const isSystemLogsPage = activePage === "systemLogs";
   const isCswddRelief = activePage === "relief" && effectiveRole === "cswdd";
   const isCdrrmoAccount = activePage === "logs" && /cdrrmo|command center|super admin/i.test(`${userProfile.roleLabel} ${userProfile.displayName}`);
-  const isActionsOnly = activePage === "monitoring" || activePage === "notifications" || activePage === "emergencyNotifications" || isBarangayModuleLanding || isResidentPage || isBarangayRegistration || isSystemLogsPage || isCswddRelief || isCdrrmoAccount;
+  const isActionsOnly = activePage === "monitoring" || activePage === "weatherForecast" || activePage === "notifications" || activePage === "emergencyNotifications" || isBarangayModuleLanding || isResidentPage || isBarangayRegistration || isSystemLogsPage || isCswddRelief || isCdrrmoAccount;
   const copy = activePage === "dashboard" && effectiveRole === "cdrrmo"
     ? { ...pageCopy[activePage], subtitle: "Monitor city-wide flood operations efficiently and effectively." }
     : activePage === "systemLogs"

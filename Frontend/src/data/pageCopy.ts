@@ -45,6 +45,10 @@ export const pageCopy: Record<PageKey, PageCopy> = {
     title: "Resident Account Registration Management",
     subtitle: "",
   },
+  weatherForecast: {
+    title: "Weather Forecast",
+    subtitle: "Malabon City, Metro Manila",
+  },
   notifications: {
     title: "Notification",
     subtitle: "",

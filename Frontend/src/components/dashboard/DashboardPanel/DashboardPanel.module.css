@@ -5,7 +5,7 @@
   gap: 20px;
   grid-template-columns: 1fr;
   margin-bottom: 27px;
-  max-width: 731px;
+  max-width: 1112px;
 }
 
 .mapSection {
@@ -15,6 +15,18 @@
   width: 100%;
 }
 
+.weatherCard { background: #fff; border: 1px solid rgba(255,255,255,.7); border-radius: 26px; box-shadow: 0 6px 18px rgba(37,99,235,.12); color: #1e1e1e; min-height: 150px; overflow: hidden; padding: 30px 24px 24px 96px; position: relative; text-align: left; transition: transform .2s,box-shadow .2s; width: 100%; }
+.weatherCard:hover,.weatherCard:focus-visible { box-shadow: 0 16px 26px rgba(15,23,42,.18); outline: 2px solid rgba(15,97,255,.28); outline-offset: 3px; transform: translateY(-2px); }
+.weatherCard img { background: rgba(0,136,255,.12); border: 1px solid rgba(255,255,255,.75); border-radius: 14px; box-shadow: 0 4px 12px rgba(37,99,235,.12); height: 44px; left: 32px; object-fit: contain; padding: 4px; position: absolute; top: 32px; width: 44px; }
+.weatherCard span,.weatherCard strong,.weatherCard p { display: block; }
+.weatherCard span { font-size: 12px; font-weight: 600; margin-bottom: 6px; }
+.weatherCard strong { color: #0088ff; font-size: 36px; line-height: 1; margin-bottom: 8px; }
+.weatherCard p { color: rgba(30,30,30,.58); display: inline; font-size: 12px; font-weight: 600; line-height: 1.6; margin: 0 8px 0 0; }
+.weatherCard em { background: #0088ff; border-radius: 999px; color: #fff; display: inline-block; font-size: 11px; font-style: normal; font-weight: 700; letter-spacing: .01em; padding: 5px 10px; }
+
 @media (min-width: 680px) {
   .statsGrid { grid-template-columns: repeat(2, minmax(250px, 350px)); gap: 31px; }
+}
+@media (min-width: 1120px) {
+  .statsGrid { grid-template-columns: repeat(3, minmax(250px, 350px)); }
 }

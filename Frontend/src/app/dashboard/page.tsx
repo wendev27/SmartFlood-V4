@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { AppShell, type AdminViewContext, type DashboardUserProfile } from "@/components/layout/AppShell/AppShell";
 import { DashboardPanel } from "@/components/dashboard/DashboardPanel/DashboardPanel";
+import { WeatherForecastPanel } from "@/components/weather/WeatherForecastPanel/WeatherForecastPanel";
 import { LogsPanel } from "@/components/logs/LogsPanel/LogsPanel";
 import { SystemLogs } from "@/components/logs/SystemLogs/SystemLogs";
 import { MonitoringPanel, type MonitoringView } from "@/components/monitoring/MonitoringPanel/MonitoringPanel";
@@ -22,6 +23,7 @@ import type { DashboardRole, PageKey } from "@/types/navigation";
 
 const pageKeys: PageKey[] = [
   "dashboard",
+  "weatherForecast",
   "logs",
   "systemLogs",
   "monitoring",
@@ -57,7 +59,7 @@ export default function DashboardPage() {
   const allowedPages = useMemo(
     () => session && (session.role === "cdrrmo" || session.role === "super")
       ? pageKeys
-      : [...navigationItems.map((item) => item.key), "notifications"],
+      : [...navigationItems.map((item) => item.key), "notifications", "weatherForecast"],
     [navigationItems, session],
   );
 
@@ -131,7 +133,8 @@ export default function DashboardPage() {
       onToggleMobileNav={() => setIsMobileNavOpen((isOpen) => !isOpen)}
       userProfile={session.profile}
     >
-      {activePage === "dashboard" ? <DashboardPanel /> : null}
+      {activePage === "dashboard" ? <DashboardPanel onOpenWeather={() => handleNavigate("weatherForecast")} /> : null}
+      {activePage === "weatherForecast" ? <WeatherForecastPanel onBack={() => handleNavigate("dashboard")} /> : null}
       {activePage === "logs" ? <LogsPanel /> : null}
       {activePage === "systemLogs" ? <SystemLogs adminView={adminView} /> : null}
       {activePage === "monitoring" ? <MonitoringPanel resetSignal={monitoringResetVersion} onViewChange={setMonitoringView} userProfile={session.profile} /> : null}

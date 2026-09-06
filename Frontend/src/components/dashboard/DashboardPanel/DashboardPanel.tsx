@@ -11,7 +11,7 @@ import { getSensors } from "@/services/sensorsService";
 import type { DashboardStat } from "@/types/dashboard";
 import styles from "./DashboardPanel.module.css";
 
-export function DashboardPanel() {
+export function DashboardPanel({ onOpenWeather }: { onOpenWeather: () => void }) {
   const sensorsQuery = useQuery({ queryKey: queryKeys.sensors.latest, queryFn: getSensors, staleTime: queryStaleTime.realTime, refetchInterval: 5_000, refetchIntervalInBackground: false });
   const sensors = sensorsQuery.data ?? [];
   const criticalAlerts = useMemo(() => sensors.filter((sensor) => getFloodStatusClass(sensor.computedStatus ?? sensor.risk, sensor.waterLevelM) === "severity"), [sensors]);
@@ -24,6 +24,13 @@ export function DashboardPanel() {
   return (
     <div className={styles.dashboard}>
       <section className={styles.statsGrid} aria-label="Dashboard statistics">
+        <button type="button" className={styles.weatherCard} onClick={onOpenWeather} aria-label="Open weather forecast">
+          <img src="/images/weather/rain.png" alt="" />
+          <span>Weather Forecast</span>
+          <strong>31°C</strong>
+          <p>Rainy</p>
+          <em>View Forecast →</em>
+        </button>
         {stats.map((stat) => <StatCard key={stat.label} stat={stat} />)}
       </section>
       {error ? <ErrorState title="Unable to Load Sensor Nodes" message={error} retryLabel="Retry" onRetry={() => sensorsQuery.refetch()} /> : null}
