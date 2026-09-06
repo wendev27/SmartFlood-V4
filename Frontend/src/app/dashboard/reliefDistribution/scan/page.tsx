@@ -1,6 +1,6 @@
 "use client";
 
-import { FormEvent, useEffect, useMemo, useState } from "react";
+import { FormEvent, useEffect, useMemo, useRef, useState } from "react";
 import {
   confirmReliefDistribution,
   getReliefCampaignHistory,
@@ -19,6 +19,9 @@ export default function ReliefDistributionScannerPage() {
   const [state, setState] = useState<ScannerState>("loading");
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [cameraMessage, setCameraMessage] = useState("Starting camera...");
+  const videoRef = useRef<HTMLVideoElement | null>(null);
+  const streamRef = useRef<MediaStream | null>(null);
 
   const distributable = useMemo(() => Boolean(
     campaign?.status === "in_distribution"
@@ -48,6 +51,65 @@ export default function ReliefDistributionScannerPage() {
     }
 
     loadCampaign();
+  }, []);
+
+  useEffect(() => {
+    let cancelled = false;
+    let animationFrame = 0;
+
+    async function startScanner() {
+      if (!navigator.mediaDevices?.getUserMedia) {
+        setCameraMessage("Camera scanning is not supported in this browser. Use manual verification.");
+        return;
+      }
+
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: { ideal: "environment" } }, audio: false });
+        if (cancelled) {
+          stream.getTracks().forEach((track) => track.stop());
+          return;
+        }
+        streamRef.current = stream;
+        const video = videoRef.current;
+        if (!video) return;
+        video.srcObject = stream;
+        await video.play();
+        setCameraMessage("Position the beneficiary QR code inside the frame.");
+
+        const Detector = (window as typeof window & { BarcodeDetector?: new (options: { formats: string[] }) => { detect(source: HTMLVideoElement): Promise<Array<{ rawValue?: string }>> } }).BarcodeDetector;
+        if (!Detector) {
+          setCameraMessage("Camera is active. Automatic QR detection is unavailable here; use manual verification if needed.");
+          return;
+        }
+        const detector = new Detector({ formats: ["qr_code"] });
+        const detect = async () => {
+          if (cancelled) return;
+          try {
+            const codes = await detector.detect(video);
+            const value = codes[0]?.rawValue?.trim();
+            if (value) {
+              setIdentifier(value);
+              setCameraMessage("QR code captured. Select Verify Beneficiary to check it.");
+              return;
+            }
+          } catch {
+            // The next frame retries while the camera is initializing or moving.
+          }
+          animationFrame = window.requestAnimationFrame(detect);
+        };
+        animationFrame = window.requestAnimationFrame(detect);
+      } catch {
+        setCameraMessage("Camera permission was denied or unavailable. Use manual verification.");
+      }
+    }
+
+    startScanner();
+    return () => {
+      cancelled = true;
+      window.cancelAnimationFrame(animationFrame);
+      streamRef.current?.getTracks().forEach((track) => track.stop());
+      streamRef.current = null;
+    };
   }, []);
 
   async function handleVerify(event: FormEvent<HTMLFormElement>) {
@@ -143,10 +205,12 @@ export default function ReliefDistributionScannerPage() {
         {error ? <p className={styles.errorMessage}>{error}</p> : null}
 
         <section className={styles.scannerGrid}>
-          <div className={styles.scannerBox} aria-label="QR scanner placeholder">
-            <div>
+          <div className={styles.scannerBox} aria-label="QR code scanner">
+            <video ref={videoRef} className={styles.cameraPreview} muted playsInline />
+            <span className={styles.scanFrame} aria-hidden="true" />
+            <div className={styles.cameraStatus}>
               <strong>QR Scanner</strong>
-              <span>Camera Placeholder</span>
+              <span>{cameraMessage}</span>
             </div>
           </div>
 

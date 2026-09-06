@@ -50,6 +50,7 @@ export function ReliefDistributionPanel({
   const [isSwitcherOpen, setIsSwitcherOpen] = useState(false);
   const [identifier, setIdentifier] = useState("");
   const [result, setResult] = useState<ReliefDistributionVerifyResponse | null>(null);
+  const [verificationError, setVerificationError] = useState("");
   const [history, setHistory] = useState<ReliefDistributionRecord[]>([]);
   const [historyPagination, setHistoryPagination] = useState<Pagination | null>(null);
   const [historyPage, setHistoryPage] = useState(1);
@@ -226,7 +227,7 @@ export function ReliefDistributionPanel({
   }
 
   function openScannerWindow() {
-    if (!selectedCampaign || !selectedIsDistributable) return;
+    if (!selectedCampaign) return;
     window.open(reliefDistributionScannerUrl(selectedCampaign.batch_id), "_blank", "noopener,noreferrer");
   }
 
@@ -245,17 +246,12 @@ export function ReliefDistributionPanel({
   async function handleVerify(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (!selectedCampaign) {
-      setError("Select a relief campaign before verifying beneficiaries.");
+      setVerificationError("Select a relief campaign before verifying beneficiaries.");
       return;
     }
-    if (!selectedIsActive) {
-      setError(`${selectedCampaign.plan_name} is ${formatStatus(selectedCampaign.status)} and cannot accept distributions.`);
-      return;
-    }
-
     const trimmed = identifier.trim();
     if (!trimmed) {
-      setError("Enter a beneficiary QR, family ID, or resident ID.");
+      setVerificationError("Enter a beneficiary QR, family ID, or resident ID.");
       return;
     }
 
@@ -263,13 +259,14 @@ export function ReliefDistributionPanel({
       setState("verifying");
       setMessage(null);
       setError(null);
+      setVerificationError("");
       const verification = await verifyReliefDistribution(selectedCampaign.batch_id, trimmed);
       setResult(verification);
       if (verification.result === "ELIGIBLE") setMessage(`Beneficiary is eligible for ${selectedCampaign.plan_name}.`);
       if (verification.result === "ALREADY_RECEIVED") setMessage(`Relief already received for ${selectedCampaign.plan_name}.`);
-      if (!["ELIGIBLE", "ALREADY_RECEIVED"].includes(verification.result)) setError(resultMessage(verification));
-    } catch (verifyError) {
-      setError(verifyError instanceof Error ? verifyError.message : "Unable to verify beneficiary.");
+      if (!["ELIGIBLE", "ALREADY_RECEIVED"].includes(verification.result)) setMessage(null);
+    } catch {
+      setVerificationError("Invalid UUID");
       setResult(null);
     } finally {
       setState("idle");
@@ -350,7 +347,7 @@ export function ReliefDistributionPanel({
               <Detail label="Barangay Scope" value={selectedScope} />
             </dl>
             <div className={styles.polishedActions}>
-              <button type="button" disabled={!selectedIsDistributable} onClick={openScannerWindow}><ScanIcon />Open QR Code</button>
+              <button type="button" disabled={!selectedCampaign} onClick={openScannerWindow}><ScanIcon />Open QR Code</button>
               <button type="button" onClick={exportCampaignRecords}><DownloadIcon />Export Excel</button>
             </div>
           </> : <div className={styles.polishedEmpty}>Select an active relief program to begin distribution.</div>}
@@ -360,13 +357,24 @@ export function ReliefDistributionPanel({
           <section>
             <form onSubmit={handleVerify}>
               <label htmlFor="beneficiary-identifier">Enter Family/Individual UUID*</label>
-              <input id="beneficiary-identifier" value={identifier} onChange={(event) => setIdentifier(event.target.value)} placeholder="Historical campaigns are view-only" disabled={!selectedIsActive} />
-              <button className={styles.hiddenSubmit} type="submit" disabled={!selectedIsActive || state === "verifying"} tabIndex={-1}>Verify</button>
+              <div className={styles.identifierRow}>
+                <input type="text" id="beneficiary-identifier" value={identifier} onChange={(event) => { setIdentifier(event.target.value); setVerificationError(""); setResult(null); }} placeholder="Enter family or individual UUID" disabled={!selectedCampaign} />
+                <button type="submit" disabled={!selectedCampaign || !identifier.trim() || state === "verifying"}>{state === "verifying" ? "Verifying..." : "Verify"}</button>
+              </div>
             </form>
           </section>
           <section>
             <h2>Beneficiary Result</h2>
-            <div className={cn(styles.resultField, result && styles.resultFieldActive)}>{result ? resultTitle(result.result) : "Result"}</div>
+            <div
+              className={cn(
+                styles.resultField,
+                result && styles.resultFieldActive,
+                (verificationError || (result && !["ELIGIBLE", "RECEIVED", "ALREADY_RECEIVED"].includes(result.result))) && styles.resultFieldError,
+              )}
+              role={verificationError || (result && !["ELIGIBLE", "RECEIVED", "ALREADY_RECEIVED"].includes(result.result)) ? "alert" : undefined}
+            >
+              {verificationError || (result ? resultTitle(result.result) : "Result")}
+            </div>
             {result?.result === "ELIGIBLE" ? <button className={styles.confirmButton} type="button" disabled={state === "confirming"} onClick={handleConfirm}>{state === "confirming" ? "Confirming..." : "Confirm Relief Received"}</button> : null}
           </section>
         </div>
@@ -443,7 +451,7 @@ export function ReliefDistributionPanel({
             <Detail label="Barangay Scope" value={selectedScope} />
           </dl>
           <div className={styles.actionRow}>
-            <button className={styles.primaryButton} type="button" disabled={!selectedIsDistributable} onClick={openScannerWindow}>
+            <button className={styles.primaryButton} type="button" disabled={!selectedCampaign} onClick={openScannerWindow}>
               Open QR Code
             </button>
             <button className={styles.secondaryButton} type="button" onClick={exportCampaignRecords}>
@@ -841,6 +849,7 @@ function resultTone(result?: string) {
 }
 
 function resultTitle(result: string) {
+  if (["INVALID_UUID", "INVALID_IDENTIFIER", "NOT_FOUND"].includes(result)) return "Invalid UUID";
   if (result === "ELIGIBLE") return "Eligible for Relief";
   if (result === "RECEIVED") return "Relief Distribution Confirmed";
   if (result === "ALREADY_RECEIVED") return "Relief Already Received";

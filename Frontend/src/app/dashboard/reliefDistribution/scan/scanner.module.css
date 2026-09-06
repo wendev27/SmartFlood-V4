@@ -127,6 +127,52 @@
   font-size: clamp(14px, 2vw, 22px);
 }
 
+.scannerBox {
+  background: #0f172a;
+  overflow: hidden;
+  padding: 0;
+  position: relative;
+}
+
+.cameraPreview {
+  height: 100%;
+  inset: 0;
+  object-fit: cover;
+  position: absolute;
+  width: 100%;
+}
+
+.scannerBox .scanFrame {
+  border: 3px solid rgba(255,255,255,.95);
+  border-radius: 18px;
+  box-shadow: 0 0 0 999px rgba(15,23,42,.35);
+  height: min(58%, 320px);
+  left: 50%;
+  position: absolute;
+  top: 46%;
+  transform: translate(-50%,-50%);
+  width: min(58%, 320px);
+}
+
+.scannerBox .cameraStatus {
+  background: rgba(15,23,42,.82);
+  border: 0;
+  border-radius: 12px;
+  bottom: 16px;
+  display: grid;
+  gap: 4px;
+  height: auto;
+  left: 16px;
+  padding: 10px 14px;
+  place-content: initial;
+  position: absolute;
+  right: 16px;
+  width: auto;
+}
+
+.scannerBox .cameraStatus strong { color:#fff; font-size:14px; }
+.scannerBox .cameraStatus span { color:#dbeafe; font-size:12px; font-weight:600; text-transform:none; }
+
 .manualCard,
 .resultCard {
   display: grid;

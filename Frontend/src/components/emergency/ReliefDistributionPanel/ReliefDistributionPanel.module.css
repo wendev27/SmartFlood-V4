@@ -614,11 +614,16 @@
 .verificationGrid { display: grid; gap: 20px; grid-template-columns: repeat(2,minmax(0,1fr)); margin-top: 32px; }
 .verificationGrid > section { min-height: 140px; padding: 24px 36px; }
 .verificationGrid form { display: grid; gap: 20px; position: relative; }
-.verificationGrid form > input,
+.identifierRow input,
 .resultField { background: transparent; border: 1px solid #0088ff; border-radius: 10px; font-size: 16px; height: 48px; padding: 0 16px; }
-.hiddenSubmit { height: 1px; opacity: 0; overflow: hidden; pointer-events: none; position: absolute; width: 1px; }
+.identifierRow { display:grid; gap:12px; grid-template-columns:minmax(0,1fr) 120px; }
+.identifierRow input { min-width:0; width:100%; }
+.identifierRow input:disabled { background:#f8fafc; border-color:#d1d5dc; color:#94a3b8; }
+.identifierRow button { background:#0088ff; border:1px solid #0088ff; border-radius:10px; color:#fff; cursor:pointer; font-size:14px; font-weight:700; height:48px; }
+.identifierRow button:disabled { cursor:not-allowed; opacity:.5; }
 .resultField { align-items: center; border-color: #d1d5dc; color: #d1d5dc; display: flex; margin-top: 20px; }
 .resultFieldActive { color: #1e1e1e; }
+.resultFieldError { background:#fff5f5; border-color:#ff4343; color:#c62828; font-size:13px; line-height:1.25; }
 .confirmButton { background: #0088ff; border: 0; border-radius: 10px; color: #fff; font-weight: 600; margin-top: 10px; min-height: 38px; width: 100%; }
 .uuidHint { font-size: 12px; font-style: italic; margin: 12px 0 0 52px; }
 
@@ -650,6 +655,7 @@
   .distributionFilters label,
   .zoneFilter { max-width: none; width: 100%; }
   .uuidHint { margin-left: 0; }
+  .identifierRow { grid-template-columns:1fr; }
 }
 
 .pagination {
