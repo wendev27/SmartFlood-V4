@@ -167,7 +167,7 @@ function FloodHistory({ onBack, userProfile }: MonitoringSubpageProps) {
     "Barangay Potrero",
     "Barangay Tañong",
     ...history.map((reading) => reading.barangayName),
-  ])).sort(), [history]);
+  ])).filter((item) => normalizeBarangayForCompare(item).replace(/^barangay\s+/, "") !== "catmon").sort(), [history]);
   const filteredHistory = useMemo(() => history.filter((reading) => {
     const date = reading.createdAt ? new Date(reading.createdAt) : null;
     const matchesDate = !historyDate || (date != null && !Number.isNaN(date.getTime()) && localDateKey(date) === historyDate);
@@ -235,13 +235,28 @@ function FloodHistory({ onBack, userProfile }: MonitoringSubpageProps) {
             Filters
           </button>
           {areHistoryFiltersOpen ? <div className={styles.analyticsFilters}>
-            <input type="date" aria-label="Filter by date" value={historyDate} onChange={(event) => setHistoryDate(event.target.value)} />
-            <label className={styles.filterSelectWrap}>
+            <label className={styles.historyFilterField}>
+              <span>Date</span>
+              <input type="date" aria-label="Filter by date" value={historyDate} onChange={(event) => setHistoryDate(event.target.value)} />
+            </label>
+            <label className={`${styles.historyFilterField} ${styles.filterSelectWrap}`}>
+              <span>Barangay</span>
               <select value={barangay} onChange={(event) => setBarangay(event.target.value)}>
                 <option value="">All barangays</option>
                 {barangays.map((item) => <option key={item} value={item}>{formatBarangayName(item)}</option>)}
               </select>
             </label>
+            <button
+              className={styles.clearHistoryFilters}
+              type="button"
+              disabled={!historyDate && !barangay}
+              onClick={() => {
+                setHistoryDate("");
+                setBarangay("");
+              }}
+            >
+              Clear filters
+            </button>
           </div> : null}
 
           <div className={styles.historyChartHeading}>
