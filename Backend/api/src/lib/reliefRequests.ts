@@ -85,6 +85,7 @@ export async function getReliefRequest(requestId: string, viewer: DashboardViewe
 }
 
 export async function endorseReliefRequest(requestId: string, viewer: DashboardViewer) {
+  if (dashboardViewerRole(viewer) !== "barangay") throw new ReliefRequestError("Only barangay users can endorse resident relief requests.", 403);
   const scope = assignedBarangayForUser(viewer);
   if (!scope) throw new ReliefRequestError("Your account is not assigned to a barangay.", 403);
   const current = await getReliefRequest(requestId, viewer, "barangay");
@@ -95,6 +96,7 @@ export async function endorseReliefRequest(requestId: string, viewer: DashboardV
     .from("relief_requests")
     .update({ status: "Endorsed", endorsed_by: viewer.id, endorsed_at: now, reviewed_by: null, reviewed_at: null, rejection_feedback: null, release_date: null, release_time: null, release_details: null })
     .eq("id", requestId)
+    .eq("user_id", current.user_id)
     .eq("status", "Pending")
     .select(requestSelect)
     .maybeSingle();

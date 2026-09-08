@@ -1,5 +1,27 @@
 # Resident Relief Request Workflow — Implementation Handoff
 
+## Barangay isolation hardening — 2026-09-08
+
+- Investigation found the existing list query already scopes Barangay users
+  through `residents_v3.barangay_id`, and detail/endorsement checks already
+  reject requests outside the authenticated assignment. The remaining
+  defense-in-depth gap was that the endorsement update itself matched only
+  request ID and `Pending` status.
+- Added the authenticated request `user_id` predicate to the endorsement
+  update and enforced the Barangay role inside the service, in addition to the
+  route guard. CSWDD list/detail/review behavior remains city-wide.
+- Expanded `Backend/api/tests/relief-requests.test.cjs` with Tanong/Catmon list
+  isolation, cross-Barangay detail/endorsement rejection, Catmon endorsement,
+  CSWDD multi-Barangay access, and non-Barangay endorsement rejection cases.
+- Exact files changed for this correction: `Backend/api/src/lib/reliefRequests.ts`,
+  `Backend/api/tests/relief-requests.test.cjs`, and this handoff document.
+- No migration was created or applied, no production data was changed, and no
+  frontend/UI changes were made for this security correction.
+- Focused relief tests pass (8/8), Backend TypeScript passes, Frontend
+  TypeScript passes, emergency regressions pass (22/22), frontend presentation
+  tests pass (19/19), frontend relief tests pass (3/3), both production builds
+  pass, and `git diff --check` passes.
+
 ## CSWDD sidebar correction — 2026-09-08
 
 - Removed only `reliefManagement` from the existing `role === 'cswdd'` branch
@@ -20,6 +42,23 @@
 - Files changed in this follow-up: `Frontend/src/data/navigation.ts`,
   `Frontend/tests/presentation.test.cjs`, and `IMPLEMENTATION_PROGRESS.md`.
   No commit or push.
+- Sensor History navigation entries are now removed globally from the shared
+  and role-specific navigation definitions. The Sensor History route,
+  component, services, and sensor functionality remain intact. No backend,
+  database, or migration changes were made for this correction.
+- Validation: Frontend TypeScript passed, presentation tests passed (19/19),
+  production build passed, and `git diff --check` passed. Files changed for
+  this correction: `Frontend/src/data/navigation.ts`,
+  `Frontend/tests/presentation.test.cjs`, and this handoff document.
+- CSWDD navigation now retains only `relief` among its relief modules;
+  `Emergency Relief Management` and `Relief Audit Reports` remain implemented
+  but are hidden from the CSWDD sidebar. Barangay navigation and its separate
+  relief/report modules are unchanged. Sensor History remains globally hidden.
+- CSWDD correction validation: Frontend TypeScript passed, presentation tests
+  passed (19/19), production build passed, and `git diff --check` passed.
+- Super Admin CSWDD group now hides `Relief Audit Reports` while retaining
+  `Relief Management` and `Emergency Relief Management`; Barangay report
+  navigation and the underlying audit module remain unchanged.
 
 ## Final corrections update — 2026-09-08
 

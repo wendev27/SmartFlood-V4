@@ -43,10 +43,10 @@ const render = (component, props) => renderToStaticMarkup(React.createElement(co
 
 test("navigation preserves role destinations and Barangay group structure", () => {
   const expected = {
-    super: ["dashboard", "monitoring", "sensors", "relief", "reliefManagement", "reliefDistribution", "residents", "accounts", "logs", "systemLogs"],
-    cswdd: ["dashboard", "monitoring", "sensors", "relief", "reliefDistribution", "residents", "systemLogs"],
-    cdrrmo: ["dashboard", "monitoring", "sensors", "systemLogs"],
-    barangay: ["dashboard", "monitoring", "sensors", "emergencyNotifications", "reliefDistribution", "residents", "accounts", "systemLogs"],
+    super: ["dashboard", "monitoring", "relief", "reliefManagement", "reliefDistribution", "residents", "accounts", "logs", "systemLogs"],
+    cswdd: ["dashboard", "monitoring", "relief", "residents", "systemLogs"],
+    cdrrmo: ["dashboard", "monitoring", "systemLogs"],
+    barangay: ["dashboard", "monitoring", "emergencyNotifications", "reliefDistribution", "residents", "accounts", "systemLogs"],
   };
   for (const [role, keys] of Object.entries(expected)) {
     const items = navigationItemsForRole(role);
@@ -54,10 +54,15 @@ test("navigation preserves role destinations and Barangay group structure", () =
     const original = JSON.stringify(items);
     const grouped = navigationPresentation(items, role);
     const flattened = [...grouped.primary, ...grouped.groups.flatMap((group) => group.items)];
+    assert.equal(flattened.some((item) => item.key === "sensors" || item.label === "Sensor History"), false);
+    if (role === "cswdd") {
+      assert.deepEqual(flattened.filter((item) => ["relief", "reliefManagement", "reliefDistribution"].includes(item.key)).map((item) => item.key), ["relief"]);
+    }
     assert.equal(flattened.some((item) => item.key === "reliefManagement"), role === "super");
     const visibleKeys = role === "barangay" ? keys.filter((key) => key !== "reliefDistribution") : keys;
     if (role === "super") {
       assert.deepEqual(grouped.groups.map((group) => group.label), ["CSWDD", "Barangay Tanong", "Barangay Catmon", "Barangay Potrero"]);
+      assert.deepEqual(grouped.groups.find((group) => group.label === "CSWDD").items.map((item) => item.key), ["relief", "reliefManagement"]);
       assert.equal(grouped.groups.filter((group) => group.label.startsWith("Barangay")).every((group) => group.items.map((item) => item.key).join("|") === "emergencyNotifications|reliefDistribution|residents|accounts"), true);
       assert.equal(grouped.groups.filter((group) => group.label.startsWith("Barangay")).every((group) => group.items.map((item) => item.label).join("|") === "Relief Management|Emergency Report Management|Resident Information|Resident Account Registration Management"), true);
     } else {

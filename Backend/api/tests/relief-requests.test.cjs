@@ -42,7 +42,7 @@ const { POST } = require('@/app/api/relief-requests/[id]/review/route');
 function reset(status = 'Endorsed', role = 3) {
   officer = { id: 'trusted-officer', role_id: role, status: 'active', first_name: 'Test', last_name: 'Officer', barangay_id: 1, barangay: 'Barangay Tanong' };
   sessionId = officer.id; audits = []; loseRace = false;
-  rows = [{ id: 'request-1', status, reviewed_by: null, reviewed_at: null, rejection_feedback: null, release_details: 'legacy', residents_v3: { resident_id: 'resident-1', barangay_id: 1, barangay_name: 'Barangay Tanong' } }];
+  rows = [{ id: 'request-1', user_id: 'resident-1', status, reviewed_by: null, reviewed_at: null, rejection_feedback: null, release_details: 'legacy', residents_v3: { resident_id: 'resident-1', barangay_id: 1, barangay_name: 'Barangay Tanong' } }];
 }
 async function submit(body = { action: 'feedback', rejection_feedback: ' Being processed ' }) {
   return POST({ json: async () => body }, { params: Promise.resolve({ id: 'request-1' }) });
@@ -77,12 +77,32 @@ test('non-Endorsed states, duplicate and racing submissions cannot overwrite fee
 });
 test('barangay list/detail and endorsement remain isolated and auditable', async () => {
   reset('Pending', 4);
-  rows.push({ ...structuredClone(rows[0]), id: 'other', residents_v3: { barangay_id: 2 } });
+  rows.push({ ...structuredClone(rows[0]), id: 'other', user_id: 'resident-2', residents_v3: { resident_id: 'resident-2', barangay_id: 2, barangay_name: 'Barangay Catmon' } });
   const own = await service.listReliefRequests(officer, 'barangay'); assert.deepEqual(own.map(r => r.id), ['request-1']);
   await assert.rejects(service.getReliefRequest('other', officer, 'barangay'), e => e.status === 403);
   await assert.rejects(service.endorseReliefRequest('other', officer), e => e.status === 403);
   await service.endorseReliefRequest('request-1', officer); assert.equal(rows[0].status, 'Endorsed'); assert.equal(audits[0].action, 'RELIEF_REQUEST_ENDORSED');
   await assert.rejects(service.endorseReliefRequest('request-1', officer), e => e.status === 409);
+});
+test('Barangay Tanong and Catmon queues are isolated by the authenticated assignment', async () => {
+  reset('Pending', 4);
+  rows.push({ id: 'catmon-request', user_id: 'resident-2', status: 'Pending', residents_v3: { resident_id: 'resident-2', barangay_id: 2, barangay_name: 'Barangay Catmon' } });
+  const tanongRows = await service.listReliefRequests(officer, 'barangay');
+  assert.deepEqual(tanongRows.map(r => r.id), ['request-1']);
+  const catmonOfficer = { ...officer, id: 'catmon-officer', barangay_id: 2, barangay: 'Barangay Catmon' };
+  assert.deepEqual((await service.listReliefRequests(catmonOfficer, 'barangay')).map(r => r.id), ['catmon-request']);
+  await assert.rejects(service.getReliefRequest('catmon-request', officer, 'barangay'), e => e.status === 403);
+  await assert.rejects(service.endorseReliefRequest('catmon-request', officer), e => e.status === 403);
+  await service.endorseReliefRequest('catmon-request', catmonOfficer);
+  assert.equal(rows.find(r => r.id === 'catmon-request').status, 'Endorsed');
+});
+test('CSWDD retains city-wide access while Barangay users cannot endorse as another role', async () => {
+  reset('Endorsed', 3);
+  rows.push({ id: 'catmon-endorsed', user_id: 'resident-2', status: 'Endorsed', residents_v3: { resident_id: 'resident-2', barangay_id: 2, barangay_name: 'Barangay Catmon' } });
+  assert.deepEqual((await service.listReliefRequests(officer, 'cswdd')).map(r => r.id), ['request-1', 'catmon-endorsed']);
+  assert.equal((await service.getReliefRequest('request-1', officer, 'cswdd')).resident.barangay_id, 1);
+  assert.equal((await service.getReliefRequest('catmon-endorsed', officer, 'cswdd')).resident.barangay_id, 2);
+  await assert.rejects(service.endorseReliefRequest('request-1', officer), e => e.status === 403);
 });
 test('CSWDD queue excludes pending requests and retains requests with feedback', async () => {
   reset(); rows.push({ ...structuredClone(rows[0]), id: 'pending', status: 'Pending' });
