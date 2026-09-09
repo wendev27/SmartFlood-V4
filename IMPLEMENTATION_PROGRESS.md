@@ -1,5 +1,23 @@
 # Resident Relief Request Workflow — Implementation Handoff
 
+## Resident Relief Request Endorsement — FRONTEND HIDDEN — 2026-09-09
+
+- Intentionally removed the Resident Relief Request Endorsement entries from
+  the rendered CSWDD and Barangay Relief Management module grids.
+- The underlying frontend component/view and backend/API remain intact; no
+  database or migration changes were made.
+- AI-Optimized Relief Recommendation, Recommendation History, and Relief
+  Distribution List remain visible in the CSWDD Relief Management grid. The
+  other Barangay Relief Management entries remain visible.
+- Files changed: `Frontend/src/components/relief/ReliefPanel/ReliefPanel.tsx`,
+  `Frontend/src/components/relief/BarangayReliefPanel/BarangayReliefPanel.tsx`,
+  and this document.
+- Validation: frontend TypeScript passed; presentation tests passed (19/19);
+  frontend production build passed; `git diff --check` passed. The existing
+  `relief-feedback.test.cjs` remains unchanged and has one pre-existing
+  harness expectation mismatch because the component supplies its optional
+  `barangayScope` argument.
+
 ## FRONTEND TERMINOLOGY AUDIT — 2026-09-08
 
 - Reference note: `SmartFlood Modules.docx` was not present inside `SmartFlood-V3.2`; the approved terminology specification supplied in the task was used as the source of truth.
